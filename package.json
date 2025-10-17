@@ -2,7 +2,13 @@
   "name": "@nx-monorepo/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "dev": "nx run web:dev",
+    "build": "nx run-many -t build",
+    "test": "nx run-many -t test",
+    "lint": "nx run-many -t lint",
+    "e2e": "nx run-many -t e2e"
+  },
   "private": true,
   "dependencies": {
     "next": "~15.2.4",
@@ -21,11 +27,12 @@
     "@nx/js": "21.6.5",
     "@nx/next": "21.6.5",
     "@nx/playwright": "21.6.5",
+    "@nx/react": "^21.6.5",
     "@nx/workspace": "21.6.5",
     "@playwright/test": "^1.36.0",
     "@swc-node/register": "~1.9.1",
     "@swc/cli": "~0.6.0",
-    "@swc/core": "~1.5.7",
+    "@swc/core": "^1.13.5",
     "@swc/helpers": "~0.5.11",
     "@testing-library/dom": "10.4.0",
     "@testing-library/react": "16.1.0",
@@ -56,7 +63,5 @@
     "typescript": "~5.9.2",
     "typescript-eslint": "^8.40.0"
   },
-  "workspaces": [
-    "apps/*"
-  ]
+  "packageManager": "pnpm@10.18.3"
 }

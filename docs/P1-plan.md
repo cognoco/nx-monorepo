@@ -1,6 +1,6 @@
 ---
 Created: 2025-10-17
-Modified: 2025-10-17T16:11
+Modified: 2025-10-17T16:44
 Version: 1
 ---
 
@@ -115,30 +115,40 @@ Verify that the out-of-the-box Nx setup works correctly and meets all prerequisi
 
 ### Sub-stages
 
-- [ ] **0.1: Verify prerequisites**
+- [x] **0.1: Verify prerequisites** ✅
   - [x] 0.1.1: Check Node.js version (recommended: v20.x or later) - v22.20.0 ✅
-  - [ ] 0.1.2: Check pnpm version (should be v8.x or later)
-  - [ ] 0.1.3: Verify pnpm is set as package manager (not npm)
-  - [ ] 0.1.4: Clean up any npm artifacts (package-lock.json) if present
-  - [ ] 0.1.5: Verify Playwright browsers installed
-  - [ ] 0.1.6: Document prerequisite versions in `docs/prerequisites.md`
+  - [x] 0.1.2: Check pnpm version (should be v8.x or later) - v10.13.1, upgraded to v10.18.3 ✅
+    - [x] 0.1.2.1: Run `pnpm setup` to configure global bin directory
+    - [x] 0.1.2.2: Restart terminal to apply PATH changes
+    - [x] 0.1.2.3: Run `pnpm self-update` to upgrade to latest version
+    - [x] 0.1.2.4: Update packageManager in package.json to pnpm@10.18.3
+  - [x] 0.1.3: Verify pnpm is set as package manager (not npm) - Added to package.json ✅
+  - [x] 0.1.4: Clean up any npm artifacts (package-lock.json) if present - Deleted ✅
+  - [x] 0.1.5: Verify Playwright browsers installed - v1.56.0 ✅
+  - [x] 0.1.6: Document prerequisite versions in `docs/prerequisites.md` ✅
+  - [x] 0.1.7: Create pnpm-workspace.yaml to replace package.json workspaces field ✅
+  - [x] 0.1.8: Remove "workspaces" field from package.json (pnpm-specific config) ✅
+  - [x] 0.1.9: Clean node_modules and reinstall with pnpm to remove npm residue ✅
 
-- [ ] **0.2: Verify existing web app builds and runs**
-  - [ ] 0.2.1: Run `pnpm install` and verify no errors
-  - [ ] 0.2.2: Run `nx run web:build` and verify success
-  - [ ] 0.2.3: Run `nx run web:dev` and verify dev server starts
-  - [ ] 0.2.4: Access http://localhost:4200 and verify app loads
+- [x] **0.2: Verify existing web app builds and runs** ✅
+  - [x] 0.2.1: Run `pnpm install` and verify no errors - Created pnpm-workspace.yaml, cleaned node_modules ✅
+    - [x] Fixed @swc/core peer dependency (updated from ~1.5.29 to ^1.13.5)
+    - [x] Approved build scripts for nx and @swc/core via pnpm approve-builds
+    - [x] Added common npm scripts to package.json (dev, build, test, lint, e2e)
+  - [x] 0.2.2: Run `pnpm exec nx run web:build` and verify success - Build completed in 18s ✅
+  - [x] 0.2.3: Run `pnpm exec nx run web:dev` and verify dev server starts ✅
+  - [x] 0.2.4: Access http://localhost:3000 and verify app loads ✅
 
 - [ ] **0.3: Test existing QA tooling**
-  - [ ] 0.3.1: Run `nx run web:lint` and verify passes
-  - [ ] 0.3.2: Run `nx run web:test` and verify all tests pass
-  - [ ] 0.3.3: Run `nx run web-e2e:e2e` and verify Playwright E2E tests pass (smoke tests)
+  - [ ] 0.3.1: Run `pnpm exec nx run web:lint` and verify passes
+  - [ ] 0.3.2: Run `pnpm exec nx run web:test` and verify all tests pass
+  - [ ] 0.3.3: Run `pnpm exec nx run web-e2e:e2e` and verify Playwright E2E tests pass (smoke tests)
   - [ ] 0.3.4: Verify Prettier formatting works
 
 - [ ] **0.4: Validate CI pipeline**
   - [ ] 0.4.1: Confirm GitHub Actions workflow passes on latest commit
   - [ ] 0.4.2: Verify Nx Cloud integration shows task results
-  - [ ] 0.4.3: Test cache hits by running build twice: `nx run web:build` (second run should be cached)
+  - [ ] 0.4.3: Test cache hits by running build twice: `pnpm exec nx run web:build` (second run should be cached)
 
 - [ ] **0.5: Validate workspace scripts**
   - [ ] 0.5.1: Verify package.json scripts are set up correctly
@@ -155,11 +165,11 @@ Verify that the out-of-the-box Nx setup works correctly and meets all prerequisi
 - [ ] Prerequisites documented and verified
 - [ ] pnpm is confirmed as package manager (no package-lock.json)
 - [ ] `pnpm install` completes without errors or warnings
-- [ ] `nx run web:build` succeeds
-- [ ] `nx run web:dev` starts development server successfully
-- [ ] `nx run web:lint` passes with no errors
-- [ ] `nx run web:test` passes all tests
-- [ ] `nx run web-e2e:e2e` passes all Playwright tests
+- [ ] `pnpm exec nx run web:build` succeeds
+- [ ] `pnpm exec nx run web:dev` starts development server successfully
+- [ ] `pnpm exec nx run web:lint` passes with no errors
+- [ ] `pnpm exec nx run web:test` passes all tests
+- [ ] `pnpm exec nx run web-e2e:e2e` passes all Playwright tests
 - [ ] GitHub Actions CI workflow passes on latest commit
 - [ ] Nx Cloud shows successful task caching (cache hit on second build)
 - [ ] Package version baseline documented in `docs/package-versions-baseline.md`
@@ -178,36 +188,36 @@ Create the server application using Nx generators, ensuring it builds and runs i
 ### Sub-stages
 
 - [ ] **1.1: Generate server application**
-  - [ ] 1.1.1: Run: `nx g @nx/node:app server --directory=apps/server --framework=express`
+  - [ ] 1.1.1: Run: `pnpm exec nx g @nx/node:app server --directory=apps/server --framework=express`
   - [ ] 1.1.2: Review generated files and structure
   - [ ] 1.1.3: Verify TypeScript paths in tsconfig.base.json updated
 
 - [ ] **1.2: Immediate validation**
-  - [ ] 1.2.1: Run `nx run server:build` and verify success
-  - [ ] 1.2.2: Run `nx run server:serve` and verify server starts on expected port
+  - [ ] 1.2.1: Run `pnpm exec nx run server:build` and verify success
+  - [ ] 1.2.2: Run `pnpm exec nx run server:serve` and verify server starts on expected port
   - [ ] 1.2.3: Verify server responds to default route (curl or browser)
-  - [ ] 1.2.4: Run `nx run server:lint` and verify passes
-  - [ ] 1.2.5: Run `nx run server:test` and verify default tests pass
+  - [ ] 1.2.4: Run `pnpm exec nx run server:lint` and verify passes
+  - [ ] 1.2.5: Run `pnpm exec nx run server:test` and verify default tests pass
 
 - [ ] **1.3: Update workspace scripts**
   - [ ] 1.3.1: Add server dev script to root package.json (if needed)
   - [ ] 1.3.2: Document how to run server in development
 
 - [ ] **1.4: Verify workspace health**
-  - [ ] 1.4.1: Run `nx graph` and verify clean dependency structure
-  - [ ] 1.4.2: Run `nx run-many -t build` and verify both web and server build
+  - [ ] 1.4.1: Run `pnpm exec nx graph` and verify clean dependency structure
+  - [ ] 1.4.2: Run `pnpm exec nx run-many -t build` and verify both web and server build
   - [ ] 1.4.3: Verify Nx cache works for server tasks
 
 ### Success Criteria
 
 - [ ] Server application generated in `apps/server/`
-- [ ] `nx run server:build` succeeds
-- [ ] `nx run server:serve` starts server on expected port
+- [ ] `pnpm exec nx run server:build` succeeds
+- [ ] `pnpm exec nx run server:serve` starts server on expected port
 - [ ] Server responds to health check endpoint (default Express route)
-- [ ] `nx run server:lint` passes
-- [ ] `nx run server:test` passes (with default tests)
-- [ ] `nx graph` shows both web and server apps with no circular dependencies
-- [ ] `nx run-many -t build` builds both apps successfully
+- [ ] `pnpm exec nx run server:lint` passes
+- [ ] `pnpm exec nx run server:test` passes (with default tests)
+- [ ] `pnpm exec nx graph` shows both web and server apps with no circular dependencies
+- [ ] `pnpm exec nx run-many -t build` builds both apps successfully
 - [ ] Nx cache hits work for server tasks (run build twice)
 
 **Stage 1 Estimated Time:** 30-45 minutes
@@ -223,45 +233,45 @@ Create all shared libraries following Nx conventions, ensuring each package buil
 ### Sub-stages
 
 - [ ] **2.1: Generate database package**
-  - [ ] 2.1.1: Run: `nx g @nx/node:lib database --directory=packages/database --buildable`
+  - [ ] 2.1.1: Run: `pnpm exec nx g @nx/node:lib database --directory=packages/database --buildable`
   - [ ] 2.1.2: Install Prisma dependencies: `pnpm add -D prisma --filter @nx-monorepo/database`
   - [ ] 2.1.3: Install Prisma client: `pnpm add @prisma/client --filter @nx-monorepo/database`
   - [ ] 2.1.4: Set up basic Prisma configuration structure
-  - [ ] 2.1.5: **Immediate test**: Run `nx run database:build` and verify success
-  - [ ] 2.1.6: **Immediate test**: Run `nx run database:lint` and verify passes
-  - [ ] 2.1.7: **Immediate test**: Run `nx run database:test` and verify passes
+  - [ ] 2.1.5: **Immediate test**: Run `pnpm exec nx run database:build` and verify success
+  - [ ] 2.1.6: **Immediate test**: Run `pnpm exec nx run database:lint` and verify passes
+  - [ ] 2.1.7: **Immediate test**: Run `pnpm exec nx run database:test` and verify passes
 
 - [ ] **2.2: Generate schemas package**
-  - [ ] 2.2.1: Run: `nx g @nx/js:lib schemas --directory=packages/schemas --buildable`
+  - [ ] 2.2.1: Run: `pnpm exec nx g @nx/js:lib schemas --directory=packages/schemas --buildable`
   - [ ] 2.2.2: Install Zod: `pnpm add zod --filter @nx-monorepo/schemas`
   - [ ] 2.2.3: Create placeholder schema exports
-  - [ ] 2.2.4: **Immediate test**: Run `nx run schemas:build` and verify success
-  - [ ] 2.2.5: **Immediate test**: Run `nx run schemas:lint` and verify passes
-  - [ ] 2.2.6: **Immediate test**: Run `nx run schemas:test` and verify passes
+  - [ ] 2.2.4: **Immediate test**: Run `pnpm exec nx run schemas:build` and verify success
+  - [ ] 2.2.5: **Immediate test**: Run `pnpm exec nx run schemas:lint` and verify passes
+  - [ ] 2.2.6: **Immediate test**: Run `pnpm exec nx run schemas:test` and verify passes
 
 - [ ] **2.3: Generate api-client package**
-  - [ ] 2.3.1: Run: `nx g @nx/js:lib api-client --directory=packages/api-client --buildable`
+  - [ ] 2.3.1: Run: `pnpm exec nx g @nx/js:lib api-client --directory=packages/api-client --buildable`
   - [ ] 2.3.2: Install oRPC client: `pnpm add @orpc/client --filter @nx-monorepo/api-client`
   - [ ] 2.3.3: Set up basic client factory structure
-  - [ ] 2.3.4: **Immediate test**: Run `nx run api-client:build` and verify success
-  - [ ] 2.3.5: **Immediate test**: Run `nx run api-client:lint` and verify passes
-  - [ ] 2.3.6: **Immediate test**: Run `nx run api-client:test` and verify passes
+  - [ ] 2.3.4: **Immediate test**: Run `pnpm exec nx run api-client:build` and verify success
+  - [ ] 2.3.5: **Immediate test**: Run `pnpm exec nx run api-client:lint` and verify passes
+  - [ ] 2.3.6: **Immediate test**: Run `pnpm exec nx run api-client:test` and verify passes
 
 - [ ] **2.4: Generate supabase-client package**
-  - [ ] 2.4.1: Run: `nx g @nx/js:lib supabase-client --directory=packages/supabase-client --buildable`
+  - [ ] 2.4.1: Run: `pnpm exec nx g @nx/js:lib supabase-client --directory=packages/supabase-client --buildable`
   - [ ] 2.4.2: Install Supabase client: `pnpm add @supabase/supabase-js --filter @nx-monorepo/supabase-client`
   - [ ] 2.4.3: Install Supabase SSR: `pnpm add @supabase/ssr --filter @nx-monorepo/supabase-client`
   - [ ] 2.4.4: Set up client factory structure
-  - [ ] 2.4.5: **Immediate test**: Run `nx run supabase-client:build` and verify success
-  - [ ] 2.4.6: **Immediate test**: Run `nx run supabase-client:lint` and verify passes
-  - [ ] 2.4.7: **Immediate test**: Run `nx run supabase-client:test` and verify passes
+  - [ ] 2.4.5: **Immediate test**: Run `pnpm exec nx run supabase-client:build` and verify success
+  - [ ] 2.4.6: **Immediate test**: Run `pnpm exec nx run supabase-client:lint` and verify passes
+  - [ ] 2.4.7: **Immediate test**: Run `pnpm exec nx run supabase-client:test` and verify passes
 
 - [ ] **2.5: Verify package dependency graph and cross-package integration**
-  - [ ] 2.5.1: Run `nx graph` and verify clean dependency structure
+  - [ ] 2.5.1: Run `pnpm exec nx graph` and verify clean dependency structure
   - [ ] 2.5.2: Ensure proper library boundaries (no circular dependencies)
   - [ ] 2.5.3: Verify build order is correct
   - [ ] 2.5.4: Test that apps can import from packages (TypeScript paths resolve)
-  - [ ] 2.5.5: Run `nx run-many -t build` and verify all packages build
+  - [ ] 2.5.5: Run `pnpm exec nx run-many -t build` and verify all packages build
   - [ ] 2.5.6: Test incremental builds: change one package, verify only dependents rebuild
 
 ### Success Criteria
@@ -269,11 +279,11 @@ Create all shared libraries following Nx conventions, ensuring each package buil
 - [ ] All four packages generated and build successfully
 - [ ] Each package passed lint immediately after generation
 - [ ] Each package passed tests immediately after generation
-- [ ] `nx run-many -t build --projects=tag:type:lib` succeeds
+- [ ] `pnpm exec nx run-many -t build --projects=tag:type:lib` succeeds
 - [ ] All packages build: database, schemas, api-client, supabase-client
-- [ ] All packages pass lint: `nx run-many -t lint --projects=tag:type:lib`
-- [ ] All packages pass tests: `nx run-many -t test --projects=tag:type:lib`
-- [ ] `nx graph` shows clean dependency structure (no circular dependencies)
+- [ ] All packages pass lint: `pnpm exec nx run-many -t lint --projects=tag:type:lib`
+- [ ] All packages pass tests: `pnpm exec nx run-many -t test --projects=tag:type:lib`
+- [ ] `pnpm exec nx graph` shows clean dependency structure (no circular dependencies)
 - [ ] Apps can import from packages (TypeScript paths resolve correctly)
 - [ ] Incremental builds work (changing one package only rebuilds dependents)
 - [ ] All necessary dependencies installed and documented
@@ -315,13 +325,13 @@ Establish quality assurance tooling and testing scaffolding early to create a sa
   - [ ] 3.4.1: Set up Jest coverage configuration (no threshold yet, just reporting)
   - [ ] 3.4.2: Configure coverage reporting format (lcov, text)
   - [ ] 3.4.3: Set up coverage reports directory: `coverage/`
-  - [ ] 3.4.4: Test coverage generation: `nx run-many -t test --coverage`
+  - [ ] 3.4.4: Test coverage generation: `pnpm exec nx run-many -t test --coverage`
   - [ ] 3.4.5: Document how to view coverage reports
 
 - [ ] **3.5: Add type checking to CI**
   - [ ] 3.5.1: Ensure TypeScript compilation is part of CI pipeline
   - [ ] 3.5.2: Configure typecheck target for projects (if not auto-configured)
-  - [ ] 3.5.3: Test: `nx run-many -t typecheck`
+  - [ ] 3.5.3: Test: `pnpm exec nx run-many -t typecheck`
   - [ ] 3.5.4: Update `.github/workflows/ci.yml` to include typecheck step
 
 ### Success Criteria
@@ -464,9 +474,9 @@ Create a minimal vertical slice that exercises the entire stack: web → API cli
   - [ ] 5.5.7: Test manually in browser
 
 - [ ] **5.6: Manual validation**
-  - [ ] 5.6.1: Start server: `nx run server:serve`
-  - [ ] 5.6.2: Start web: `nx run web:dev`
-  - [ ] 5.6.3: Navigate to http://localhost:4200/health
+  - [ ] 5.6.1: Start server: `pnpm exec nx run server:serve`
+  - [ ] 5.6.2: Start web: `pnpm exec nx run web:dev`
+  - [ ] 5.6.3: Navigate to http://localhost:3000/health
   - [ ] 5.6.4: Verify health checks display
   - [ ] 5.6.5: Click ping button and verify new entry appears
   - [ ] 5.6.6: Check Supabase dashboard to confirm data persistence
@@ -474,7 +484,7 @@ Create a minimal vertical slice that exercises the entire stack: web → API cli
 
 - [ ] **5.7: Update coverage thresholds**
   - [ ] 5.7.1: Update Jest configuration to set 60% coverage threshold
-  - [ ] 5.7.2: Run: `nx run-many -t test --coverage`
+  - [ ] 5.7.2: Run: `pnpm exec nx run-many -t test --coverage`
   - [ ] 5.7.3: Verify >= 60% coverage achieved
   - [ ] 5.7.4: Document any intentional coverage gaps
 
@@ -488,14 +498,14 @@ Create a minimal vertical slice that exercises the entire stack: web → API cli
 - [ ] Web app can trigger write operation (ping button)
 - [ ] Changes appear immediately in web UI after ping
 - [ ] Data persists in Supabase database
-- [ ] All apps build successfully: `nx run-many -t build`
+- [ ] All apps build successfully: `pnpm exec nx run-many -t build`
 - [ ] No TypeScript errors in any project
 - [ ] Nx cache works for all build tasks
 - [ ] Unit tests pass for database package
 - [ ] Unit tests pass for schemas package
 - [ ] Integration tests pass for server endpoints
 - [ ] Unit tests pass for api-client package
-- [ ] All tests pass: `nx run-many -t test`
+- [ ] All tests pass: `pnpm exec nx run-many -t test`
 - [ ] Test coverage is >= 60% across shared packages
 - [ ] Pre-commit hooks allow commits (code quality is good)
 
@@ -530,7 +540,7 @@ Complete end-to-end testing for the walking skeleton, validating the complete us
   - [ ] 6.2.6: Run E2E tests and verify they pass
 
 - [ ] **6.3: Verify test coverage**
-  - [ ] 6.3.1: Run coverage report: `nx run-many -t test --coverage`
+  - [ ] 6.3.1: Run coverage report: `pnpm exec nx run-many -t test --coverage`
   - [ ] 6.3.2: Update coverage threshold to 80%
   - [ ] 6.3.3: Ensure >= 80% coverage threshold is met
   - [ ] 6.3.4: Document any intentional coverage gaps
@@ -554,7 +564,7 @@ Complete end-to-end testing for the walking skeleton, validating the complete us
 - [ ] E2E test: Data persists across page refresh
 - [ ] E2E test: Error handling works when server is down
 - [ ] All E2E tests pass
-- [ ] `nx run-many -t test --coverage` shows >= 80% coverage
+- [ ] `pnpm exec nx run-many -t test --coverage` shows >= 80% coverage
 - [ ] Coverage report generated and documented
 
 **Documentation:**
@@ -701,12 +711,12 @@ Add mobile application to complete the full cross-platform walking skeleton. Thi
 ### Sub-stages
 
 - [ ] **8.1: Generate mobile application**
-  - [ ] 8.1.1: Run: `nx g @nx/expo:app mobile --directory=apps/mobile`
+  - [ ] 8.1.1: Run: `pnpm exec nx g @nx/expo:app mobile --directory=apps/mobile`
   - [ ] 8.1.2: Review generated files and structure
-  - [ ] 8.1.3: **Immediate test**: Run `nx run mobile:build` and verify success
-  - [ ] 8.1.4: **Immediate test**: Run `nx run mobile:start` and verify Expo dev server starts
-  - [ ] 8.1.5: **Immediate test**: Run `nx run mobile:lint` and verify passes
-  - [ ] 8.1.6: **Immediate test**: Run `nx run mobile:test` and verify passes
+  - [ ] 8.1.3: **Immediate test**: Run `pnpm exec nx run mobile:build` and verify success
+  - [ ] 8.1.4: **Immediate test**: Run `pnpm exec nx run mobile:start` and verify Expo dev server starts
+  - [ ] 8.1.5: **Immediate test**: Run `pnpm exec nx run mobile:lint` and verify passes
+  - [ ] 8.1.6: **Immediate test**: Run `pnpm exec nx run mobile:test` and verify passes
 
 - [ ] **8.2: Configure mobile-to-server connectivity**
   - [ ] 8.2.1: Decide: Expo tunnel vs ngrok vs local network IP
@@ -766,11 +776,11 @@ Phase 1 is complete when ALL of the following are true:
 
 ### Technical Requirements
 - [ ] All package versions are documented and verified compatible
-- [ ] All projects build successfully: `nx run-many -t build`
-- [ ] All linting passes: `nx run-many -t lint`
-- [ ] All tests pass: `nx run-many -t test`
+- [ ] All projects build successfully: `pnpm exec nx run-many -t build`
+- [ ] All linting passes: `pnpm exec nx run-many -t lint`
+- [ ] All tests pass: `pnpm exec nx run-many -t test`
 - [ ] Test coverage is >= 80% across shared packages
-- [ ] Type checking passes: `nx run-many -t typecheck`
+- [ ] Type checking passes: `pnpm exec nx run-many -t typecheck`
 - [ ] Nx dependency graph is clean (no circular dependencies)
 - [ ] Nx caching works correctly (demonstrated by cache hits)
 
@@ -805,8 +815,8 @@ The ultimate test that Phase 1 is complete:
 2. Review prerequisites and install required tools
 3. Run `pnpm install`
 4. Set up environment variables (following documented steps)
-5. Run `nx run-many -t build`
-6. Run `nx run web:dev` and `nx run server:serve` concurrently
+5. Run `pnpm exec nx run-many -t build`
+6. Run `pnpm exec nx run web:dev` and `pnpm exec nx run server:serve` concurrently
 7. Access the web app and see the walking skeleton working
 8. Make a change to a shared package
 9. See only affected apps rebuild
