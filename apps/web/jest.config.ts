@@ -8,12 +8,17 @@ const createJestConfig = nextJest({
 const config: Config = {
   displayName: '@nx-monorepo/web',
   preset: '../../jest.preset.js',
+  testMatch: [
+    '<rootDir>/specs/**/*.(spec|test).[jt]s?(x)',
+    '<rootDir>/src/**/*.(spec|test).[jt]s?(x)',
+  ],
   transform: {
     '^(?!.*\\.(js|jsx|ts|tsx|css|json)$)': '@nx/react/plugins/jest',
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   coverageDirectory: '../../coverage/apps/web',
   testEnvironment: 'jsdom',
+  forceExit: true,
 };
 
 export default createJestConfig(config);
