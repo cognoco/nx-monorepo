@@ -1,13 +1,6 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 # CodeRabbit Configuration
 # Documentation: https://docs.coderabbit.ai/
-
-# Project Knowledge Base - Provides context about development stage and priorities
-knowledge_base: |
-  Currently in early development/scaffolding phase - no functional app yet!
-  Focus on architectural patterns, not implementation details.
-  Skip reviews for incomplete features and TODOs.
-  This is an Nx monorepo using TypeScript.
-  Prefer constructive feedback on critical issues over minor style suggestions.
 
 # Review Configuration
 reviews:
