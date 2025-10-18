@@ -26,7 +26,7 @@ export default defineConfig({
   },
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'npx nx run @nx-monorepo/web:start',
+    command: 'pnpm exec nx run @nx-monorepo/web:start',
     url: 'http://localhost:3000',
     reuseExistingServer: true,
     cwd: workspaceRoot,

@@ -1,6 +1,6 @@
 ---
 Created: 2025-10-17
-Modified: 2025-10-17T22:34
+Modified: 2025-10-18T16:35
 Version: 1
 ---
 
@@ -150,10 +150,45 @@ Verify that the out-of-the-box Nx setup works correctly and meets all prerequisi
   - [x] 0.3.4: Verify Prettier formatting works ✅
     - [x] Updated .prettierignore to exclude build artifacts (.next, test-output, etc)
 
-- [ ] **0.4: Validate CI pipeline**
-  - [ ] 0.4.1: Confirm GitHub Actions workflow passes on latest commit
-  - [ ] 0.4.2: Verify Nx Cloud integration shows task results
-  - [ ] 0.4.3: Test cache hits by running build twice: `pnpm exec nx run web:build` (second run should be cached)
+- [x] **0.4: Validate CI pipeline** ✅
+  - [x] 0.4.1: Confirm GitHub Actions workflow passes on latest commit - CI passes on PR #4 ✅
+  - [x] 0.4.2: Verify Nx Cloud integration shows task results - Nx Cloud showing results ✅
+  - [x] 0.4.3: Verify Claude Code Review workflow triggers and completes successfully ✅
+  - [x] 0.4.4: Verify CodeRabbit picks up .coderabbit.yaml config and executes review - Verified on PR #4 ✅
+  - [ ] 0.4.5: Test cache hits by running build twice: `pnpm exec nx run web:build` (second run should be cached)
+
+- [ ] **0.4b: Code Review Fixes** (Quality improvements from PR #4 code reviews)
+  - [x] 0.4b.1: Fix Playwright webServer to use pnpm instead of npx ✅
+    - Issue: `apps/web-e2e/playwright.config.ts` uses `npx nx` instead of `pnpm exec nx`
+    - Impact: Inconsistent with pnpm migration, breaks package manager consistency
+    - Fix: Change webServer command to `pnpm exec nx run @nx-monorepo/web:start`
+    - Validation: E2E tests passed (3/3) with new command
+    - Additional finding: 44 total npx references found across codebase (39 need updating)
+
+  - [ ] 0.4b.2: Verify TypeScript typecheck passes
+    - Issue: CI runs `typecheck` target but hasn't been verified locally
+    - Fix: Run `pnpm exec nx run-many -t typecheck` and confirm it passes
+
+  - [ ] 0.4b.3: Fix Jest forceExit root cause (NOT DEFERRED)
+    - Issue: `forceExit: true` in `apps/web/jest.config.ts` masks underlying async cleanup issues
+    - Impact: May hide resource leaks, timers not being cleared, connections left open
+    - Fix: Investigate what's keeping event loop busy, add proper cleanup in afterAll hooks
+    - Use `--detectOpenHandles` flag to identify the issue
+
+  - [ ] 0.4b.4: Investigate tsconfig.json changes
+    - Issue: `apps/web/tsconfig.json` has unexplained changes (likely Next.js auto-updates)
+    - Fix: Review changes, document if functional changes exist, decide if they should be committed
+
+  - [ ] 0.4b.5: Document .prettierignore markdown/docs exclusions
+    - Issue: Excluding all markdown and docs directories raises reviewer questions
+    - Decision: Keep exclusions (allows manual formatting control for documentation)
+    - Fix: Add comments to `.prettierignore` explaining rationale for excluding docs and markdown
+
+  - [ ] 0.4b.6: Resolve Jest test location strategy
+    - Issue: testMatch includes both `specs/` and `src/` directories - inconsistent convention
+    - Current state: Test exists in `specs/index.spec.tsx` but pattern also includes `src/`
+    - Fix: Investigate current tests, decide on single convention (Next.js default is `src/`)
+    - Options: (A) Move `specs/` tests to `src/`, remove `specs/` pattern OR (B) Document intentional dual-location strategy (integration vs unit tests)
 
 - [ ] **0.5: Validate workspace scripts**
   - [ ] 0.5.1: Verify package.json scripts are set up correctly
