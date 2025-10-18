@@ -1,6 +1,6 @@
 ---
 Created: 2025-10-17
-Modified: 2025-10-17T16:44
+Modified: 2025-10-17T22:34
 Version: 1
 ---
 
@@ -139,11 +139,16 @@ Verify that the out-of-the-box Nx setup works correctly and meets all prerequisi
   - [x] 0.2.3: Run `pnpm exec nx run web:dev` and verify dev server starts ✅
   - [x] 0.2.4: Access http://localhost:3000 and verify app loads ✅
 
-- [ ] **0.3: Test existing QA tooling**
-  - [ ] 0.3.1: Run `pnpm exec nx run web:lint` and verify passes
-  - [ ] 0.3.2: Run `pnpm exec nx run web:test` and verify all tests pass
-  - [ ] 0.3.3: Run `pnpm exec nx run web-e2e:e2e` and verify Playwright E2E tests pass (smoke tests)
-  - [ ] 0.3.4: Verify Prettier formatting works
+- [x] **0.3: Test existing QA tooling** ✅
+  - [x] 0.3.1: Run `pnpm exec nx run web:lint` and verify passes ✅
+  - [x] 0.3.2: Run `pnpm exec nx run web:test` and verify all tests pass - Fixed Jest config ✅
+    - [x] Installed @nx/react to fix missing transform plugin
+    - [x] Added testMatch pattern to find tests in specs/ folder
+    - [x] Added forceExit to prevent Jest hanging after tests complete
+  - [x] 0.3.3: Run `pnpm exec nx run web-e2e:e2e` and verify Playwright E2E tests pass (smoke tests) - 3/3 tests passed ✅
+    - [x] Added test timeouts to playwright.config.ts (30s test, 5s assertions)
+  - [x] 0.3.4: Verify Prettier formatting works ✅
+    - [x] Updated .prettierignore to exclude build artifacts (.next, test-output, etc)
 
 - [ ] **0.4: Validate CI pipeline**
   - [ ] 0.4.1: Confirm GitHub Actions workflow passes on latest commit

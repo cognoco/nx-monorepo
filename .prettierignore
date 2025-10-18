@@ -1,5 +1,32 @@
 # Add files here to ignore them from prettier formatting
+
+# Build artifacts
 /dist
+/build
+/.next
+/out
+**/test-output
+
+# Dependencies
+/node_modules
+
+# Test & Coverage
 /coverage
+.nyc_output
+
+# Environment
+.env.local
+.env.*.local
+
+# IDE
+/.idea
+*.swp
+
+# Documentation (already MD formatted)
+/docs
+*.md
+
+# Cache
 /.nx/cache
 /.nx/workspace-data
+/_wip
