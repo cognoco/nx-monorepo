@@ -22,7 +22,14 @@
 /.idea
 *.swp
 
-# Documentation (already MD formatted)
+# Documentation and Markdown Files
+# Rationale: Documentation files are intentionally excluded from Prettier formatting to allow
+# manual formatting control. This enables:
+# - Custom table formatting for better readability
+# - Intentional line breaks and spacing in documentation
+# - Preservation of carefully structured lists and hierarchies
+# - Compatibility with various markdown renderers that have different formatting preferences
+# Decision: Keep exclusions to maintain documentation quality and author control
 /docs
 *.md
 
