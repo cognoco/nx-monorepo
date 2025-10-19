@@ -18,7 +18,7 @@ const config: Config = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   coverageDirectory: '../../coverage/apps/web',
   testEnvironment: 'jsdom',
-  forceExit: true,
+  forceExit: false,
 };
 
 export default createJestConfig(config);

@@ -1,6 +1,6 @@
 ---
 Created: 2025-10-17
-Modified: 2025-10-19T14:13
+Modified: 2025-10-19T14:51
 Version: 1
 ---
 
@@ -169,23 +169,14 @@ Verify that the out-of-the-box Nx setup works correctly and meets all prerequisi
     - Issue: CI runs `typecheck` target but hasn't been verified locally
     - Fix: Run `pnpm exec nx run-many -t typecheck` and confirm it passes
 
-  - [ ] 0.4b.3: Fix Jest forceExit root cause (NOT DEFERRED) ✅
+  - [x] 0.4b.3: Fix Jest forceExit root cause (NOT DEFERRED) ✅
 
-    - Issue: `forceExit: true` in `apps/web/jest.config.ts` masks underlying async cleanup issues
-    - Impact: May hide resource leaks, timers not being cleared, connections left open
-    - Fix: Investigate what's keeping event loop busy, add proper cleanup in afterAll hooks
-    - Use `--detectOpenHandles` flag to identify the issue
-    BELOW SOLUTION BEING CHALLENGED/VALIDATED
-    - Investigation: Extensive testing with `--detectOpenHandles` showed NO actual open handles
-    - Root Cause: Next.js 15.2 `nextJest()` wrapper creates async operations that exceed Jest's 1-second cleanup timeout
-    - Not an actual leak: Tests pass successfully, cleanup hooks execute correctly
-    - Solution Implemented:
-      - Created `jest.setup.ts` with React Testing Library cleanup hooks
-      - Added Next.js Router mocks to prevent framework handle leaks
-      - Added comprehensive documentation explaining why forceExit is required
-      - Kept forceExit with extensive comments documenting the Next.js 15.2 + Jest timing issue
-    - Verification: All tests pass, cleanup hooks execute, no resource leaks detected
-    - Files Modified: `jest.config.ts`, `jest.setup.ts` (new), `package.json` (added @testing-library/jest-dom)
+    - Issue: `forceExit: true` in `apps/web/jest.config.ts` can mask real issues and isn’t template-ideal.
+    - Summary (final): We reverted `forceExit` to `false`. Intermittent hangs observed over several days were most likely environmental (background runner/socket state) rather than a code leak. After environment resets (new shell, daemon/cloud toggles) tests exited cleanly without `forceExit`.
+    - Guidance:
+      - Keep `forceExit: false` by default in the template.
+      - For local diagnosis only, run with `--detectOpenHandles`, or temporarily add `--forceExit` to the command (do not commit).
+      - If a hang reappears, first try disabling helpers for the run: `NX_DAEMON=false nx run web:test --no-cloud`, or bypass Nx by running Jest directly.
 
   - [x] 0.4b.4: Investigate tsconfig.json changes ✅
     - Issue: `apps/web/tsconfig.json` has unexplained changes (likely Next.js auto-updates)
@@ -213,7 +204,7 @@ Verify that the out-of-the-box Nx setup works correctly and meets all prerequisi
   - [ ] 0.5.3: Document available commands
 
 - [ ] **0.6: Document current package versions**
-  - [ ] 0.6.1: Run `pnpm list --depth=0 > docs/package-versions-baseline.txt`
+  - [ ] 0.6.1: Run H
   - [ ] 0.6.2: Create `docs/package-versions-baseline.md` with key versions
   - [ ] 0.6.3: Capture Next.js, React, TypeScript, Nx versions
 
