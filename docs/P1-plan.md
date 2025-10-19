@@ -1,6 +1,6 @@
 ---
 Created: 2025-10-17
-Modified: 2025-10-19T14:51
+Modified: 2025-10-19T20:19
 Version: 1
 ---
 
@@ -192,11 +192,45 @@ Verify that the out-of-the-box Nx setup works correctly and meets all prerequisi
     - Fix: Add comments to `.prettierignore` explaining rationale for excluding docs and markdown
     - Completed: Added comprehensive comments explaining rationale for exclusions
 
-  - [ ] 0.4b.6: Resolve Jest test location strategy
-    - Issue: testMatch includes both `specs/` and `src/` directories - inconsistent convention
-    - Current state: Test exists in `specs/index.spec.tsx` but pattern also includes `src/`
-    - Fix: Investigate current tests, decide on single convention (Next.js default is `src/`)
-    - Options: (A) Move `specs/` tests to `src/`, remove `specs/` pattern OR (B) Document intentional dual-location strategy (integration vs unit tests)
+	  - [x] 0.4b.6: Resolve Jest test location strategy ✅
+    - Issue: testMatch included both `specs/` and `src/` directories - inconsistent convention
+    - Solution: Adopted Next.js 15 default - co-located tests in `src/` directory
+    - Actions taken:
+      - Migrated `specs/index.spec.tsx` → `src/app/page.spec.tsx`
+      - Updated jest.config.ts testMatch to single pattern: `<rootDir>/src/**/*.(spec|test).[jt]s?(x)`
+      - Added collectCoverageFrom configuration excluding test files
+      - Validated with full CI simulation (tests, build, cache clear)
+    - Result: Single, consistent test location pattern following Next.js 15 best practices
+
+- [ ] **0.5b: Testing Infrastructure Enhancements** (Follow-up improvements from 0.4b.6 review)
+  - [ ] 0.5b.1: Add @testing-library/jest-dom for better test ergonomics
+    - Issue: Basic test assertions could be improved with jest-dom matchers
+    - Benefit: Better DX with matchers like `toBeInTheDocument()`, `toHaveClass()`, etc.
+    - Actions needed:
+      - Install @testing-library/jest-dom in web project
+      - Create setup-tests.ts with jest-dom import
+      - Add setupFilesAfterEnv to jest.config.ts
+      - Update existing test to use jest-dom matchers
+    - Rationale: Industry standard for React Testing Library projects
+
+  - [ ] 0.5b.2: Optimize TypeScript type isolation
+    - Issue: Jest/Node types mixed with production types in apps/web/tsconfig.json
+    - Benefit: Cleaner type space separation (app vs test types)
+    - Actions needed:
+      - Move Jest/Node type references from tsconfig.json to tsconfig.spec.json
+      - Verify tests still compile and run
+      - Confirm production build types remain clean
+    - Rationale: Best practice for TypeScript project organization
+
+  - [ ] 0.5b.3: Add example test showcasing jest-dom best practices
+    - Issue: Single basic test doesn't showcase testing capabilities
+    - Benefit: Template value - shows developers how to write quality tests
+    - Actions needed:
+      - Add second test using jest-dom matchers
+      - Example: Assert heading text is in document
+      - Demonstrate component interaction testing
+    - Rationale: Educational value for team and template quality
+    - Note: Depends on 0.5b.1 completion
 
 - [ ] **0.5: Validate workspace scripts**
   - [ ] 0.5.1: Verify package.json scripts are set up correctly

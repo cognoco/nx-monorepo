@@ -9,8 +9,12 @@ const config: Config = {
   displayName: '@nx-monorepo/web',
   preset: '../../jest.preset.js',
   testMatch: [
-    '<rootDir>/specs/**/*.(spec|test).[jt]s?(x)',
     '<rootDir>/src/**/*.(spec|test).[jt]s?(x)',
+  ],
+  collectCoverageFrom: [
+    'src/**/*.{ts,tsx,js,jsx}',
+    '!src/**/*.spec.{ts,tsx,js,jsx}',
+    '!src/**/*.test.{ts,tsx,js,jsx}',
   ],
   transform: {
     '^(?!.*\\.(js|jsx|ts|tsx|css|json)$)': '@nx/react/plugins/jest',
