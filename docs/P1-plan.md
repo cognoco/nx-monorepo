@@ -202,6 +202,18 @@ Verify that the out-of-the-box Nx setup works correctly and meets all prerequisi
       - Validated with full CI simulation (tests, build, cache clear)
     - Result: Single, consistent test location pattern following Next.js 15 best practices
 
+- [ ] **0.5: Validate workspace scripts**
+  - [x] 0.5.1: Verify package.json scripts are set up correctly ✅
+    - Confirmed package.json has scripts: dev, build, test, lint, e2e
+    - All scripts use proper pnpm/nx commands
+  - [x] 0.5.2: Test workspace-level commands work ✅
+    - `pnpm run build` - Successfully builds all projects
+    - `pnpm run lint` - Passes (fixed eslint.config.mjs to ignore build artifacts: **/dist, **/out-tsc, **/.next)
+    - `pnpm run test` - Tests pass (exhibits known Windows hanging behavior from 0.4b.3)
+    - `pnpm run e2e` - All 3 E2E tests pass (chromium, firefox, webkit)
+    - `pnpm run dev` - Dev server starts successfully on http://localhost:3000
+  - [ ] 0.5.3: Document available commands
+
 - [ ] **0.5b: Testing Infrastructure Enhancements** (Follow-up improvements from 0.4b.6 review)
   - [ ] 0.5b.1: Add @testing-library/jest-dom for better test ergonomics
     - Issue: Basic test assertions could be improved with jest-dom matchers
@@ -231,11 +243,6 @@ Verify that the out-of-the-box Nx setup works correctly and meets all prerequisi
       - Demonstrate component interaction testing
     - Rationale: Educational value for team and template quality
     - Note: Depends on 0.5b.1 completion
-
-- [ ] **0.5: Validate workspace scripts**
-  - [ ] 0.5.1: Verify package.json scripts are set up correctly
-  - [ ] 0.5.2: Test workspace-level commands work
-  - [ ] 0.5.3: Document available commands
 
 - [ ] **0.6: Document current package versions**
   - [ ] 0.6.1: Run H
