@@ -1,6 +1,6 @@
 ---
 Created: 2025-10-17
-Modified: 2025-10-19T20:36
+Modified: 2025-10-19T20:40
 Version: 1
 ---
 
@@ -213,12 +213,28 @@ Verify that the out-of-the-box Nx setup works correctly and meets all prerequisi
     - `pnpm run test` - Tests pass (exhibits known Windows hanging behavior from 0.4b.3)
     - `pnpm run e2e` - All 3 E2E tests pass (chromium, firefox, webkit)
     - `pnpm run dev` - Dev server starts successfully on http://localhost:3000
-  - [ ] 0.5.3: Document available commands
+  - [x] 0.5.3: Document available commands ✅
+    - Updated README.md with workspace scripts and pnpm exec nx commands
+    - Updated CLAUDE.md with workspace scripts section and pnpm exec nx commands throughout
+    - All command documentation now uses pnpm (not npx) for consistency
+    - Documentation aligns with verified workspace scripts from task 0.5.2
 
-- [ ] **0.6: Document current package versions**
-  - [ ] 0.6.1: Run `pnpm list --depth=0 > docs/package-versions-baseline.txt`
-  - [ ] 0.6.2: Create `docs/package-versions-baseline.md` with key versions
-  - [ ] 0.6.3: Capture Next.js, React, TypeScript, Nx versions
+- [x] **0.6: Document current package versions** ✅
+  - [x] 0.6.1: Run `pnpm list --depth=1 > docs/package-versions-baseline.txt` ✅
+    - Generated complete dependency tree at depth=1
+    - File: `docs/package-versions-baseline.txt` (513 lines)
+  - [x] 0.6.2: Create `docs/package-versions-baseline.md` with key versions ✅
+    - Created comprehensive markdown documentation
+    - Organized by categories: Environment, Core Frameworks, Build Tools, Nx Plugins, Testing, Code Quality, Dev Tools
+    - File: `docs/package-versions-baseline.md`
+  - [x] 0.6.3: Capture Next.js, React, TypeScript, Nx versions ✅
+    - Next.js: 15.2.5
+    - React: 19.0.0
+    - TypeScript: 5.9.3
+    - Nx: 21.6.5
+    - Node.js: v22.20.0
+    - pnpm: 10.18.3
+    - Additional key versions: Jest 30.2.0, Playwright 1.56.1, ESLint 9.37.0, Prettier 2.8.8
 
 ### Success Criteria
 
