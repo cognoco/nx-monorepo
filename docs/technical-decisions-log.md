@@ -6,7 +6,7 @@ created: 2025-10-20
 last-updated: 2025-10-20
 Last-Modified: 2025-10-20T14:45
 Created: 2025-10-20T13:31
-Modified: 2025-10-20T15:50
+Modified: 2025-10-20T15:58
 ---
 
 # Technical Decisions Log
@@ -423,6 +423,147 @@ The `@nx/jest:configuration` generator in Nx v21.6.5 uses outdated TypeScript de
 - [Package.json Exports Field](https://nodejs.org/api/packages.html#exports)
 - Issue discovered: Stage 1.2 server validation (2025-10-20)
 - Commit: 85603fc "fix(P1-S1): update server test TypeScript config for modern module resolution"
+
+---
+
+### [Testing] - Jest Hanging on Windows with Nx - 2025-10-20
+
+**Decision:** Use systematic troubleshooting approach when Jest hangs on Windows; do not assume root cause
+
+**Context:**
+When running `pnpm exec nx run-many -t test`, Jest completes all tests successfully but does not exit cleanly on Windows. The process hangs with "Jest did not exit one second after the test run has completed" message. Tests pass (no test code issues), but the Node process lingers.
+
+**Alternatives Considered:**
+
+1. **Assume Nx daemon is the sole cause**
+   - Rejected: Empirical testing shows multiple factors may contribute
+   - Problem: `NX_DAEMON=false` fixes it, but so does `--no-cloud`
+   - Result: Cannot conclusively identify single root cause
+
+2. **Assume Nx Cloud connection is the sole cause**
+   - Rejected: Both daemon and cloud flags independently resolve hanging
+   - Problem: Suggests underlying state/socket issue, not specific service
+   - Result: Multiple triggers possible
+
+3. **Add `--forceExit` flag to Jest configuration**
+   - Rejected: Masks problem rather than solving it
+   - Problem: Could hide real test issues (open handles, async operations)
+   - Result: Not suitable for committed code
+
+4. **Accept hanging as unavoidable Windows behavior**
+   - Rejected: Workarounds exist that allow clean exits
+   - Problem: Would degrade developer experience unnecessarily
+   - Result: Systematic approach is more professional
+
+**Chosen Approach:** Systematic troubleshooting methodology with documented empirical findings
+
+**Technical Rationale:**
+
+**Why root cause is uncertain:**
+
+1. **Multiple independent "fixes" observed (2025-10-20):**
+   - `NX_DAEMON=false pnpm exec nx run-many -t test` → ✅ Works
+   - `pnpm exec nx run-many -t test --no-cloud` → ✅ Works
+   - `NX_DAEMON=false pnpm exec nx run-many -t test --no-cloud` → ✅ Works
+   - No flags: `pnpm exec nx run-many -t test` → ❌ Hangs
+
+2. **Correlation vs causation problem:**
+   - Both flags independently "fix" the issue
+   - Suggests they may be clearing some underlying state rather than addressing direct cause
+   - Possible that other environmental factors contribute
+
+3. **Known complexity of Windows process management:**
+   - IPC sockets (Nx daemon communication)
+   - HTTP connections (Nx Cloud API)
+   - File system watchers (Nx incremental builds)
+   - Child process cleanup differs on Windows vs Unix
+
+4. **Behavior may be context-dependent:**
+   - Different on first run vs cached runs
+   - May vary with workspace size, number of projects
+   - Could be affected by Nx version, Node version, pnpm version
+   - May change based on system resources or antivirus software
+
+**Why systematic approach is necessary:**
+
+- **Future occurrences may differ:** What works today might not work tomorrow if conditions change
+- **Multiple contributing factors:** Issue may arise from combinations of circumstances
+- **No official documentation:** Nx docs don't document Windows-specific hanging issues
+- **Empirical evidence required:** Each occurrence should be treated as new data point
+
+**Implementation Details:**
+
+- **Testing methodology:** When hanging occurs:
+  1. First try: `NX_DAEMON=false pnpm exec nx run-many -t test`
+  2. If still hangs: `pnpm exec nx run-many -t test --no-cloud`
+  3. If still hangs: Combine both flags
+  4. Document which combination worked in this log with date
+
+- **Individual project workaround:**
+  ```bash
+  # Run tests per project
+  pnpm exec nx run server:test
+  pnpm exec nx run web:test
+  ```
+
+- **Diagnostic commands (not fixes):**
+  ```bash
+  # Identify open handles (does not fix issue)
+  pnpm exec nx run web:test -- --detectOpenHandles
+
+  # Force exit (never commit this flag)
+  pnpm exec nx run web:test -- --forceExit
+  ```
+
+- **CI/CD environments:**
+  - Use standard commands (no workarounds needed)
+  - Linux/Mac typically don't exhibit this behavior
+  - Windows CI runners may need flags if issue reproduces
+
+**Empirical Findings Log:**
+
+| Date | Condition | Command | Result | Notes |
+|------|-----------|---------|--------|-------|
+| 2025-10-20 | Fresh cache, 2 projects (server, web) | `pnpm exec nx run-many -t test` | ❌ Hangs | Web project specifically hung |
+| 2025-10-20 | Same conditions | `pnpm exec nx run server:test` | ✅ Clean exit | Individual run worked |
+| 2025-10-20 | Same conditions | `pnpm exec nx run web:test` | ⚠️ Hung after success | Tests passed, Jest didn't exit |
+| 2025-10-20 | Same conditions | `NX_DAEMON=false pnpm exec nx run-many -t test` | ✅ Clean exit | Daemon disabled |
+| 2025-10-20 | Same conditions | `pnpm exec nx run-many -t test --no-cloud` | ✅ Clean exit | Cloud disabled |
+
+**Warning Signs (for AI agents):**
+
+❌ **Do not suggest** a single definitive root cause without new evidence
+- **Why:** Multiple factors observed, causation not proven
+
+❌ **Do not suggest** this is a test code issue
+- **Why:** Tests pass successfully, no async leaks in test code
+
+❌ **Do not suggest** committing `--forceExit` flag
+- **Why:** Masks real issues, not appropriate for production code
+
+❌ **Do not suggest** this only affects one specific configuration
+- **Why:** May manifest differently under different conditions
+
+✅ **Do suggest** systematic troubleshooting when issue occurs
+- Try daemon flag first (simplest)
+- Then cloud flag if needed
+- Document which combination worked
+
+✅ **Do recognize** this as Windows-specific environment issue
+- Not a code quality problem
+- CI/CD on Linux/Mac typically unaffected
+
+✅ **Do update** this log entry with new empirical findings
+- If different combinations work/fail in future
+- If Nx version changes affect behavior
+- If root cause is definitively identified
+
+**References:**
+- [Nx Daemon Documentation](https://nx.dev/concepts/nx-daemon)
+- [Nx Cloud CLI Reference](https://nx.dev/nx-api/nx/documents/run-many)
+- [Jest Configuration - forceExit](https://jestjs.io/docs/configuration#forceexit-boolean)
+- Investigation: QA validation during P1-S1 (2025-10-20)
+- Related: CLAUDE.md troubleshooting section (temporary workarounds)
 
 ---
 
