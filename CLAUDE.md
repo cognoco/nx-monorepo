@@ -59,7 +59,7 @@ Use these for project-specific or advanced tasks:
 pnpm exec nx run web:dev
 # or: pnpm exec nx dev web
 
-# Start server (when implemented)
+# Start server
 pnpm exec nx run server:serve
 
 # Start mobile (when implemented)
