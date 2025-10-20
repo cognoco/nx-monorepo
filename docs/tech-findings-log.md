@@ -1,31 +1,34 @@
 ---
-title: Technical Decisions Log
-purpose: Record technical decisions and their rationale to prevent rework and inform future development
+title: Technical Findings Log
+purpose: Record technical decisions, empirical findings, troubleshooting patterns, and non-obvious constraints to guide AI agents and developers
 audience: AI agents, developers, architects
 created: 2025-10-20
 last-updated: 2025-10-20
-Last-Modified: 2025-10-20T14:45
+Last-Modified: 2025-10-20T17:15
 Created: 2025-10-20T13:31
-Modified: 2025-10-20T15:58
+Modified: 2025-10-20T17:25
 ---
 
-# Technical Decisions Log
+# Technical Findings Log
 
 ## Purpose
 
-This document records **technical decisions with non-obvious rationale** to prevent:
-- Accidental reversal of deliberate choices
-- Repeated investigation of already-resolved questions
-- Breaking changes due to lack of context
-- Optimization attempts that introduce known problems
+This document records **technical findings and decisions** to guide future development and prevent rework:
+- Technical decisions with non-obvious rationale
+- Empirical observations from troubleshooting (especially environment-specific issues)
+- Known constraints and limitations of tools/frameworks
+- Patterns that work (or don't work) in this specific codebase
+- Investigation results that should inform future choices
 
 **When to add an entry:**
 - A decision goes against common practice for good reason
 - A technology constraint dictates an unusual approach
-- Investigation reveals a subtle technical requirement
+- Investigation reveals a subtle technical requirement or pattern
 - A "simpler" alternative was considered and rejected
+- Troubleshooting reveals environment-specific issues (Windows, tooling, caching)
+- Empirical testing uncovers non-obvious behavior
 
-**For AI agents:** Before suggesting changes to architecture, tooling, or configuration, search this document for relevant context.
+**For AI agents:** Before suggesting changes to architecture, tooling, or configuration, search this document for relevant context and known issues.
 
 ---
 
@@ -567,7 +570,126 @@ When running `pnpm exec nx run-many -t test`, Jest completes all tests successfu
 
 ---
 
+### [Build] - Server Build Flakiness Due to Corrupted Nx Cache - 2025-10-20
+
+**Finding:** Server build (`pnpm exec nx run server:build`) intermittently fails with "Could not find project '@nx-monorepo/server'" error despite project existing and being properly configured.
+
+**Context:**
+During substage 1.2 validation (server immediate validation), the build command failed with a project not found error. However, running `pnpm exec nx show project server` successfully displayed project configuration, indicating the project exists and Nx knows about it.
+
+**Root Cause Investigation:**
+
+1. **Initial symptom:**
+   ```bash
+   pnpm exec nx run server:build
+   # Error: Could not find project "@nx-monorepo/server"
+   ```
+
+2. **Inconsistent behavior:**
+   - `nx show project server` ✅ Works - returns full project configuration
+   - `nx run server:build` ❌ Fails - claims project doesn't exist
+   - After running once, Nx flagged the task as "flaky"
+
+3. **Successful resolution:**
+   ```bash
+   pnpm exec nx reset          # Clear Nx daemon and cache
+   rm -rf apps/server/dist     # Remove stale build outputs
+   pnpm exec nx run server:build  # Rebuild fresh
+   ```
+
+4. **Verification:**
+   - Build 1: ✅ Success (fresh, no cache)
+   - Build 2: ✅ Success (cache hit)
+   - Build 3: ✅ Success (cache hit)
+   - Result: 3/3 successful builds after cache clear
+
+**Analysis:**
+
+**Why this occurred:**
+- **Corrupted cache state**: Nx cache contained incorrect or stale project metadata
+- **Daemon inconsistency**: Nx daemon had outdated project graph in memory
+- **Build artifact mismatch**: Previous build outputs conflicted with cached state
+
+**Why Nx detected it as "flaky":**
+Nx's automated flake detection triggered because:
+- Same task gave different results within short time window
+- First run: Failed with "project not found"
+- Subsequent run: Succeeded
+- Nx logs this as potential CI instability
+
+**Not an actual code/config issue:**
+- Project configuration was correct (`nx show project` confirmed this)
+- TypeScript config was valid (builds succeeded after cache clear)
+- No code changes between failure and success
+
+**Implementation Details:**
+
+- **Quick fix command sequence:**
+  ```bash
+  pnpm exec nx reset
+  rm -rf apps/server/dist
+  pnpm exec nx run server:build
+  ```
+
+- **When to suspect this issue:**
+  - Build fails with "Could not find project" error
+  - But `nx show project <name>` works correctly
+  - Project was recently generated or configuration changed
+  - After switching branches or rebasing
+
+- **Prevention strategies:**
+  - Run `pnpm exec nx reset` after major configuration changes
+  - Clear dist folders after branch switches
+  - Monitor for Nx "flaky task" warnings
+
+**Warning Signs (for AI agents):**
+
+❌ **Do not assume** "Could not find project" means misconfiguration
+- Check if `nx show project` works first
+- If it works, suspect cache corruption not config errors
+
+❌ **Do not suggest** regenerating the project or fixing configuration
+- If `nx show project` succeeds, config is fine
+- Cache clear is faster than regeneration
+
+✅ **Do suggest** cache clearing as first troubleshooting step
+- When build errors seem inconsistent with project state
+- When "flaky task" warnings appear
+
+✅ **Do document** if this pattern recurs
+- May indicate Windows-specific Nx daemon issues
+- Could be related to file system timing
+- Might be esbuild-specific with `bundle: false` configuration
+
+**Empirical Findings Log:**
+
+| Date | Condition | Command | Result | Notes |
+|------|-----------|---------|--------|-------|
+| 2025-10-20 | After Jest config generation | `nx run server:build` | ❌ Failed | "Could not find project" error |
+| 2025-10-20 | Same state | `nx show project server` | ✅ Success | Project config returned correctly |
+| 2025-10-20 | After `nx reset` | `nx run server:build` (run 1) | ✅ Success | Fresh build, no cache |
+| 2025-10-20 | Immediate retry | `nx run server:build` (run 2) | ✅ Success | Cache hit |
+| 2025-10-20 | Immediate retry | `nx run server:build` (run 3) | ✅ Success | Cache hit |
+
+**Monitoring Plan:**
+
+If this issue recurs, document:
+- Exact trigger (what action preceded the failure?)
+- Windows version and Node version
+- Whether it's specific to server project or affects web too
+- Whether it correlates with Nx daemon restarts
+- Whether it only happens with esbuild executor
+
+**References:**
+- [Nx Cache Troubleshooting](https://nx.dev/concepts/how-caching-works)
+- [Nx Daemon](https://nx.dev/concepts/nx-daemon)
+- [Nx Flaky Tasks](https://nx.dev/ci/features/flaky-tasks)
+- Investigation: P1-S1 substage 1.2 validation (2025-10-20)
+- Nx flake detection: https://cloud.nx.app/runs/Jj7HeO4RIe
+
+---
+
 ## Future Entries
 
-[Add new technical decisions below using the template above]
+[Add new technical findings below using the template above]
 

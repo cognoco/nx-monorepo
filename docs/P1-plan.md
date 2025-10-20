@@ -1,6 +1,6 @@
 ---
 Created: 2025-10-17
-Modified: 2025-10-20T16:17
+Modified: 2025-10-20T17:18
 Version: 1
 ---
 
@@ -322,7 +322,7 @@ Create all shared libraries following Nx conventions, ensuring each package buil
 
 - [ ] **2.1: Generate database package**
   - [ ] 2.1.1: Run: `pnpm exec nx g @nx/js:lib database --directory=packages/database --bundler=none`
-    - **Note**: Uses `--bundler=none` because Prisma generates code at runtime (see `docs/technical-decisions-log.md`)
+    - **Note**: Uses `--bundler=none` because Prisma generates code at runtime (see `docs/tech-findings-log.md`)
   - [ ] 2.1.2: Install Prisma dependencies: `pnpm add -D prisma --filter @nx-monorepo/database`
   - [ ] 2.1.3: Install Prisma client: `pnpm add @prisma/client --filter @nx-monorepo/database`
   - [ ] 2.1.4: Set up basic Prisma configuration structure

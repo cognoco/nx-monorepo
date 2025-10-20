@@ -301,7 +301,7 @@ When creating shared packages:
 - Always specify a bundler explicitly (`--bundler=tsc`, `--bundler=swc`, `--bundler=none`)
 - Export a clean public API via `index.ts` barrel files
 - Never export implementation details, only public interfaces
-- **Special case - Prisma packages**: Use `@nx/js:lib` with `--bundler=none` for packages containing Prisma (see `docs/technical-decisions-log.md` - Database Package Bundler Strategy for rationale)
+- **Special case - Prisma packages**: Use `@nx/js:lib` with `--bundler=none` for packages containing Prisma (see `docs/tech-findings-log.md` - Database Package Bundler Strategy for rationale)
 
 ### Type Safety
 
@@ -583,7 +583,7 @@ pnpm --filter @nx-monorepo/database prisma studio
 
 ## Important Notes
 
-- **Check technical decisions first**: Before suggesting architecture, tooling, or configuration changes, review `docs/technical-decisions-log.md` for documented decisions and rationale that may prevent rework
+- **Check technical findings first**: Before suggesting architecture, tooling, or configuration changes, review `docs/tech-findings-log.md` for documented decisions, known issues, and empirical findings that may prevent rework
 - **Always use pnpm and Nx commands** (`pnpm exec nx run`, `pnpm exec nx run-many`, `pnpm exec nx affected`) instead of direct tool invocation (e.g., use `pnpm exec nx run web:build` not `cd apps/web && next build`)
 - **Use workspace scripts for common tasks**: Prefer `pnpm run dev`, `pnpm run build`, etc. for daily development
 - **Respect project boundaries**: Don't import from `apps/*` into `packages/*`
