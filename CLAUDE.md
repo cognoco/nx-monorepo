@@ -141,29 +141,6 @@ Example consequences:
 
 **For comprehensive memory system documentation**: Read `docs/memories/README.md`
 
-### Memory System Specialist Sub-Agent
-
-**When to delegate memory documentation tasks:**
-
-After completing significant work, consider delegating to the Memory System Specialist sub-agent:
-
-**High Priority** (should delegate):
-- After completing P1-plan.md substages or major milestones
-- After running `nx g` commands that required manual fixes
-- After solving configuration problems (>15 min to resolve)
-- After establishing new conventions for similar components
-
-**How to invoke** (when available as sub-agent):
-- Use Task tool with specialized memory documentation agent
-- Provide: task summary, files modified, problems solved
-- Receive: updated memory files and documentation summary
-
-**Manual alternative**:
-- Use slash command: `/zdx/memory-checkpoint`
-- Guides you through reflection and documentation process
-
-**Full specification**: `docs/memories/MEMORY-AGENT.md`
-
 ---
 
 ## Project Overview
