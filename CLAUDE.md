@@ -141,6 +141,29 @@ Example consequences:
 
 **For comprehensive memory system documentation**: Read `docs/memories/README.md`
 
+### Memory System Specialist Sub-Agent
+
+**When to delegate memory documentation tasks:**
+
+After completing significant work, consider delegating to the Memory System Specialist sub-agent:
+
+**High Priority** (should delegate):
+- After completing P1-plan.md substages or major milestones
+- After running `nx g` commands that required manual fixes
+- After solving configuration problems (>15 min to resolve)
+- After establishing new conventions for similar components
+
+**How to invoke** (when available as sub-agent):
+- Use Task tool with specialized memory documentation agent
+- Provide: task summary, files modified, problems solved
+- Receive: updated memory files and documentation summary
+
+**Manual alternative**:
+- Use slash command: `/zdx/memory-checkpoint`
+- Guides you through reflection and documentation process
+
+**Full specification**: `docs/memories/MEMORY-AGENT.md`
+
 ---
 
 ## Project Overview
@@ -560,6 +583,118 @@ Nx automatically:
 For advanced testing patterns (jest-dom, user-event, MSW, custom render), see [`docs/testing-enhancements.md`](../docs/testing-enhancements.md).
 
 These enhancements are optional - start simple and add complexity only when needed.
+
+### Coverage Testing
+
+#### Coverage Scripts
+
+The workspace provides convenient scripts for running tests with coverage reporting:
+
+```bash
+# Run coverage for all projects
+pnpm run test:coverage
+
+# Run coverage for specific projects
+pnpm run test:coverage:web
+pnpm run test:coverage:server
+```
+
+#### Coverage Thresholds
+
+All projects use standardized coverage thresholds to ensure code quality:
+
+```typescript
+// apps/web/jest.config.ts
+coverageThreshold: {
+  global: {
+    branches: 10,    // Target: 80% (Phase 2+)
+    functions: 10,   // Target: 80% (Phase 2+)
+    lines: 10,       // Target: 80% (Phase 2+)
+    statements: 10   // Target: 80% (Phase 2+)
+  }
+}
+```
+
+**Current thresholds (10%)**: Permissive during Phase 1 walking skeleton - establishes infrastructure without blocking development.
+
+**Target thresholds (80%)**: Will be enforced starting in Phase 2 when feature development begins.
+
+**Coverage metrics explained**:
+- **Statements**: Individual lines of code executed
+- **Lines**: Physical lines in the file that were executed
+- **Functions**: Whether each function was called
+- **Branches**: Decision points tested (if/else, switch, ternaries, &&, ||)
+
+#### Coverage Reports
+
+After running coverage, HTML reports are generated in `coverage/<project>/index.html`:
+
+```bash
+# Run coverage for web app
+pnpm run test:coverage:web
+
+# Open the HTML report (manual)
+# Windows: start coverage/apps/web/index.html
+# Mac: open coverage/apps/web/index.html
+# Linux: xdg-open coverage/apps/web/index.html
+```
+
+Reports show:
+- Per-file coverage percentages
+- Highlighted uncovered lines
+- Branch coverage visualization
+- Drilldown from project → file → line level
+
+#### Coverage Directory Structure
+
+Coverage reports follow a consistent pattern across all projects:
+
+```
+coverage/
+  apps/
+    web/
+      index.html          # HTML report entry point
+      app/                # Per-directory coverage
+      page.tsx.html       # Per-file coverage details
+      lcov.info           # LCOV format for CI/tooling
+      coverage-final.json # Raw coverage data
+    server/
+      index.html
+      lcov.info
+      coverage-final.json
+  packages/
+    database/
+      index.html
+      lcov.info
+      coverage-final.json
+```
+
+**Pattern**: `coverageDirectory: '../../coverage/<type>/<name>'` in each project's `jest.config.ts`
+
+The `/coverage` directory is gitignored - reports are generated locally and in CI but not committed.
+
+#### Adding Coverage to New Projects
+
+When generating a new project with Jest:
+
+```bash
+pnpm exec nx g @nx/jest:configuration <project-name>
+```
+
+Then manually add coverage threshold to the generated `jest.config.ts`:
+
+```typescript
+coverageThreshold: {
+  global: {
+    branches: 10,    // Target: 80% (Phase 2+)
+    functions: 10,   // Target: 80% (Phase 2+)
+    lines: 10,       // Target: 80% (Phase 2+)
+    statements: 10   // Target: 80% (Phase 2+)
+  }
+}
+```
+
+And ensure `coverageDirectory` follows the pattern: `'../../coverage/<apps|packages>/<project-name>'`
 
 ## CI/CD Pipeline
 
