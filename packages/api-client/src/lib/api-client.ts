@@ -1,7 +1,6 @@
-// Type-only import validates @orpc/client dependency for Phase 1
+// Empty type import validates @orpc/client dependency for Phase 1
 // Actual runtime usage will be implemented in Stage 5.4
-// @ts-expect-error - Unused in Phase 1 placeholder, will be used in Stage 5.4
-import type { createORPCClient } from '@orpc/client';
+import type {} from '@orpc/client';
 
 /**
  * Configuration for the API client
