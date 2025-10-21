@@ -98,6 +98,51 @@ Launch sub-agents for ANY of the following tasks:
 
 Before using Grep, Glob, Read, or WebSearch yourself, ask: "Could a sub-agent do this while I focus on higher-level work?" If yes, use a sub-agent.
 
+---
+
+## Memory System (CRITICAL - Prevents Pattern Drift)
+
+**Purpose**: Prevent pattern drift across components and ensure consistency as the monorepo evolves.
+
+**Location**: `docs/memories/` directory
+
+### Mandatory Memory Checks
+
+**1. Before `nx g` (generate) commands:**
+- **MUST READ**: `docs/memories/adopted-patterns.md` - monorepo standards that override framework defaults
+- **MUST READ**: `docs/memories/post-generation-checklist.md` - mandatory post-generation fixes
+- **Why**: Ensure generated code will match our established patterns
+
+**2. After `nx g` commands:**
+- **MUST EXECUTE**: ALL steps in `docs/memories/post-generation-checklist.md`
+- **MUST VALIDATE**: Output against `docs/memories/adopted-patterns.md`
+- **Why**: Auto-generated code often conflicts with our monorepo standards
+
+**3. Before changing build/test/TypeScript configs:**
+- **MUST CHECK**: `docs/memories/adopted-patterns.md` - established configuration patterns
+- **MUST CHECK**: `docs/memories/tech-findings-log.md` - technical constraints and empirical findings
+- **Why**: Avoid reverting intentional architectural decisions
+
+### Memory Files Quick Reference
+
+- **`adopted-patterns.md`**: How WE do it (test location, TypeScript config, Jest patterns)
+- **`post-generation-checklist.md`**: Mandatory fixes after Nx generators
+- **`tech-findings-log.md`**: Technical decisions, constraints, troubleshooting findings
+- **`README.md`**: Comprehensive memory system documentation
+
+### Critical Warning
+
+**⚠️ Failure to follow memory system = Pattern drift across monorepo**
+
+Example consequences:
+- Web app uses co-located tests in `src/`, mobile uses `__tests__/` (inconsistency)
+- Old components work, new components fail with mysterious errors (config drift)
+- Same problem solved differently in different components (wasted time)
+
+**For comprehensive memory system documentation**: Read `docs/memories/README.md`
+
+---
+
 ## Project Overview
 
 This is a **gold standard Nx monorepo template** designed as a production-ready foundation for multi-platform applications. The project uses a "walking skeleton" approach to validate infrastructure and tooling before feature development.
@@ -311,7 +356,7 @@ When creating shared packages:
 - Always specify a bundler explicitly (`--bundler=tsc`, `--bundler=swc`, `--bundler=none`)
 - Export a clean public API via `index.ts` barrel files
 - Never export implementation details, only public interfaces
-- **Special case - Prisma packages**: Use `@nx/js:lib` with `--bundler=none` for packages containing Prisma (see `docs/tech-findings-log.md` - Database Package Bundler Strategy for rationale)
+- **Special case - Prisma packages**: Use `@nx/js:lib` with `--bundler=none` for packages containing Prisma (see `docs/memories/tech-findings-log.md` - Database Package Bundler Strategy for rationale)
 
 ### Type Safety
 
@@ -432,6 +477,89 @@ test('health check flow', async ({ page }) => {
   await expect(page.getByText('Pong')).toBeVisible();
 });
 ```
+
+### Jest Configuration Patterns
+
+This project follows Nx best practices for Jest configuration with a workspace-level preset pattern.
+
+#### Workspace Preset
+
+All projects extend a shared `jest.preset.js` at the workspace root:
+
+```javascript
+// jest.preset.js
+const nxPreset = require('@nx/jest/preset').default;
+module.exports = { ...nxPreset };
+```
+
+This ensures consistent Jest behavior across all projects while allowing per-project customization.
+
+#### Project-Level Configuration
+
+Each project has its own `jest.config.ts` that extends the workspace preset:
+
+```typescript
+// apps/web/jest.config.ts
+export default {
+  displayName: '@nx-monorepo/web',
+  preset: '../../jest.preset.js',  // Extend workspace preset
+  testEnvironment: 'jsdom',         // or 'node' for Node.js projects
+  testMatch: ['<rootDir>/src/**/*.(spec|test).[jt]s?(x)'],
+  coverageDirectory: '../../coverage/apps/web',
+  // ... project-specific settings
+};
+```
+
+**Note**: Next.js projects (like `apps/web`) use the `next/jest` wrapper with `testEnvironment: 'jsdom'` for browser-like testing. The Next.js Jest configuration also includes the `@nx/react/plugins/jest` transform for handling static assets and other Next.js-specific features.
+
+#### TypeScript Test Configuration
+
+**Type Isolation Pattern**: Test types are separated from production types using `tsconfig.spec.json`:
+
+```json
+// apps/web/tsconfig.spec.json
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/jest",
+    "types": ["jest", "node"]  // Test-specific types
+  },
+  "include": [
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.spec.tsx"
+  ],
+  "references": [
+    { "path": "./tsconfig.json" }  // Reference to production config
+  ]
+}
+```
+
+**Important**: Production `tsconfig.json` should NOT include test types. Keep test types isolated to `tsconfig.spec.json`.
+
+#### Adding Jest to New Projects
+
+To add Jest testing to a new project:
+
+```bash
+# Generate Jest configuration for a project
+pnpm exec nx g @nx/jest:configuration <project-name>
+```
+
+Nx automatically:
+- Creates `jest.config.ts` extending the workspace preset
+- Creates `tsconfig.spec.json` with proper type isolation
+- Adds test target to `project.json`
+- Configures coverage directory
+
+**No manual setup required** - Nx handles all configuration automatically.
+
+#### Optional Testing Enhancements
+
+For advanced testing patterns (jest-dom, user-event, MSW, custom render), see [`docs/testing-enhancements.md`](../docs/testing-enhancements.md).
+
+These enhancements are optional - start simple and add complexity only when needed.
 
 ## CI/CD Pipeline
 
@@ -593,7 +721,7 @@ pnpm --filter @nx-monorepo/database prisma studio
 
 ## Important Notes
 
-- **Check technical findings first**: Before suggesting architecture, tooling, or configuration changes, review `docs/tech-findings-log.md` for documented decisions, known issues, and empirical findings that may prevent rework
+- **Check technical findings first**: Before suggesting architecture, tooling, or configuration changes, review `docs/memories/tech-findings-log.md` for documented decisions, known issues, and empirical findings that may prevent rework
 - **Always use pnpm and Nx commands** (`pnpm exec nx run`, `pnpm exec nx run-many`, `pnpm exec nx affected`) instead of direct tool invocation (e.g., use `pnpm exec nx run web:build` not `cd apps/web && next build`)
 - **Use workspace scripts for common tasks**: Prefer `pnpm run dev`, `pnpm run build`, etc. for daily development
 - **Respect project boundaries**: Don't import from `apps/*` into `packages/*`

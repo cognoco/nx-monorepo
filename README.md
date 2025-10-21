@@ -293,7 +293,7 @@ GitHub Actions workflow runs on all PRs and main branch commits:
 ## Documentation
 
 - **[P1-plan.md](docs/P1-plan.md)**: Phase 1 implementation plan with stage breakdowns
-- **[tech-findings-log.md](docs/tech-findings-log.md)**: Technical decisions and empirical findings
+- **[tech-findings-log.md](docs/memories/tech-findings-log.md)**: Technical decisions and empirical findings
 - **[CLAUDE.md](CLAUDE.md)**: AI agent instructions (auto-generated from `.ruler/AGENTS.md`)
 
 ## External Services
@@ -335,7 +335,7 @@ NX_DAEMON=false pnpm exec nx run-many -t test
 pnpm exec nx run-many -t test --no-cloud
 ```
 
-See `docs/tech-findings-log.md` for detailed diagnosis.
+See `docs/memories/tech-findings-log.md` for detailed diagnosis.
 
 ## Contributing
 
