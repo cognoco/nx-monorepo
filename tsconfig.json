@@ -11,6 +11,18 @@
     },
     {
       "path": "./apps/server"
+    },
+    {
+      "path": "./packages/database"
+    },
+    {
+      "path": "./packages/schemas"
+    },
+    {
+      "path": "./packages/api-client"
+    },
+    {
+      "path": "./packages/supabase-client"
     }
   ]
 }
