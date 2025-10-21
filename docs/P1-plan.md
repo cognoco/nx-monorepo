@@ -1,6 +1,6 @@
 ---
 Created: 2025-10-17
-Modified: 2025-10-20T21:38
+Modified: 2025-10-21T07:44
 Version: 1
 ---
 
@@ -341,12 +341,12 @@ Create all shared libraries following Nx conventions, ensuring each package buil
   - [x] 2.2.6: **Immediate test**: Run `pnpm exec nx run schemas:test` and verify passes
 
 - [ ] **2.3: Generate api-client package**
-  - [ ] 2.3.1: Run: `pnpm exec nx g @nx/js:lib api-client --directory=packages/api-client --bundler=tsc`
-  - [ ] 2.3.2: Install oRPC client: `pnpm add @orpc/client --filter @nx-monorepo/api-client`
-  - [ ] 2.3.3: Set up basic client factory structure
-  - [ ] 2.3.4: **Immediate test**: Run `pnpm exec nx run api-client:build` and verify success
-  - [ ] 2.3.5: **Immediate test**: Run `pnpm exec nx run api-client:lint` and verify passes
-  - [ ] 2.3.6: **Immediate test**: Run `pnpm exec nx run api-client:test` and verify passes
+  - [x] 2.3.1: Run: `pnpm exec nx g @nx/js:lib api-client --directory=packages/api-client --bundler=tsc`
+  - [x] 2.3.2: Install oRPC client: `pnpm add @orpc/client --filter @nx-monorepo/api-client`
+  - [x] 2.3.3: Set up basic client factory structure
+  - [x] 2.3.4: **Immediate test**: Run `pnpm exec nx run api-client:build` and verify success
+  - [x] 2.3.5: **Immediate test**: Run `pnpm exec nx run api-client:lint` and verify passes
+  - [x] 2.3.6: **Immediate test**: Run `pnpm exec nx run api-client:test` and verify passes
 
 - [ ] **2.4: Generate supabase-client package**
   - [ ] 2.4.1: Run: `pnpm exec nx g @nx/js:lib supabase-client --directory=packages/supabase-client --bundler=tsc`
