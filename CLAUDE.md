@@ -141,6 +141,36 @@ Example consequences:
 
 **For comprehensive memory system documentation**: Read `docs/memories/README.md`
 
+### Documentation File Editing Rules
+
+**CRITICAL: NEVER modify timestamp fields in `docs/` files**
+
+When editing any file in `docs/` or its subfolders:
+
+❌ **NEVER edit these frontmatter fields:**
+- `Modified:` - Automatically managed by Git and Obsidian
+- `Created:` - Set once, never changed
+
+✅ **DO edit these frontmatter fields:**
+- `last-updated:` - Manual field for semantic versioning (e.g., "2025-10-21")
+- `version:` - When present, increment as appropriate
+- Other semantic fields like `status:`, `phase:`, etc.
+
+**Why this matters:**
+- `Modified:` is automatically updated by tooling on every file save
+- Manual edits create confusion and will be immediately overwritten
+- This applies to ALL files in `docs/` and all subfolders
+
+**Example - What to update:**
+```yaml
+---
+title: Some Document
+created: 2025-10-21
+last-updated: 2025-10-21  # ✅ Update this when making semantic changes
+Modified: 2025-10-21T14:39  # ❌ NEVER touch this - auto-managed
+---
+```
+
 ---
 
 ## Project Overview
