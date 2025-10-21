@@ -1,6 +1,6 @@
 ---
 Created: 2025-10-17
-Modified: 2025-10-21T13:21
+Modified: 2025-10-21T13:32
 Version: 1
 ---
 
@@ -393,19 +393,21 @@ Establish quality assurance tooling and testing scaffolding early to create a sa
 ### Sub-stages
 
 - [ ] **3.1: Install and configure Husky**
-  - [x] 3.1.1: Install Husky: `pnpm add -D husky` and install lint-staged: `pnpm add -D lint-staged`
+  - [x] 3.1.1: Install Husky: `pnpm add -D husky -w`
   - [x] 3.1.2: Initialize Husky: `pnpm exec husky init`
   - [x] 3.1.3: Set up Git hooks infrastructure
   - [x] 3.1.4: Configure pre-commit hook for linting and formatting
-  - [ ] 3.1.5: Configure commit-msg hook for conventional commits (optional)
-  - [ ] 3.1.6: Test hook triggers on commit attempt
+  - [x] 3.1.5: Install commitlint: `pnpm add -D -w @commitlint/cli @commitlint/config-conventional`
+  - [x] 3.1.6: Create `commitlint.config.js` with custom type prefixes (feat, fix, docs, chore, cfg, plan, zdx)
+  - [x] 3.1.7: Configure commit-msg hook for conventional commits
+  - [x] 3.1.8: Test hook triggers on commit attempt
 
-- [ ] **3.2: Add pre-commit validation with lint-staged**
-  - [ ] 3.2.1: Install lint-staged: `pnpm add -D lint-staged`
-  - [ ] 3.2.2: Create `.lintstagedrc.json` configuration
-  - [ ] 3.2.3: Configure to run ESLint and Prettier on staged files only
-  - [ ] 3.2.4: Ensure it respects Nx project boundaries
-  - [ ] 3.2.5: Test by staging files and committing
+- [x] **3.2: Add pre-commit validation with lint-staged**
+  - [x] 3.2.1: Install lint-staged: `pnpm add -D lint-staged -w`
+  - [x] 3.2.2: Create `.lintstagedrc.json` configuration
+  - [x] 3.2.3: Configure to run ESLint and Prettier on staged files only (default config)
+  - [x] 3.2.4: Ensure it respects Nx project boundaries
+  - [x] 3.2.5: Test by staging files and committing
 
 - [ ] **3.3: Verify and document existing testing infrastructure**
 
