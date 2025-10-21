@@ -37,6 +37,35 @@ This project uses [Ruler](https://github.com/intellectronica/ruler) to manage AI
 
 ---
 
+## CRITICAL: Git Commit Policy
+
+**🚨 STRICT RULE - DO NOT VIOLATE 🚨**
+
+**NEVER create git commits unless explicitly instructed by the user.**
+
+**When commits are allowed:**
+- ✅ User explicitly requests: "commit these changes", "create a commit", etc.
+- ✅ Task description explicitly includes committing as a step
+- ✅ Slash command explicitly instructs you to commit
+- ✅ Plan/checklist explicitly includes commit step
+
+**When commits are FORBIDDEN:**
+- ❌ After completing work (unless commit was requested)
+- ❌ "Being helpful" by committing completed work
+- ❌ Following git best practices to "commit early and often"
+- ❌ Because changes are ready to commit
+- ❌ Any situation where commit was not explicitly requested
+
+**Why this matters:**
+- User may want to review changes before committing
+- User may want to adjust commit message
+- User may want to stage changes selectively
+- Taking initiative to commit removes user control
+
+**If you catch yourself about to run `git commit`**: STOP and ask the user if they want you to commit.
+
+---
+
 ## Sub-Agent Usage Policy
 
 **Applies ONLY to agents capable of sub-agent use**, eg. **Claude Code**!
@@ -151,10 +180,6 @@ When editing any file in `docs/` or its subfolders:
 - `Modified:` - Automatically managed by Git and Obsidian
 - `Created:` - Set once, never changed
 
-✅ **DO edit these frontmatter fields:**
-- `last-updated:` - Manual field for semantic versioning (e.g., "2025-10-21")
-- `version:` - When present, increment as appropriate
-- Other semantic fields like `status:`, `phase:`, etc.
 
 **Why this matters:**
 - `Modified:` is automatically updated by tooling on every file save

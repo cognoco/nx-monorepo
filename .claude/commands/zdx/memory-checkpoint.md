@@ -16,11 +16,17 @@ Briefly summarize the work you just completed:
 1. `.ruler/AGENTS.md` or `CLAUDE.md` - General project practices, workflows, technology choices
 2. Official framework documentation (Next.js, Nx, Prisma, etc.)
 
-**If NOT already covered there, read memory system files:**
+**If NOT already covered there, read ALL memory system files:**
 1. `docs/memories/README.md` - Understand the memory system structure and principles
 2. `docs/memories/adopted-patterns.md` - Current monorepo architectural standards
 3. `docs/memories/post-generation-checklist.md` - Current post-generation steps
 4. `docs/memories/tech-findings-log.md` - Current technical findings
+
+**CRITICAL - Search for existing references to your topic:**
+- Use grep/search across ALL memory files for keywords related to your work
+- Check if similar patterns, fixes, or findings already exist
+- Look for related entries that might need updating instead of adding new ones
+- Example: If documenting TypeScript config, search for "TypeScript", "tsconfig", "Project References"
 
 **Purpose**: Avoid duplicating existing documentation. Memory system captures GAPS, not general practices.
 
@@ -60,20 +66,49 @@ Ask yourself these questions:
 
 If you identified knowledge that should be documented:
 
+**CRITICAL RULES - Minimize Overlap:**
+
+1. **Each piece of information should live in ONE primary location**
+   - Adopted-patterns: Quick reference pattern description
+   - Post-generation-checklist: Step-by-step fix instructions
+   - Tech-findings-log: Deep technical rationale
+
+2. **Use cross-references instead of repeating**
+   - ✅ "See tech-findings-log.md - [Entry Name] for rationale"
+   - ❌ Copy-pasting same explanation into multiple files
+
+3. **Limited acceptable redundancy:**
+   - Brief context (1-2 sentences) if agents might only read one file
+   - Example: Post-generation-checklist can say "This is needed because X" (1 sentence) then "See adopted-patterns.md for full rationale"
+
 **For Adopted Patterns:**
 1. Add a new pattern section using the template in `adopted-patterns.md`
-2. Include: pattern description, rationale, validation steps, "when to apply" guidance
-3. Update the "last-updated" date in frontmatter
+2. Include: pattern description, when to apply, **brief** rationale
+3. **Omit**: Deep technical explanations (link to tech-findings-log instead)
+4. Update the "last-updated" date in frontmatter
 
 **For Post-Generation Checklist:**
 1. Add a new checklist section using the template in `post-generation-checklist.md`
 2. Include: issue description, required actions, validation commands
-3. Update the "last-updated" date in frontmatter
+3. **Omit**: Why the issue exists (link to tech-findings-log instead), detailed pattern explanation (link to adopted-patterns instead)
+4. Update the "last-updated" date in frontmatter
 
 **For Tech Findings Log:**
 1. Add a new entry using the template in `tech-findings-log.md`
 2. Include: decision, context, alternatives considered, technical rationale
-3. Update the "last-updated" date in frontmatter
+3. **Omit**: Step-by-step instructions (link to post-generation-checklist instead)
+4. Update the "last-updated" date in frontmatter
+
+**After Adding Content - Check for Ambiguities:**
+
+1. **Re-read the ENTIRE memory file** (not just your additions)
+2. Look for:
+   - Contradictions with existing entries
+   - Unclear boundaries between patterns
+   - Ambiguous terminology that could confuse agents
+   - Missing cross-references to related entries
+3. Update existing entries if your new content creates ambiguity
+4. Add clarifying notes to distinguish similar patterns
 
 ## Step 5: Report Back
 
@@ -156,14 +191,18 @@ Each memory file has a different purpose and appropriate length:
 ## Quality Check
 
 Before finishing, verify:
+- [ ] **Search check**: Searched ALL memory files for existing references to this topic
+- [ ] **Update vs. Add**: Confirmed this needs a NEW entry (not updating existing one)
 - [ ] Used the appropriate template from the target file
 - [ ] Included clear rationale (why, not just what)
 - [ ] Added validation/verification steps
 - [ ] Updated "last-updated" date in frontmatter
-- [ ] Cross-referenced related documentation
+- [ ] **Cross-reference check**: Each file links to others (no duplicated explanations)
 - [ ] **Length check**: Each entry within target range for its file type
-- [ ] **Redundancy check**: Not repeating same information across files
-- [ ] **Cross-reference check**: Using links instead of duplicating explanations
+- [ ] **Redundancy check**: Each piece of info lives in ONE primary location
+- [ ] **Overlap check**: Only minimal context redundancy (1-2 sentences max)
+- [ ] **Ambiguity check**: Re-read ENTIRE memory file for contradictions/unclear boundaries
+- [ ] **Related entries check**: Updated or cross-referenced similar existing patterns
 
 ## Documentation Length Examples
 

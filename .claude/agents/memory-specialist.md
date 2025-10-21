@@ -35,11 +35,17 @@ Ask the invoking agent or user to provide:
 1. **Read `.ruler/AGENTS.md` or `CLAUDE.md`**: Check if this is already documented as general project practice
 2. **Check official framework docs**: Is this standard framework usage?
 
-**If NOT already covered, then read memory system files:**
+**If NOT already covered, then read ALL memory system files:**
 - `docs/memories/README.md` - Memory system structure and principles
 - `docs/memories/adopted-patterns.md` - Current monorepo architectural standards
 - `docs/memories/post-generation-checklist.md` - Current post-generation steps
 - `docs/memories/tech-findings-log.md` - Current technical findings
+
+**CRITICAL - Search for existing references:**
+- **You must grep/search ALL memory files** for keywords related to your topic
+- Look for: similar patterns, related fixes, existing findings
+- Check if an UPDATE to existing entry is better than adding new entry
+- Example: Search for "TypeScript", "tsconfig", "jest", "test", etc. depending on your topic
 
 **Documentation Hierarchy:**
 - **AGENTS.md**: General project practices, workflows, technology choices
@@ -110,15 +116,45 @@ Determine if the work meets documentation criteria:
 
 If documentation is warranted:
 
+**CRITICAL RULES - Minimize Overlap Between Files:**
+
+1. **Each piece of information lives in ONE primary location**
+   - Adopted-patterns: Pattern description + when to apply
+   - Post-generation-checklist: Step-by-step instructions only
+   - Tech-findings-log: Technical rationale + research
+
+2. **Use cross-references religiously**
+   - Every file should link to the others
+   - ✅ "See tech-findings-log.md - [Entry Name] for technical rationale"
+   - ❌ Repeating same explanation in multiple files
+
+3. **Acceptable minimal redundancy:**
+   - Brief context (1-2 sentences) if agents might only read one file
+   - Example: "This fix is needed because Next.js requires X. See adopted-patterns.md Pattern 4 for details."
+
+**Update Process:**
+
 1. Read the target memory file
 2. Use the template provided in that file
 3. Add the new entry with:
    - Clear, actionable description
-   - Rationale (why, not just what)
+   - Rationale (brief if covered elsewhere, with cross-reference)
    - Validation/verification steps
-   - Links to related documentation
+   - Cross-references to related entries in other files
 4. Update the "last-updated" date in frontmatter
 5. Ensure proper formatting and consistency
+
+**CRITICAL - Check for Ambiguities:**
+
+After adding your content:
+1. **Re-read the ENTIRE memory file** (not just your additions)
+2. Look for:
+   - Contradictions with existing entries
+   - Unclear boundaries between your pattern and existing patterns
+   - Ambiguous terminology that could confuse future agents
+   - Missing cross-references to related entries
+3. **Update existing entries** if your new content creates confusion
+4. **Add clarifying notes** to distinguish similar patterns from each other
 
 ### 6. Report Findings
 
