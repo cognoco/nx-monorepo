@@ -1,6 +1,6 @@
 ---
 Created: 2025-10-17
-Modified: 2025-10-21T11:23
+Modified: 2025-10-21T13:21
 Version: 1
 ---
 
@@ -393,10 +393,10 @@ Establish quality assurance tooling and testing scaffolding early to create a sa
 ### Sub-stages
 
 - [ ] **3.1: Install and configure Husky**
-  - [ ] 3.1.1: Install Husky: `pnpm add -D husky`
-  - [ ] 3.1.2: Initialize Husky: `pnpm exec husky init`
-  - [ ] 3.1.3: Set up Git hooks infrastructure
-  - [ ] 3.1.4: Configure pre-commit hook for linting and formatting
+  - [x] 3.1.1: Install Husky: `pnpm add -D husky` and install lint-staged: `pnpm add -D lint-staged`
+  - [x] 3.1.2: Initialize Husky: `pnpm exec husky init`
+  - [x] 3.1.3: Set up Git hooks infrastructure
+  - [x] 3.1.4: Configure pre-commit hook for linting and formatting
   - [ ] 3.1.5: Configure commit-msg hook for conventional commits (optional)
   - [ ] 3.1.6: Test hook triggers on commit attempt
 

@@ -9,7 +9,8 @@
     "lint": "nx run-many -t lint",
     "e2e": "nx run-many -t e2e",
     "format:check": "nx run-many -t format:check",
-    "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,scss,html}\""
+    "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,scss,html}\"",
+    "prepare": "husky"
   },
   "private": true,
   "dependencies": {
@@ -58,11 +59,13 @@
     "eslint-plugin-playwright": "^1.6.2",
     "eslint-plugin-react": "7.35.0",
     "eslint-plugin-react-hooks": "5.0.0",
+    "husky": "^9.1.7",
     "jest": "^30.0.2",
     "jest-environment-jsdom": "^30.0.2",
     "jest-environment-node": "^30.0.2",
     "jest-util": "^30.0.2",
     "jsonc-eslint-parser": "^2.1.0",
+    "lint-staged": "^16.2.5",
     "nx": "21.6.5",
     "postcss": "8.4.38",
     "prettier": "^2.6.2",
