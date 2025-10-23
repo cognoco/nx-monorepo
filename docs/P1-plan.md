@@ -1,6 +1,6 @@
 ---
 Created: 2025-10-17
-Modified: 2025-10-21T13:25
+Modified: 2025-10-23T16:00
 Version: 1
 ---
 
@@ -74,30 +74,36 @@ Before starting implementation, we need to understand the architectural relation
 - `packages/database`: Exports Prisma client singleton for server use
 - `packages/supabase-client`: Exports auth client factory for web/mobile
 
-### oRPC Type Flow
+### REST+OpenAPI Type Flow
 
 **How types flow from server to client:**
 
-1. Server defines oRPC router with typed procedures in `apps/server/src/router.ts`
-2. Server exports router type: `export type AppRouter = typeof router`
-3. API client package imports the router type: `import type { AppRouter } from '@nx-monorepo/server/router'`
-4. Client creates typed client: `createClient<AppRouter>(config)`
-5. Web/mobile apps get full TypeScript autocomplete for all server endpoints
+1. Server defines REST endpoints with Zod validation schemas in `apps/server/src/routes/`
+2. Server generates OpenAPI specification from route definitions
+3. OpenAPI spec is consumed by code generation tool (`openapi-typescript`)
+4. Generated TypeScript types are placed in `packages/api-client/src/generated/`
+5. API client factory uses generated types to provide autocomplete for endpoints
+6. Web/mobile apps get full TypeScript autocomplete for all API calls
+
+**Type Generation Pipeline:**
+```
+Server Routes (Zod schemas) → OpenAPI Spec → openapi-typescript → Generated Types → API Client Factory
+```
 
 **Dependency flow:**
 ```
-apps/web → packages/api-client → (type import only) apps/server
+apps/web → packages/api-client → (generated types from OpenAPI spec)
 apps/server → packages/database → packages/schemas
-packages/api-client → packages/schemas
+packages/api-client → packages/schemas (shared validation)
 ```
 
-**Note:** api-client depends on server for TYPE information only, not runtime code. This is safe.
+**Note:** API client depends on OpenAPI spec (artifact), not server code. No circular runtime dependencies.
 
 ### Architecture Decisions to Make
 
 During Stage 4, we will explicitly decide:
 
-- ☐ **API Architecture**: oRPC vs tRPC vs REST vs gRPC
+- ☐ **API Architecture**: REST+OpenAPI implementation details (decided - see docs/architecture-decisions.md)
 - ☐ **Supabase Strategy**: Local CLI vs cloud project
 - ☐ **Migration Strategy**: Prisma Migrate vs db push
 - ☐ **Connection Strategy**: Service role vs anon key for Prisma
@@ -322,7 +328,7 @@ Create all shared libraries following Nx conventions, ensuring each package buil
 
 - [x] **2.1: Generate database package**
   - [x] 2.1.1: Run: `pnpm exec nx g @nx/js:lib database --directory=packages/database --bundler=none`
-    - **Note**: Uses `--bundler=none` because Prisma generates code at runtime (see `docs/tech-findings-log.md`)
+    - **Note**: Uses `--bundler=none` because Prisma generates code at runtime (see `docs/memories/tech-findings-log.md`)
   - [x] 2.1.2: Install Prisma dependencies: `pnpm add -D prisma --filter @nx-monorepo/database`
   - [x] 2.1.3: Install Prisma client: `pnpm add @prisma/client --filter @nx-monorepo/database`
   - [x] 2.1.4: Set up basic Prisma configuration structure
@@ -342,7 +348,8 @@ Create all shared libraries following Nx conventions, ensuring each package buil
 
 - [x] **2.3: Generate api-client package**
   - [x] 2.3.1: Run: `pnpm exec nx g @nx/js:lib api-client --directory=packages/api-client --bundler=tsc`
-  - [x] 2.3.2: Install oRPC client: `pnpm add @orpc/client --filter @nx-monorepo/api-client`
+  - [x] 2.3.2: Set up API client structure (oRPC initially installed, will be replaced after Stage 4.1)
+    - Note: Placeholder implementation until REST+OpenAPI tooling is configured in Stage 4
   - [x] 2.3.3: Set up basic client factory structure
   - [x] 2.3.4: **Immediate test**: Run `pnpm exec nx run api-client:build` and verify success
   - [x] 2.3.5: **Immediate test**: Run `pnpm exec nx run api-client:lint` and verify passes
@@ -393,23 +400,23 @@ Establish quality assurance tooling and testing scaffolding early to create a sa
 ### Sub-stages
 
 - [ ] **3.1: Install and configure Husky**
-  - [x] 3.1.1: Install Husky: `pnpm add -D husky` and install lint-staged: `pnpm add -D lint-staged`
+  - [x] 3.1.1: Install Husky: `pnpm add -D husky -w`
   - [x] 3.1.2: Initialize Husky: `pnpm exec husky init`
   - [x] 3.1.3: Set up Git hooks infrastructure
   - [x] 3.1.4: Configure pre-commit hook for linting and formatting
   - [x] 3.1.5: Install commitlint: `pnpm add -D -w @commitlint/cli @commitlint/config-conventional`
   - [x] 3.1.6: Create `commitlint.config.js` with custom type prefixes (feat, fix, docs, chore, cfg, plan, zdx)
   - [x] 3.1.7: Configure commit-msg hook for conventional commits
-  - [ ] 3.1.8: Test hook triggers on commit attempt
+  - [x] 3.1.8: Test hook triggers on commit attempt
 
-- [ ] **3.2: Add pre-commit validation with lint-staged**
-  - [ ] 3.2.1: Install lint-staged: `pnpm add -D lint-staged`
-  - [ ] 3.2.2: Create `.lintstagedrc.json` configuration
-  - [ ] 3.2.3: Configure to run ESLint and Prettier on staged files only
-  - [ ] 3.2.4: Ensure it respects Nx project boundaries
-  - [ ] 3.2.5: Test by staging files and committing
+- [x] **3.2: Add pre-commit validation with lint-staged**
+  - [x] 3.2.1: Install lint-staged: `pnpm add -D lint-staged -w`
+  - [x] 3.2.2: Create `.lintstagedrc.json` configuration
+  - [x] 3.2.3: Configure to run ESLint and Prettier on staged files only (default config)
+  - [x] 3.2.4: Ensure it respects Nx project boundaries
+  - [x] 3.2.5: Test by staging files and committing
 
-- [ ] **3.3: Verify and document existing testing infrastructure**
+- [x] **3.3: Verify and document existing testing infrastructure** ✅
 
   **Rationale**: Nx auto-generates proper Jest configurations for each project with workspace-level preset management. Rather than creating custom infrastructure, verify the standard Nx patterns work correctly and document them for future reference.
 
@@ -421,43 +428,94 @@ Establish quality assurance tooling and testing scaffolding early to create a sa
 
   **Approach**: Validate existing patterns, document for consistency, add optional enhancements only when actually needed.
 
-  - [ ] 3.3.1: Verify web app Jest configuration follows Nx standards
-    - [ ] Confirm `apps/web/jest.config.ts` extends `../../jest.preset.js`
-    - [ ] Confirm tests run successfully with current setup
-    - [ ] Review test configuration for any necessary adjustments
-    - [ ] Document current pattern for future projects
+  - [x] 3.3.1: Verify web app Jest configuration follows Nx standards ✅
+    - [x] Confirm `apps/web/jest.config.ts` extends `../../jest.preset.js` ✅
+    - [x] Confirm tests run successfully with current setup ✅
+    - [x] Review test configuration for any necessary adjustments ✅
+      - Fixed type isolation issue: Removed jest types from production `tsconfig.json`
+      - Validated tests still pass after configuration adjustment
+    - [x] Document current pattern for future projects ✅
+      - Added "Jest Configuration Patterns" section to `.ruler/AGENTS.md`
 
-  - [ ] 3.3.2: Verify TypeScript test configuration follows Nx standards
-    - [ ] Confirm `apps/web/tsconfig.spec.json` extends `../../tsconfig.base.json`
-    - [ ] Confirm Jest types are included: `"types": ["jest", "node"]`
-    - [ ] Verify production `tsconfig.json` doesn't include test types
-    - [ ] Document pattern for future projects
+  - [x] 3.3.2: Verify TypeScript test configuration follows Nx standards ✅
+    - [x] Confirm `apps/web/tsconfig.spec.json` extends `../../tsconfig.base.json` ✅
+    - [x] Confirm Jest types are included: `"types": ["jest", "node"]` ✅
+    - [x] Verify production `tsconfig.json` doesn't include test types ✅
+      - Fixed: Removed test types from production config for proper type isolation
+    - [x] Document pattern for future projects ✅
+      - Documented TypeScript test configuration pattern in `.ruler/AGENTS.md`
 
-  - [ ] 3.3.3: Document how to add Jest to new projects
-    - [ ] Add to CLAUDE.md: "To add Jest to a project: `pnpm exec nx g @nx/jest:configuration <project>`"
-    - [ ] Document that Nx auto-generates proper configs extending workspace preset
-    - [ ] Note: No manual setup required - Nx handles it automatically
+  - [x] 3.3.3: Document how to add Jest to new projects ✅
+    - [x] Add to .ruler/AGENTS.md: "To add Jest to a project: `pnpm exec nx g @nx/jest:configuration <project>`" ✅
+    - [x] Document that Nx auto-generates proper configs extending workspace preset ✅
+    - [x] Note: No manual setup required - Nx handles it automatically ✅
 
-  - [ ] 3.3.4: Document optional testing library enhancements (for future use)
-    - [ ] Create `docs/testing-enhancements.md` with optional patterns:
-      - How to add `@testing-library/jest-dom` to a React project (when DOM matchers are needed)
-      - How to add custom setup files (`setupFilesAfterEnv`) per-project
-      - Example: Creating project-specific `jest.setup.ts` for special needs
-    - [ ] Note: These are optional - add only when specific projects need them
-    - [ ] Emphasize: Start simple, add complexity only when justified
+  - [x] 3.3.4: Document optional testing library enhancements (for future use) ✅
+    - [x] Create `docs/testing-enhancements.md` with optional patterns: ✅
+      - @testing-library/jest-dom setup and usage
+      - setupFilesAfterEnv configuration pattern
+      - @testing-library/user-event for realistic user interactions
+      - Test ID best practices with namespaced conventions
+      - MSW (Mock Service Worker) for API mocking
+      - Custom render function with providers
+    - [x] Note: These are optional - add only when specific projects need them ✅
+    - [x] Emphasize: Start simple, add complexity only when justified ✅
 
-- [ ] **3.4: Configure test coverage reporting**
-  - [ ] 3.4.1: Set up Jest coverage configuration (no threshold yet, just reporting)
-  - [ ] 3.4.2: Configure coverage reporting format (lcov, text)
-  - [ ] 3.4.3: Set up coverage reports directory: `coverage/`
-  - [ ] 3.4.4: Test coverage generation: `pnpm exec nx run-many -t test --coverage`
-  - [ ] 3.4.5: Document how to view coverage reports
+- [x] **3.4: Configure test coverage reporting** ✅
 
-- [ ] **3.5: Add type checking to CI**
-  - [ ] 3.5.1: Ensure TypeScript compilation is part of CI pipeline
-  - [ ] 3.5.2: Configure typecheck target for projects (if not auto-configured)
-  - [ ] 3.5.3: Test: `pnpm exec nx run-many -t typecheck`
-  - [ ] 3.5.4: Update `.github/workflows/ci.yml` to include typecheck step
+  **Approach**: Establish coverage infrastructure with permissive thresholds (10%) during Phase 1 walking skeleton. This validates the infrastructure without blocking development - thresholds will be raised to 80% in Phase 2.
+
+  **Implemented**:
+  - ✅ Coverage scripts added to root `package.json`:
+    - `test:coverage` - Run coverage for all projects
+    - `test:coverage:web` - Run coverage for web app
+    - `test:coverage:server` - Run coverage for server
+  - ✅ Coverage thresholds added to `apps/web/jest.config.ts`:
+    - All metrics set to 10% (branches, functions, lines, statements)
+    - Aspirational comments documenting 80% target for Phase 2+
+  - ✅ Coverage directory pattern verified: `coverageDirectory: '../../coverage/apps/web'`
+  - ✅ Coverage workflow tested and validated:
+    - HTML reports generate correctly at `coverage/apps/web/lcov-report/index.html`
+    - Threshold enforcement verified (intentionally failed with 99% threshold, then restored to 10%)
+    - Tests pass with 10% thresholds
+  - ✅ Comprehensive coverage documentation added to `.ruler/AGENTS.md`:
+    - Coverage scripts usage
+    - Coverage thresholds explanation with rationale
+    - Coverage metrics definitions (branches, functions, lines, statements)
+    - Coverage reports location and contents
+    - Coverage directory structure pattern
+    - Adding coverage to new projects
+
+  - [x] 3.4.1: Add coverage scripts to root package.json ✅
+    - Added `test:coverage`, `test:coverage:web`, `test:coverage:server`
+    - Follows existing script pattern (workspace-wide + per-project)
+
+  - [x] 3.4.2: Standardize coverage thresholds across projects ✅
+    - Added 10% thresholds to `apps/web/jest.config.ts`
+    - Documented with aspirational 80% target comments
+    - Pattern ready to apply to future projects
+
+  - [x] 3.4.3: Configure coverage directory structure ✅
+    - Verified existing pattern: `../../coverage/apps/web`
+    - Documented pattern for future projects
+    - Confirmed `/coverage` is gitignored
+
+  - [x] 3.4.4: Document coverage commands and viewing reports ✅
+    - Added comprehensive "Coverage Testing" section to `.ruler/AGENTS.md`
+    - Documented scripts, thresholds, reports, directory structure
+    - Included platform-specific report opening commands
+
+  - [x] 3.4.5: Test coverage workflow and update checklist ✅
+    - Verified `pnpm run test:coverage:web` generates HTML reports
+    - Verified threshold enforcement by testing failure case (99% threshold)
+    - Confirmed tests pass with correct 10% thresholds
+    - Updated this checklist with detailed completion notes
+
+- [x] **3.5: Add type checking to CI**
+  - [x] 3.5.1: Ensure TypeScript compilation is part of CI pipeline
+  - [x] 3.5.2: Configure typecheck target for projects (if not auto-configured)
+  - [x] 3.5.3: Test: `pnpm exec nx run-many -t typecheck`
+  - [x] 3.5.4: Update `.github/workflows/ci.yml` to include typecheck step
 
 ### Success Criteria
 
@@ -489,11 +547,75 @@ Make explicit architecture decisions about API framework and database strategy, 
 
 ### Sub-stages
 
-- [ ] **4.1: API Architecture Decision**
-  - [ ] 4.1.1: Review options: oRPC vs tRPC vs REST vs gRPC
-  - [ ] 4.1.2: Consider: Type safety, learning curve, ecosystem maturity, team familiarity
-  - [ ] 4.1.3: Document decision with rationale in `docs/architecture-decisions.md`
-  - [ ] 4.1.4: Install chosen framework dependencies in server and api-client
+- [ ] **4.1: API Architecture Decision & REST+OpenAPI Implementation**
+  - [x] 4.1.1: Review API framework options (oRPC, tRPC, REST+OpenAPI, gRPC) ✅ COMPLETED 2025-10-23
+    - Decision: Switch from oRPC to REST+OpenAPI
+    - Rationale: Maximum flexibility, zero vendor lock-in, industry standard patterns
+    - Documented in `docs/architecture-decisions.md` with comparison matrix and detailed analysis
+
+  - [x] 4.1.2: Remove oRPC from codebase ✅ COMPLETED 2025-10-23
+    - Updated 7 documentation files (architecture-decisions.md, README.md, P1-plan.md, poc-plan.md, tech-findings-log.md, and others)
+    - Removed @orpc/client dependency from packages/api-client/package.json
+    - Removed oRPC imports from api-client source code
+    - Deleted build artifacts and ran pnpm install (removed 8 packages)
+    - Validation: All tests pass, all builds pass, all linting passes, all typechecks pass, E2E tests pass
+
+  - [ ] 4.1.3: Review REST+OpenAPI tooling options
+    - Research: @asteasolutions/zod-to-openapi for OpenAPI spec generation from Zod schemas
+    - Research: openapi-typescript for TypeScript type generation from OpenAPI specs
+    - Research: openapi-fetch vs axios vs native fetch for HTTP client library
+    - Document findings and trade-offs for each option
+
+  - [ ] 4.1.4: Select code generation strategy and HTTP client library
+    - Decide: OpenAPI spec generation approach (code-first with zod-to-openapi vs manual YAML)
+    - Decide: TypeScript type generation workflow and build integration
+    - Decide: HTTP client library for packages/api-client
+    - Document selected stack with rationale in `docs/architecture-decisions.md`
+
+  - [ ] 4.1.5: Install REST+OpenAPI dependencies
+    - Server: Install OpenAPI generation dependencies (e.g., @asteasolutions/zod-to-openapi, swagger-ui-express)
+    - Client: Install openapi-typescript and chosen HTTP client library
+    - Verify installations: `pnpm list | grep -E "(openapi|swagger)"`
+
+  - [ ] 4.1.6: Configure Express routes structure
+    - Create directory: `apps/server/src/routes/`
+    - Set up route organization pattern (by feature/domain)
+    - Create example route file with dummy endpoint for testing infrastructure
+    - Mount routes in `apps/server/src/main.ts`
+
+  - [ ] 4.1.7: Set up OpenAPI spec generation
+    - Implement OpenAPI spec generation mechanism (based on 4.1.4 decision)
+    - Configure OpenAPI metadata (API title, version, servers, base path)
+    - Create endpoint to serve OpenAPI spec: `GET /api/docs/openapi.json`
+    - Verify spec validates as OpenAPI 3.x using online validator
+
+  - [ ] 4.1.8: Generate TypeScript types from OpenAPI spec
+    - Configure openapi-typescript in packages/api-client
+    - Add npm script: `"generate:types": "openapi-typescript <spec-url> -o src/generated/api.types.ts"`
+    - Run type generation and verify output matches server endpoint definitions
+    - Add `src/generated/` to .gitignore (or commit generated files based on team decision)
+
+  - [ ] 4.1.9: Configure API client factory with generated types
+    - Implement createApiClient() factory in `packages/api-client/src/index.ts`
+    - Integrate chosen HTTP client with generated types for full type safety
+    - Configure: base URL, default headers, error handling, interceptors
+    - Export typed client interface with full endpoint autocomplete
+    - Write unit tests for client factory initialization
+
+  - [ ] 4.1.10: Verify type-safe client functionality
+    - Create test endpoint in server: `GET /api/hello` → `{ message: string, timestamp: number }`
+    - Import API client in test code and call /api/hello
+    - Verify TypeScript autocomplete shows available endpoints
+    - Verify request/response types are enforced at compile time
+    - Test that TypeScript catches invalid requests (wrong path, wrong payload, wrong response handling)
+
+  - [ ] 4.1.11: Test REST+OpenAPI infrastructure end-to-end
+    - Start server: `pnpm exec nx run server:serve`
+    - Write integration test that calls dummy endpoint using API client
+    - Verify response matches expected type structure
+    - Test error handling: 404 (wrong path), 500 (server error), network timeout
+    - Validate type safety prevents runtime type mismatches
+    - Document any gaps or limitations discovered during testing
 
 - [ ] **4.2: Supabase Architecture Decision**
   - [ ] 4.2.1: Decide: Local Supabase CLI vs cloud project
@@ -528,17 +650,24 @@ Make explicit architecture decisions about API framework and database strategy, 
   - [ ] 4.5.3: Export createSupabaseClient factory functions
   - [ ] 4.5.4: Test client initialization with dummy code
 
-- [ ] **4.6: Set up API framework (based on 4.1 decision)**
-  - [ ] 4.6.1: Configure API server structure in `apps/server/src/main.ts`
-  - [ ] 4.6.2: Set up router/controller structure
-  - [ ] 4.6.3: Configure API client factory in `packages/api-client`
-  - [ ] 4.6.4: Verify type inference works (if applicable to chosen framework)
-  - [ ] 4.6.5: Test basic API request/response
-
 ### Success Criteria
 
-- [ ] Architecture decisions documented in `docs/architecture-decisions.md`
-- [ ] API framework choice documented with rationale
+**4.1: API Architecture & REST+OpenAPI Implementation**
+- [x] Architecture decisions documented in `docs/architecture-decisions.md` ✅
+- [x] API framework choice (REST+OpenAPI) documented with detailed rationale ✅
+- [x] oRPC completely removed from codebase (dependencies, imports, documentation) ✅
+- [ ] REST+OpenAPI tooling stack selected and documented
+- [ ] REST+OpenAPI dependencies installed (server and client)
+- [ ] Express routes structure configured in `apps/server/src/routes/`
+- [ ] OpenAPI spec generation configured and working
+- [ ] OpenAPI spec endpoint accessible: `GET /api/docs/openapi.json`
+- [ ] TypeScript type generation from OpenAPI spec working
+- [ ] API client factory configured with generated types
+- [ ] Type-safe client demonstrates autocomplete for endpoints
+- [ ] TypeScript enforces request/response types at compile time
+- [ ] End-to-end infrastructure test passes (dummy endpoint via type-safe client)
+
+**4.2-4.5: Supabase & Database Configuration**
 - [ ] Supabase strategy documented with rationale
 - [ ] Supabase project created and accessible via dashboard
 - [ ] Environment variables configured and documented in `docs/environment-setup.md`
@@ -549,9 +678,6 @@ Make explicit architecture decisions about API framework and database strategy, 
 - [ ] Supabase dashboard shows HealthCheck table with correct schema
 - [ ] Can manually insert/query data via Prisma Studio or Supabase dashboard
 - [ ] Supabase client factory exports working initialization function
-- [ ] API server can be initialized with chosen framework
-- [ ] API client can be initialized in web app
-- [ ] TypeScript shows type inference for API methods (if applicable)
 
 **Stage 4 Estimated Time:** 2-3 hours
 
@@ -579,25 +705,31 @@ Create a minimal vertical slice that exercises the entire stack: web → API cli
   - [ ] 5.2.5: Run tests and verify they pass
 
 - [ ] **5.3: Implement server endpoints + tests**
-  - [ ] 5.3.1: Create health check router/controller in `apps/server/src/routes/health.ts`
-  - [ ] 5.3.2: Implement: `getHealth()` - reads all health checks from DB
-  - [ ] 5.3.3: Implement: `pingHealth(message)` - writes new health check to DB
-  - [ ] 5.3.4: Use Zod schemas for request validation
-  - [ ] 5.3.5: Export router type for client (if using typed framework)
-  - [ ] 5.3.6: Write integration tests for endpoints
-  - [ ] 5.3.7: Run tests and verify they pass
+  - [ ] 5.3.1: Create health check REST endpoints in `apps/server/src/routes/health.ts`
+    - `GET /api/health` - Fetch all health checks from DB
+    - `POST /api/health/ping` - Create new health check with message
+  - [ ] 5.3.2: Add Zod schema validation middleware for request bodies
+  - [ ] 5.3.3: Update OpenAPI spec with new endpoints
+  - [ ] 5.3.4: Regenerate TypeScript client types from OpenAPI spec
+  - [ ] 5.3.5: Write integration tests for both endpoints
+  - [ ] 5.3.6: Run tests and verify they pass
 
 - [ ] **5.4: Implement API client + tests**
-  - [ ] 5.4.1: Export typed client factory in `packages/api-client/src/index.ts`
-  - [ ] 5.4.2: Import server router type (if applicable)
-    - Note: Use relative import since apps don't have tsconfig path aliases
-    - Implementation: `import type { AppRouter } from '../../../apps/server/src/router'`
-    - This is type-only import (safe, no circular runtime dependency)
-    - Alternative: Extract router types to separate package if circular dependency issues arise
-  - [ ] 5.4.3: Create client initialization function
-  - [ ] 5.4.4: Ensure type safety from server to client
-  - [ ] 5.4.5: Write unit tests for client initialization
-  - [ ] 5.4.6: Run tests and verify they pass
+  - [ ] 5.4.1: Generate TypeScript types from OpenAPI spec
+    - Run code generation: `openapi-typescript openapi.yaml -o packages/api-client/src/generated/api.types.ts`
+    - Verify generated types match server endpoints
+  - [ ] 5.4.2: Create type-safe HTTP client factory in `packages/api-client/src/index.ts`
+    - Wrap fetch/axios with generated types
+    - Export `createApiClient(config)` factory function
+    - Include error handling and response validation
+  - [ ] 5.4.3: Test type safety in client code
+    - Verify autocomplete works for endpoint paths
+    - Verify request/response types are enforced
+    - Test invalid requests caught at compile time
+  - [ ] 5.4.4: Write unit tests for client factory
+    - Test client initialization with various configs
+    - Mock fetch to test request formation
+  - [ ] 5.4.5: Run tests and verify they pass
 
 - [ ] **5.5: Implement web UI**
   - [ ] 5.5.1: Create `/health` page in `apps/web/src/app/health/page.tsx`

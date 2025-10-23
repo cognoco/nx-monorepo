@@ -16,8 +16,8 @@ This is a **walking skeleton** implementation - a minimal, fully-integrated syst
 
 **Current Status**: Phase 1 Stage 2 Complete
 - ✅ Next.js 15 web application with Playwright E2E tests
-- ✅ Express server with oRPC for type-safe APIs
-- ✅ Four shared packages: database (Prisma), schemas (Zod), api-client (oRPC), supabase-client
+- ✅ Express server with REST+OpenAPI for type-safe APIs
+- ✅ Four shared packages: database (Prisma), schemas (Zod), api-client (REST+OpenAPI), supabase-client
 - ✅ Complete QA infrastructure: Jest, ESLint, Prettier, CI/CD
 - ⏳ In progress: QA hooks (Husky, lint-staged), Supabase configuration
 
@@ -25,13 +25,13 @@ This is a **walking skeleton** implementation - a minimal, fully-integrated syst
 
 ### Applications
 - **Web**: Next.js 15.2, React 19, Tailwind CSS
-- **Server**: Express with oRPC for type-safe RPC
+- **Server**: Express with REST+OpenAPI for type-safe APIs
 - **Mobile** (deferred to Phase 2): Expo React Native
 
 ### Shared Libraries
 - **Database**: Prisma + Supabase (PostgreSQL)
 - **Schemas**: Zod validation schemas with TypeScript type inference
-- **API Client**: oRPC client factory for type-safe API calls
+- **API Client**: REST+OpenAPI client for type-safe API calls
 - **Supabase Client**: Browser and server Supabase client factories
 
 ### Infrastructure
@@ -92,7 +92,7 @@ nx-monorepo/
 ├── packages/             # Shared libraries
 │   ├── database/         # Prisma client + utilities
 │   ├── schemas/          # Zod schemas + TypeScript types
-│   ├── api-client/       # oRPC client factory
+│   ├── api-client/       # REST+OpenAPI client
 │   └── supabase-client/  # Supabase client configuration
 ├── docs/                 # Project documentation
 │   ├── P1-plan.md       # Phase 1 implementation plan
@@ -124,7 +124,7 @@ apps (server) → database → schemas
 
 - **Database → TypeScript**: Prisma generates types from schema
 - **Validation → Types**: Zod schemas with `z.infer<typeof schema>`
-- **Server → Client**: oRPC provides end-to-end type inference
+- **Server → Client**: REST+OpenAPI provides end-to-end type safety via generated types
 - **Shared Types**: All types centralized in `@nx-monorepo/schemas`
 
 ### Package Naming
@@ -212,8 +212,8 @@ pnpm exec nx reset
 
 1. **Define schemas first**: Add Zod schemas to `@nx-monorepo/schemas`
 2. **Implement database layer**: Add Prisma models to `@nx-monorepo/database`
-3. **Create server endpoints**: Add oRPC routes in `apps/server`
-4. **Update API client**: Client types auto-update via oRPC
+3. **Create server endpoints**: Add REST endpoints in `apps/server`
+4. **Update API client**: Client types auto-update via OpenAPI spec generation
 5. **Implement UI**: Build features in `apps/web`
 6. **Write tests**: Add unit tests (packages), integration tests (server), E2E tests (apps)
 
@@ -293,7 +293,7 @@ GitHub Actions workflow runs on all PRs and main branch commits:
 ## Documentation
 
 - **[P1-plan.md](docs/P1-plan.md)**: Phase 1 implementation plan with stage breakdowns
-- **[tech-findings-log.md](docs/tech-findings-log.md)**: Technical decisions and empirical findings
+- **[tech-findings-log.md](docs/memories/tech-findings-log.md)**: Technical decisions and empirical findings
 - **[CLAUDE.md](CLAUDE.md)**: AI agent instructions (auto-generated from `.ruler/AGENTS.md`)
 
 ## External Services
@@ -335,7 +335,7 @@ NX_DAEMON=false pnpm exec nx run-many -t test
 pnpm exec nx run-many -t test --no-cloud
 ```
 
-See `docs/tech-findings-log.md` for detailed diagnosis.
+See `docs/memories/tech-findings-log.md` for detailed diagnosis.
 
 ## Contributing
 
@@ -352,7 +352,7 @@ This is a template project. To use it:
 - [Nx Documentation](https://nx.dev)
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Prisma Documentation](https://www.prisma.io/docs)
-- [oRPC Documentation](https://orpc.dev)
+- [OpenAPI Specification](https://spec.openapis.org/)
 - [Playwright Documentation](https://playwright.dev)
 
 ## License

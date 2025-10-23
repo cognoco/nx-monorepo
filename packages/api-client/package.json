@@ -16,7 +16,6 @@
     }
   },
   "dependencies": {
-    "@orpc/client": "^1.10.0",
     "tslib": "^2.3.0"
   }
 }

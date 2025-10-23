@@ -1,6 +1,6 @@
 ---
 Created: 2025-10-16T20:18
-Modified: 2025-10-17T10:45
+Modified: 2025-10-23T16:00
 ---
 # PoC Plan: Nx Monorepo with Functional Parity to bts-test
 
@@ -25,7 +25,7 @@ We are **NOT** recreating bts-test's architecture. We are recreating its **funct
 
 - **Web Framework**: Next.js 15 with React 19
 - **Mobile Framework**: React Native with Expo
-- **API Layer**: oRPC with Zod validation
+- **API Layer**: REST+OpenAPI with Zod validation
 - **ORM**: Prisma (configured for Supabase)
 - **Styling**: Tailwind CSS and ShadCN
 - **Package Manager**: pnpm
@@ -149,9 +149,9 @@ npx supabase init
 pnpm add @supabase/supabase-js --filter @nx-test/supabase-client
 pnpm add @supabase/ssr --filter @nx-test/supabase-client
 
-# Install oRPC for server
-pnpm add @orpc/server --filter @nx-test/server
-pnpm add @orpc/client --filter @nx-test/api-client
+# Install OpenAPI tooling
+pnpm add -D @hey-api/openapi-ts --filter @nx-test/api-client
+# Note: Server uses standard Express - no additional RPC framework needed
 
 # Note: Expo Router skipped (no mobile app in Phase 1)
 ```
@@ -179,8 +179,8 @@ Minimal setup to prove structure works:
 
 **API Client Package** (`packages/api-client`):
 
-- `src/index.ts` - Placeholder oRPC client factory
-- `src/types.ts` - Shared TypeScript types
+- `src/index.ts` - Placeholder for OpenAPI-generated client
+- `src/types.ts` - Will be auto-generated from OpenAPI spec
 
 **Supabase Client Package** (`packages/supabase-client`):
 
@@ -190,7 +190,7 @@ Minimal setup to prove structure works:
 
 **Server App** (`apps/server`):
 
-- `src/main.ts` - Placeholder Express + oRPC server setup
+- `src/main.ts` - Placeholder Express REST API setup
 - `src/routes/` - Placeholder route structure
 
 **Web App** (`apps/web`):
@@ -254,11 +254,11 @@ Build functionality incrementally using vertical slices.
 
 ### Slice 2: Server API (3-4 hours)
 
-**Goal**: Backend works with type-safe oRPC.
+**Goal**: Backend works with RESTful API and generates OpenAPI spec.
 
 #### Tasks
 
-1. Set up oRPC server in `apps/server/src/main.ts`
+1. Set up Express REST API in `apps/server/src/main.ts` with route handlers
 2. Create todo service in `apps/server/src/services/todo.service.ts`:
    - `createTodo(input)` - Create new todo
    - `getTodos()` - Get all todos for authenticated user
@@ -267,7 +267,7 @@ Build functionality incrementally using vertical slices.
 3. Connect to Prisma client from `@nx-test/database`
 4. Use Zod schemas from `@nx-test/schemas` for validation
 5. Add authentication middleware using Supabase JWT validation
-6. Create oRPC router and export type
+6. Add OpenAPI spec generation from Zod schemas and route metadata
 7. Add unit tests for todo service
 8. Add integration tests for API endpoints
 
@@ -283,22 +283,22 @@ Build functionality incrementally using vertical slices.
 
 #### Completion Criteria
 
-- Server exposes working oRPC endpoints
+- Server exposes working REST endpoints with OpenAPI spec
 - Authentication is required for protected routes
 - All CRUD operations work
 - All tests pass
 
 ### Slice 3: API Client Package (1-2 hours)
 
-**Goal**: Shared oRPC client works for both web and mobile.
+**Goal**: Shared OpenAPI-generated client works for both platforms.
 
 #### Tasks
 
-1. Create oRPC client factory in `packages/api-client/src/index.ts`
+1. Generate TypeScript client from OpenAPI spec using @hey-api/openapi-ts
 2. Support both web (Next.js) and native (Expo) configurations:
    - Web: Use fetch with credentials
    - Native: Use fetch with manual cookie handling
-3. Export AppRouter type from server
+3. Import generated types from OpenAPI spec (no manual type exports needed)
 4. Add TanStack Query integration helpers
 5. Add tests for client initialization
 
@@ -311,8 +311,8 @@ Build functionality incrementally using vertical slices.
 
 #### Completion Criteria
 
-- API client package exports working factory function
-- Type safety is enforced across client and server
+- API client package exports working factory function generated from OpenAPI spec
+- Type safety is enforced via OpenAPI-generated types
 - All tests pass
 
 ### Slice 4: Web Frontend (3-4 hours)
@@ -412,7 +412,7 @@ Build functionality incrementally using vertical slices.
 1. ✅ Users can sign up and log in (web and mobile) via Supabase Auth
 2. ✅ Authenticated users can create, read, update, delete todos
 3. ✅ Data is persisted to Supabase database via Prisma
-4. ✅ API is type-safe using oRPC and Zod
+4. ✅ API is type-safe using REST+OpenAPI and Zod
 5. ✅ Shared packages work correctly across apps
 6. ✅ All tests pass (unit, integration, E2E)
 7. ✅ Both web and mobile apps are functional

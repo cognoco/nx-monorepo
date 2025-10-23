@@ -15,13 +15,21 @@ const config: Config = {
     '!src/**/*.test.{ts,tsx,js,jsx}',
     '!src/**/*.d.ts',
   ],
+  coverageThreshold: {
+    global: {
+      branches: 10, // Target: 80% (Phase 2+)
+      functions: 10, // Target: 80% (Phase 2+)
+      lines: 10, // Target: 80% (Phase 2+)
+      statements: 10, // Target: 80% (Phase 2+)
+    },
+  },
   transform: {
     '^(?!.*\\.(js|jsx|ts|tsx|css|json)$)': '@nx/react/plugins/jest',
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   coverageDirectory: '../../coverage/apps/web',
   testEnvironment: 'jsdom',
-  forceExit: false,
+  forceExit: false, // Redundant but kept for easy manual toggle
 };
 
 export default createJestConfig(config);

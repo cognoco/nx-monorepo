@@ -1,0 +1,27 @@
+{
+  "name": "@nx-monorepo/web",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/web/src",
+  "projectType": "application",
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/web",
+        "command": "tsc --noEmit"
+      },
+      "cache": true,
+      "inputs": [
+        "default",
+        "^production",
+        {
+          "externalDependencies": ["typescript"]
+        }
+      ],
+      "metadata": {
+        "technologies": ["typescript"],
+        "description": "Runs type-checking for the project."
+      }
+    }
+  }
+}

@@ -33,6 +33,64 @@ This project uses [Ruler](https://github.com/intellectronica/ruler) to manage AI
 
 ---
 
+## CRITICAL: Git Commit Policy
+
+**🚨 STRICT RULE - DO NOT VIOLATE 🚨**
+
+**NEVER create git commits unless explicitly instructed by the user.**
+
+**When commits are allowed:**
+- ✅ User explicitly requests: "commit these changes", "create a commit", etc.
+- ✅ Task description explicitly includes committing as a step
+- ✅ Slash command explicitly instructs you to commit
+- ✅ Plan/checklist explicitly includes commit step
+
+**When commits are FORBIDDEN:**
+- ❌ After completing work (unless commit was requested)
+- ❌ "Being helpful" by committing completed work
+- ❌ Following git best practices to "commit early and often"
+- ❌ Because changes are ready to commit
+- ❌ Any situation where commit was not explicitly requested
+
+**Why this matters:**
+- User may want to review changes before committing
+- User may want to adjust commit message
+- User may want to stage changes selectively
+- Taking initiative to commit removes user control
+
+**If you catch yourself about to run `git commit`**: STOP and ask the user if they want you to commit.
+
+---
+
+## 🚧 ACTIVE MIGRATION NOTICE 🚧
+
+**Status:** Currently migrating from oRPC to REST+OpenAPI (Started: 2025-10-23)
+
+**What this means for AI agents:**
+
+⚠️ **Mixed References Expected** ⚠️
+- Documentation being updated to REST+OpenAPI
+- Code still contains oRPC dependencies (will be removed)
+- Some files may reference oRPC during transition
+
+**Current Architecture:**
+- ✅ **CHOSEN:** REST+OpenAPI with Zod schemas
+- ❌ **DEPRECATED:** oRPC (being removed)
+
+**Do NOT:**
+- Suggest using oRPC for new features
+- Assume oRPC is current architecture
+- Add new oRPC dependencies
+
+**DO:**
+- Use REST+OpenAPI patterns for new work
+- Follow OpenAPI type generation patterns
+- Reference docs/architecture-decisions.md for latest architecture
+
+**Migration Progress:** Phase 0 (Safety) → Phase 1 (Documentation) → Phase 2 (Code) → Phase 3 (Validation)
+
+---
+
 ## Sub-Agent Usage Policy
 
 **Applies ONLY to agents capable of sub-agent use**, eg. **Claude Code**!
@@ -93,6 +151,77 @@ Launch sub-agents for ANY of the following tasks:
 ### Efficiency Guideline
 
 Before using Grep, Glob, Read, or WebSearch yourself, ask: "Could a sub-agent do this while I focus on higher-level work?" If yes, use a sub-agent.
+
+---
+
+## Memory System (CRITICAL - Prevents Pattern Drift)
+
+**Purpose**: Prevent pattern drift across components and ensure consistency as the monorepo evolves.
+
+**Location**: `docs/memories/` directory
+
+### Mandatory Memory Checks
+
+**1. Before `nx g` (generate) commands:**
+- **MUST READ**: `docs/memories/adopted-patterns.md` - monorepo standards that override framework defaults
+- **MUST READ**: `docs/memories/post-generation-checklist.md` - mandatory post-generation fixes
+- **Why**: Ensure generated code will match our established patterns
+
+**2. After `nx g` commands:**
+- **MUST EXECUTE**: ALL steps in `docs/memories/post-generation-checklist.md`
+- **MUST VALIDATE**: Output against `docs/memories/adopted-patterns.md`
+- **Why**: Auto-generated code often conflicts with our monorepo standards
+
+**3. Before changing build/test/TypeScript configs:**
+- **MUST CHECK**: `docs/memories/adopted-patterns.md` - established configuration patterns
+- **MUST CHECK**: `docs/memories/tech-findings-log.md` - technical constraints and empirical findings
+- **Why**: Avoid reverting intentional architectural decisions
+
+### Memory Files Quick Reference
+
+- **`adopted-patterns.md`**: How WE do it (test location, TypeScript config, Jest patterns)
+- **`post-generation-checklist.md`**: Mandatory fixes after Nx generators
+- **`tech-findings-log.md`**: Technical decisions, constraints, troubleshooting findings
+- **`README.md`**: Comprehensive memory system documentation
+
+### Critical Warning
+
+**⚠️ Failure to follow memory system = Pattern drift across monorepo**
+
+Example consequences:
+- Web app uses co-located tests in `src/`, mobile uses `__tests__/` (inconsistency)
+- Old components work, new components fail with mysterious errors (config drift)
+- Same problem solved differently in different components (wasted time)
+
+**For comprehensive memory system documentation**: Read `docs/memories/README.md`
+
+### Documentation File Editing Rules
+
+**CRITICAL: NEVER modify timestamp fields in `docs/` files**
+
+When editing any file in `docs/` or its subfolders:
+
+❌ **NEVER edit these frontmatter fields:**
+- `Modified:` - Automatically managed by Git
+- `Created:` - Set once, never changed
+
+
+**Why this matters:**
+- `Modified:` is automatically updated by tooling on every file save
+- Manual edits create confusion and will be immediately overwritten
+- This applies to ALL files in `docs/` and all subfolders
+
+**Example - What to update:**
+```yaml
+---
+title: Some Document
+created: 2025-10-21
+last-updated: 2025-10-21  # ✅ Update this when making semantic changes
+Modified: 2025-10-21T14:39  # ❌ NEVER touch this - auto-managed
+---
+```
+
+---
 
 ## Project Overview
 
@@ -307,7 +436,7 @@ When creating shared packages:
 - Always specify a bundler explicitly (`--bundler=tsc`, `--bundler=swc`, `--bundler=none`)
 - Export a clean public API via `index.ts` barrel files
 - Never export implementation details, only public interfaces
-- **Special case - Prisma packages**: Use `@nx/js:lib` with `--bundler=none` for packages containing Prisma (see `docs/tech-findings-log.md` - Database Package Bundler Strategy for rationale)
+- **Special case - Prisma packages**: Use `@nx/js:lib` with `--bundler=none` for packages containing Prisma (see `docs/memories/tech-findings-log.md` - Database Package Bundler Strategy for rationale)
 
 ### Type Safety
 
@@ -330,13 +459,27 @@ When creating shared packages:
 
 ### Before Committing
 
-The project uses Husky pre-commit hooks (when configured):
-- Linting and formatting run automatically on staged files
-- TypeScript compilation is validated
-- Tests run for affected projects
-- Commits are blocked if quality checks fail
+The project uses Husky pre-commit hooks to maintain code quality:
 
-If hooks aren't yet configured, manually run:
+**What runs automatically:**
+- **lint-staged**: Runs ESLint and Prettier on staged files only
+- **Affected tests**: Runs tests only for projects affected by your changes (via `nx affected -t test --base=HEAD~1`)
+- Commits are blocked if any checks fail
+
+**Pre-commit hook optimization:**
+```bash
+# .husky/pre-commit
+pnpm exec lint-staged
+pnpm exec nx affected -t test --base=HEAD~1
+```
+
+**Why `nx affected` instead of all tests:**
+- ✅ Faster commits: Only runs tests for changed code
+- ✅ Scales with monorepo growth: Performance stays consistent as projects are added
+- ✅ Immediate feedback: Catches regressions before commit
+- ✅ CI safety net: Full test suite still runs in GitHub Actions
+
+**Manual quality checks (if hooks disabled):**
 ```bash
 pnpm exec nx affected -t lint test
 ```
@@ -428,6 +571,201 @@ test('health check flow', async ({ page }) => {
   await expect(page.getByText('Pong')).toBeVisible();
 });
 ```
+
+### Jest Configuration Patterns
+
+This project follows Nx best practices for Jest configuration with a workspace-level preset pattern.
+
+#### Workspace Preset
+
+All projects extend a shared `jest.preset.js` at the workspace root:
+
+```javascript
+// jest.preset.js
+const nxPreset = require('@nx/jest/preset').default;
+module.exports = { ...nxPreset };
+```
+
+This ensures consistent Jest behavior across all projects while allowing per-project customization.
+
+#### Project-Level Configuration
+
+Each project has its own `jest.config.ts` that extends the workspace preset:
+
+```typescript
+// apps/web/jest.config.ts
+export default {
+  displayName: '@nx-monorepo/web',
+  preset: '../../jest.preset.js',  // Extend workspace preset
+  testEnvironment: 'jsdom',         // or 'node' for Node.js projects
+  testMatch: ['<rootDir>/src/**/*.(spec|test).[jt]s?(x)'],
+  coverageDirectory: '../../coverage/apps/web',
+  // ... project-specific settings
+};
+```
+
+**Note**: Next.js projects (like `apps/web`) use the `next/jest` wrapper with `testEnvironment: 'jsdom'` for browser-like testing. The Next.js Jest configuration also includes the `@nx/react/plugins/jest` transform for handling static assets and other Next.js-specific features.
+
+#### TypeScript Test Configuration
+
+**Type Isolation Pattern**: Test types are separated from production types using `tsconfig.spec.json`:
+
+```json
+// apps/web/tsconfig.spec.json
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/jest",
+    "types": ["jest", "node"]  // Test-specific types
+  },
+  "include": [
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.spec.tsx"
+  ],
+  "references": [
+    { "path": "./tsconfig.json" }  // Reference to production config
+  ]
+}
+```
+
+**Important**: Production `tsconfig.json` should NOT include test types. Keep test types isolated to `tsconfig.spec.json`.
+
+#### Adding Jest to New Projects
+
+To add Jest testing to a new project:
+
+```bash
+# Generate Jest configuration for a project
+pnpm exec nx g @nx/jest:configuration <project-name>
+```
+
+Nx automatically:
+- Creates `jest.config.ts` extending the workspace preset
+- Creates `tsconfig.spec.json` with proper type isolation
+- Adds test target to `project.json`
+- Configures coverage directory
+
+**No manual setup required** - Nx handles all configuration automatically.
+
+#### Optional Testing Enhancements
+
+For advanced testing patterns (jest-dom, user-event, MSW, custom render), see [`docs/testing-enhancements.md`](../docs/testing-enhancements.md).
+
+These enhancements are optional - start simple and add complexity only when needed.
+
+### Coverage Testing
+
+#### Coverage Scripts
+
+The workspace provides convenient scripts for running tests with coverage reporting:
+
+```bash
+# Run coverage for all projects
+pnpm run test:coverage
+
+# Run coverage for specific projects
+pnpm run test:coverage:web
+pnpm run test:coverage:server
+```
+
+#### Coverage Thresholds
+
+All projects use standardized coverage thresholds to ensure code quality:
+
+```typescript
+// apps/web/jest.config.ts
+coverageThreshold: {
+  global: {
+    branches: 10,    // Target: 80% (Phase 2+)
+    functions: 10,   // Target: 80% (Phase 2+)
+    lines: 10,       // Target: 80% (Phase 2+)
+    statements: 10   // Target: 80% (Phase 2+)
+  }
+}
+```
+
+**Current thresholds (10%)**: Permissive during Phase 1 walking skeleton - establishes infrastructure without blocking development.
+
+**Target thresholds (80%)**: Will be enforced starting in Phase 2 when feature development begins.
+
+**Coverage metrics explained**:
+- **Statements**: Individual lines of code executed
+- **Lines**: Physical lines in the file that were executed
+- **Functions**: Whether each function was called
+- **Branches**: Decision points tested (if/else, switch, ternaries, &&, ||)
+
+#### Coverage Reports
+
+After running coverage, HTML reports are generated in `coverage/<project>/index.html`:
+
+```bash
+# Run coverage for web app
+pnpm run test:coverage:web
+
+# Open the HTML report (manual)
+# Windows: start coverage/apps/web/index.html
+# Mac: open coverage/apps/web/index.html
+# Linux: xdg-open coverage/apps/web/index.html
+```
+
+Reports show:
+- Per-file coverage percentages
+- Highlighted uncovered lines
+- Branch coverage visualization
+- Drilldown from project → file → line level
+
+#### Coverage Directory Structure
+
+Coverage reports follow a consistent pattern across all projects:
+
+```
+coverage/
+  apps/
+    web/
+      index.html          # HTML report entry point
+      app/                # Per-directory coverage
+      page.tsx.html       # Per-file coverage details
+      lcov.info           # LCOV format for CI/tooling
+      coverage-final.json # Raw coverage data
+    server/
+      index.html
+      lcov.info
+      coverage-final.json
+  packages/
+    database/
+      index.html
+      lcov.info
+      coverage-final.json
+```
+
+**Pattern**: `coverageDirectory: '../../coverage/<type>/<name>'` in each project's `jest.config.ts`
+
+The `/coverage` directory is gitignored - reports are generated locally and in CI but not committed.
+
+#### Adding Coverage to New Projects
+
+When generating a new project with Jest:
+
+```bash
+pnpm exec nx g @nx/jest:configuration <project-name>
+```
+
+Then manually add coverage threshold to the generated `jest.config.ts`:
+
+```typescript
+coverageThreshold: {
+  global: {
+    branches: 10,    // Target: 80% (Phase 2+)
+    functions: 10,   // Target: 80% (Phase 2+)
+    lines: 10,       // Target: 80% (Phase 2+)
+    statements: 10   // Target: 80% (Phase 2+)
+  }
+}
+```
+
+And ensure `coverageDirectory` follows the pattern: `'../../coverage/<apps|packages>/<project-name>'`
 
 ## CI/CD Pipeline
 
@@ -589,7 +927,7 @@ pnpm --filter @nx-monorepo/database prisma studio
 
 ## Important Notes
 
-- **Check technical findings first**: Before suggesting architecture, tooling, or configuration changes, review `docs/tech-findings-log.md` for documented decisions, known issues, and empirical findings that may prevent rework
+- **Check technical findings first**: Before suggesting architecture, tooling, or configuration changes, review `docs/memories/tech-findings-log.md` for documented decisions, known issues, and empirical findings that may prevent rework
 - **Always use pnpm and Nx commands** (`pnpm exec nx run`, `pnpm exec nx run-many`, `pnpm exec nx affected`) instead of direct tool invocation (e.g., use `pnpm exec nx run web:build` not `cd apps/web && next build`)
 - **Use workspace scripts for common tasks**: Prefer `pnpm run dev`, `pnpm run build`, etc. for daily development
 - **Respect project boundaries**: Don't import from `apps/*` into `packages/*`
