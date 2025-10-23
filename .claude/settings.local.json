@@ -6,7 +6,8 @@
       "mcp__plugin_default_Sequential_Thinking_MCP",
       "mcp__plugin_dev-core_Context7_MCP",
       "mcp__plugin_dev-core_Vibe-Check_MCP",
-      "mcp__plugin_dev-additional_NX_MCP"
+      "mcp__plugin_dev-additional_NX_MCP",
+      "mcp__plugin_dev-additional_Exa_MCP"
     ],
     "deny": [],
     "ask": []

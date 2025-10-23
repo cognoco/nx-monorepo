@@ -5,7 +5,7 @@ audience: AI agents, developers, architects
 created: 2025-10-21
 last-updated: 2025-10-21
 Created: 2025-10-21T14:41
-Modified: 2025-10-21T14:41
+Modified: 2025-10-23T16:03
 ---
 
 # Memory System Documentation
@@ -175,7 +175,7 @@ This directory captures **transferable knowledge** that applies across multiple 
 **Purpose**: How to connect component A to component B
 
 **Content**:
-- How web app calls oRPC server (client initialization, error handling)
+- How web app calls REST API server (client initialization, error handling)
 - How server connects to Prisma database (singleton pattern, pooling)
 - How to use Supabase auth in Next.js (server vs client components)
 - How to use Supabase auth in Expo (session persistence)

@@ -6,7 +6,7 @@ created: 2025-10-20
 last-updated: 2025-10-21
 Last-Modified: 2025-10-21T17:45
 Created: 2025-10-20T13:31
-Modified: 2025-10-21T17:45
+Modified: 2025-10-23T16:00
 ---
 
 # Technical Findings Log
@@ -189,133 +189,56 @@ Need to create a shared database package in Nx monorepo that exports Prisma Clie
 
 ---
 
-### [TypeScript Configuration] - Type Imports from Applications to Libraries - 2025-10-20
+### [TypeScript Configuration] - OpenAPI Type Generation for API Client - 2025-10-23
 
-**Decision:** Use relative path imports for type-only imports from libraries to applications (not path aliases)
+**Decision:** Use OpenAPI spec generation to create TypeScript types in api-client package (no imports from server app)
 
 **Context:**
-The `api-client` library package needs to import the `AppRouter` type from the `server` application to achieve end-to-end type safety. This creates an unusual import pattern where a library imports from an app.
+The `api-client` library package needs TypeScript types that match the server API for end-to-end type safety. With REST+OpenAPI architecture, types are generated from OpenAPI spec rather than imported from server application.
 
 **Alternatives Considered:**
 
-1. **Add path alias for server app in `tsconfig.base.json`**
-   - Rejected: Apps don't get path aliases - only libraries do
-   - Problem: Would break Nx conventions (apps use TypeScript Project References, not path aliases)
-   - Result: Not standard Nx pattern, could cause confusion
+1. **Import types from server using relative paths (oRPC/tRPC pattern)**
+   - Rejected: Only works for RPC frameworks with shared router type
+   - REST APIs don't export single router type - they have individual route handlers
 
-2. **Use TypeScript Project References with composite: true**
-   - Rejected: Adds significant complexity for Phase 1 walking skeleton
-   - Problem: Requires configuring composite projects, build dependencies, references in multiple tsconfig files
-   - Result: Overkill for POC validation phase
+2. **Manually duplicate types in api-client**
+   - Rejected: Violates DRY principle, causes type drift
 
-3. **Extract router types to separate `@nx-monorepo/api-types` package**
-   - Rejected for Phase 1: Creates additional package overhead
-   - Problem: Adds complexity before validating if type sharing even works
-   - Could revisit: Good pattern for Phase 2+ if types become complex
+3. **Use TypeScript Project References**
+   - Rejected: Creates coupling between server and client packages
 
-**Chosen Approach:** Relative path import with type-only modifier
+**Chosen Approach:** Generate TypeScript client and types from OpenAPI spec using `openapi-typescript`
 
 **Technical Rationale:**
 
-**Why relative path import is correct:**
-
-1. **Nx TypeScript Configuration Patterns:**
-   ```typescript
-   // tsconfig.base.json
-   {
-     "paths": {
-       "@nx-monorepo/database": ["packages/database/src/index.ts"],    // ✅ Libraries get aliases
-       "@nx-monorepo/schemas": ["packages/schemas/src/index.ts"],
-       "@nx-monorepo/api-client": ["packages/api-client/src/index.ts"],
-       // ❌ Apps do NOT get path aliases - they use Project References instead
-     }
-   }
-
-   // tsconfig.json (workspace root)
-   {
-     "references": [
-       { "path": "./apps/web" },      // ✅ Apps use Project References
-       { "path": "./apps/server" }
-     ]
-   }
-   ```
-
-2. **Type-only imports are safe:**
-   ```typescript
-   // packages/api-client/src/index.ts
-   import type { AppRouter } from '../../../apps/server/src/router';
-   //     ^^^^
-   //     Type-only modifier - no runtime code imported
-
-   export const createClient = <T = AppRouter>(config: Config) => {
-     // Use AppRouter type for inference only
-   };
-   ```
-
-3. **No circular runtime dependency:**
-   - The `type` modifier ensures TypeScript only uses the import for type checking
-   - No runtime code from server is bundled into api-client
-   - Server never imports from api-client
-   - Dependency flow remains unidirectional at runtime: `apps/server` ← `packages/api-client`
-
-4. **Standard pattern for type-safe RPC frameworks:**
-   - tRPC, oRPC, and similar frameworks use this exact pattern
-   - Library packages import server types for client-side type inference
-   - This is documented and expected in these frameworks
-
-**Why this works with `--bundler=none` and `--bundler=tsc`:**
-
-- **api-client** (with `--bundler=tsc`): Pre-compiles to JavaScript, type imports are erased
-- **server** types: Used only during compilation, not included in api-client bundle
-- **web/mobile apps**: Get full TypeScript autocomplete for server endpoints via the api-client
+**Type Generation Pipeline:**
+```
+Server Routes (Zod schemas) → OpenAPI Spec → openapi-typescript → Generated Types → API Client Factory
+```
 
 **Implementation Details:**
+- Location: `packages/api-client/`
+- Generated output: `packages/api-client/src/generated/`
+- Build command: `pnpm --filter @nx-monorepo/api-client run generate-client`
 
-- **Location:** `packages/api-client/src/index.ts`
-- **Import pattern:**
-  ```typescript
-  import type { AppRouter } from '../../../apps/server/src/router';
-  ```
-- **Usage:**
-  ```typescript
-  export function createApiClient<T = AppRouter>(baseUrl: string) {
-    // Client gets full type inference from server
-  }
-  ```
-- **Alternative for complex cases:**
-  If circular dependency issues arise (unlikely with type-only imports), extract shared types:
-  ```bash
-  pnpm exec nx g @nx/js:lib api-types --directory=packages/api-types --bundler=tsc
-  ```
 
 **Warning Signs (for AI agents):**
 
-❌ **Do not suggest** adding `@nx-monorepo/server` to `tsconfig.base.json` paths
-- **Why:** Apps don't get path aliases - this breaks Nx conventions
+❌ Do NOT suggest importing types from server with relative paths
+- REST APIs don't have single router type to import
 
-❌ **Do not suggest** "cleaning up" relative path imports to use path aliases
-- **Why:** Path aliases only exist for libraries, not apps
+✅ DO recognize OpenAPI spec generation is standard for REST APIs
+- Same as GraphQL codegen, gRPC protobuf compilation
 
-❌ **Do not suggest** removing `type` modifier to "simplify" import
-- **Why:** Runtime import would create actual circular dependency
-
-❌ **Do not suggest** this creates a circular dependency problem
-- **Why:** Type-only imports don't create runtime circular dependencies
-
-✅ **Do recognize** relative imports from `packages/*` to `apps/*` with `import type` are intentional
-- This is standard for type-safe RPC frameworks
-- Only types are shared, no runtime code
-
-✅ **Do suggest** extracting to separate types package if:
-- Type definitions become complex (>100 lines)
-- Multiple apps need to share types
-- Type definitions change frequently causing rebuild cascades
+✅ DO suggest regenerating client after server API changes
+- Run `pnpm --filter @nx-monorepo/api-client run generate-client`
 
 **References:**
-- [tRPC Type Safety Pattern](https://trpc.io/docs/client/vanilla/infer-types)
-- [oRPC Type Inference](https://orpc.unnoq.com/docs/concepts/type-safety)
-- [TypeScript Type-Only Imports](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-8.html#type-only-imports-and-export)
-- Discussion: P1-plan.md Stage 5.4.2 validation (2025-10-20)
+- [OpenAPI Specification](https://spec.openapis.org/oas/v3.1.0)
+- [openapi-typescript](https://openapi-ts.pages.dev/)
+- [zod-to-openapi](https://github.com/asteasolutions/zod-to-openapi)
+- Pattern established: Phase 2 Slice 2-3 planning (2025-10-23)
 
 ---
 
