@@ -1,6 +1,6 @@
 ---
 Created: 2025-10-17
-Modified: 2025-10-23T16:17
+Modified: 2025-10-24T13:07
 Version: 1
 ---
 
@@ -560,17 +560,19 @@ Make explicit architecture decisions about API framework and database strategy, 
     - Deleted build artifacts and ran pnpm install (removed 8 packages)
     - Validation: All tests pass, all builds pass, all linting passes, all typechecks pass, E2E tests pass
 
-  - [ ] 4.1.3: Review REST+OpenAPI tooling options
+  - [x] 4.1.3: Review REST+OpenAPI tooling options ✅ COMPLETED 2025-10-23
     - Research: @asteasolutions/zod-to-openapi for OpenAPI spec generation from Zod schemas
     - Research: openapi-typescript for TypeScript type generation from OpenAPI specs
     - Research: openapi-fetch vs axios vs native fetch for HTTP client library
-    - Document findings and trade-offs for each option
+    - Evaluated options and documented comprehensive findings in `docs/architecture-decisions.md` → "Task 4.1.3: REST+OpenAPI Tooling Selection"
 
-  - [ ] 4.1.4: Select code generation strategy and HTTP client library
-    - Decide: OpenAPI spec generation approach (code-first with zod-to-openapi vs manual YAML)
-    - Decide: TypeScript type generation workflow and build integration
-    - Decide: HTTP client library for packages/api-client
-    - Document selected stack with rationale in `docs/architecture-decisions.md`
+  - [x] 4.1.4: Select code generation strategy and HTTP client library ✅ COMPLETED 2025-10-24
+    - Decision: OpenAPI spec generation using @asteasolutions/zod-to-openapi (code-first, Zod schemas as source of truth)
+    - Decision: TypeScript type generation using openapi-typescript (type-only, zero runtime overhead)
+    - Decision: HTTP client using openapi-fetch (5-6KB bundle, compile-time type safety, cross-platform)
+    - Decision: Commit generated files to git (faster CI, better diffs, offline support)
+    - Decision: Nx dependency graph for build orchestration (automatic ordering, caching)
+    - Documented formal decisions in `docs/architecture-decisions.md` → "Task 4.1.4: Formal Tooling Decisions"
 
   - [ ] 4.1.5: Install REST+OpenAPI dependencies
     - Server: Install OpenAPI generation dependencies (e.g., @asteasolutions/zod-to-openapi, swagger-ui-express)
