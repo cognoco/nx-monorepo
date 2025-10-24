@@ -1,9 +1,9 @@
 ---
 Created: 2025-10-17
-Modified: 2025-10-24T13:07
+Modified: 2025-10-24T13:36
 Version: 1
 ---
-
+Ø
 # Phase 1: Walking Skeleton
 
 ## Introduction
@@ -574,10 +574,10 @@ Make explicit architecture decisions about API framework and database strategy, 
     - Decision: Nx dependency graph for build orchestration (automatic ordering, caching)
     - Documented formal decisions in `docs/architecture-decisions.md` → "Task 4.1.4: Formal Tooling Decisions"
 
-  - [ ] 4.1.5: Install REST+OpenAPI dependencies
-    - Server: Install OpenAPI generation dependencies (e.g., @asteasolutions/zod-to-openapi, swagger-ui-express)
-    - Client: Install openapi-typescript and chosen HTTP client library
-    - Verify installations: `pnpm list | grep -E "(openapi|swagger)"`
+  - [x] 4.1.5: Install REST+OpenAPI dependencies
+    - Install server dependencies: `pnpm add @asteasolutions/zod-to-openapi swagger-ui-express --filter @nx-monorepo/server` and `pnpm add -D @types/swagger-ui-express --filter @nx-monorepo/server`
+    - Install client dependencies: `pnpm add -D openapi-typescript --filter @nx-monorepo/api-client` and `pnpm add openapi-fetch --filter @nx-monorepo/api-client`
+    - Verify installations: ` grep -E "(openapi|swagger)"pnpm list |`
 
   - [ ] 4.1.6: Configure Express routes structure
     - Create directory: `apps/server/src/routes/`
