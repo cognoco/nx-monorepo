@@ -1,6 +1,6 @@
 ---
 Created: 2025-10-17
-Modified: 2025-10-24T14:18
+Modified: 2025-10-24T16:35
 Version: 1
 ---
 Ø
@@ -585,7 +585,7 @@ Make explicit architecture decisions about API framework and database strategy, 
     - Create example route file with dummy endpoint for testing infrastructure
     - Mount routes in `apps/server/src/main.ts`
 
-  - [ ] 4.1.7: Set up OpenAPI spec generation
+  - [x] 4.1.7: Set up OpenAPI spec generation
     - Implement OpenAPI spec generation mechanism (based on 4.1.4 decision)
     - Configure OpenAPI metadata (API title, version, servers, base path)
     - Create endpoint to serve OpenAPI spec: `GET /api/docs/openapi.json`
