@@ -5,7 +5,7 @@ audience: AI agents, developers
 created: 2025-10-21
 last-updated: 2025-10-24
 Created: 2025-10-21T14:39
-Modified: 2025-10-24T17:59
+Modified: 2025-10-25T13:20
 ---
 
 # Adopted Patterns
@@ -688,7 +688,7 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openApiSpec, {
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "node -e \"const fs = require('fs'); const path = require('path'); const specPath = path.join(process.cwd(), 'dist', 'apps', 'server'); fs.mkdirSync(specPath, { recursive: true }); const { getOpenApiSpec } = require('./apps/server/dist/apps/server/src/openapi/index.js'); const spec = getOpenApiSpec(); fs.writeFileSync(path.join(specPath, 'openapi.json'), JSON.stringify(spec, null, 2));\""
+          "node -e \"const fs = require('fs'); const path = require('path'); const specPath = path.join(process.cwd(), 'dist', 'apps', 'server'); fs.mkdirSync(specPath, { recursive: true }); const { getOpenApiSpec } = require('./dist/apps/server/apps/server/src/openapi/index.js'); const spec = getOpenApiSpec(); fs.writeFileSync(path.join(specPath, 'openapi.json'), JSON.stringify(spec, null, 2));\""
         ],
         "cwd": "{workspaceRoot}"
       },

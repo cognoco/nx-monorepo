@@ -13,7 +13,7 @@ const workspaceRoot = resolve(serverRoot, '../..');
 const require = createRequire(import.meta.url);
 const openapiPath = resolve(
   workspaceRoot,
-  'apps/server/dist/apps/server/src/openapi/index.js'
+  'dist/apps/server/apps/server/src/openapi/index.js'
 );
 const { getOpenApiSpec } = require(openapiPath);
 

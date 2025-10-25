@@ -13,7 +13,7 @@
         "defaultConfiguration": "production",
         "options": {
           "platform": "node",
-          "outputPath": "apps/server/dist",
+          "outputPath": "dist/apps/server",
           "format": [
             "cjs"
           ],
@@ -27,7 +27,8 @@
             "sourcemap": true,
             "outExtension": {
               ".js": ".js"
-            }
+            },
+            "outbase": "apps/server/src"
           }
         },
         "configurations": {
@@ -49,8 +50,8 @@
         "cache": true,
         "executor": "@nx/js:prune-lockfile",
         "outputs": [
-          "{workspaceRoot}/apps/server/dist/package.json",
-          "{workspaceRoot}/apps/server/dist/pnpm-lock.yaml"
+          "{workspaceRoot}/dist/apps/server/package.json",
+          "{workspaceRoot}/dist/apps/server/pnpm-lock.yaml"
         ],
         "options": {
           "buildTarget": "build"
@@ -62,7 +63,7 @@
         ],
         "cache": true,
         "outputs": [
-          "{workspaceRoot}/apps/server/dist/workspace_modules"
+          "{workspaceRoot}/dist/apps/server/workspace_modules"
         ],
         "executor": "@nx/js:copy-workspace-modules",
         "options": {

@@ -1,6 +1,6 @@
 ---
 Created: 2025-10-17
-Modified: 2025-10-25T11:42
+Modified: 2025-10-25T13:26
 Version: 1
 ---
 # Phase 1: Walking Skeleton
@@ -606,6 +606,17 @@ Make explicit architecture decisions about API framework and database strategy, 
     - Exported typed client with full endpoint autocomplete
     - Wrote 3 minimal unit tests for Phase 1 (runtime tests deferred to 4.1.10)
     - Validation: All tests pass, build succeeds, lint clean, typecheck passes
+
+  - [x] **Infrastructure Migration**: Server build output standardization ✅ COMPLETED 2025-10-25
+    - Migrated from project-level `apps/server/dist` to workspace-level `dist/apps/server`
+    - Updated 7 files: package.json (3 changes), write-openapi.ts, launch.json, 2 doc files
+    - Corrected for nested path structure: esbuild with bundle:false preserves source paths
+    - Updated Nx target outputs (prune-lockfile, copy-workspace-modules) for correct caching
+    - Updated VS Code debugger configuration for proper breakpoint support
+    - Updated documentation to reflect workspace-level build patterns
+    - Full validation: Build chain passes (build → spec-write → generate-types → api-client:build)
+    - Quality gates: 14/14 tests pass, lint clean, typecheck passes
+    - Note: Output structure is `dist/apps/server/apps/server/src/...` (nested) - this is correct behavior with esbuild bundle:false
 
   - [ ] 4.1.10: Verify type-safe client functionality
     - Create test endpoint in server: `GET /api/hello` → `{ message: string, timestamp: number }`

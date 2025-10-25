@@ -6,7 +6,7 @@ created: 2025-10-20
 last-updated: 2025-10-21
 Last-Modified: 2025-10-21T17:45
 Created: 2025-10-20T13:31
-Modified: 2025-10-23T16:00
+Modified: 2025-10-25T13:15
 ---
 
 # Technical Findings Log
@@ -516,7 +516,7 @@ During substage 1.2 validation (server immediate validation), the build command 
 3. **Successful resolution:**
    ```bash
    pnpm exec nx reset          # Clear Nx daemon and cache
-   rm -rf apps/server/dist     # Remove stale build outputs
+   rm -rf dist/apps/server     # Remove stale build outputs
    pnpm exec nx run server:build  # Rebuild fresh
    ```
 
@@ -550,7 +550,7 @@ Nx's automated flake detection triggered because:
 - **Quick fix command sequence:**
   ```bash
   pnpm exec nx reset
-  rm -rf apps/server/dist
+  rm -rf dist/apps/server
   pnpm exec nx run server:build
   ```
 
