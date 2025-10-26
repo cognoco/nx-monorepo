@@ -55,6 +55,10 @@ export function buildOpenApiDocument(): OpenAPIObject {
         name: 'Health',
         description: 'Health check endpoints',
       },
+      {
+        name: 'Testing',
+        description: 'Infrastructure testing endpoints',
+      },
     ],
   });
 }

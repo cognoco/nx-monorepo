@@ -1,4 +1,5 @@
 import { registerHealthOpenApi } from '../routes/health.openapi';
+import { registerHelloOpenApi } from '../routes/hello.openapi.js';
 
 /**
  * OpenAPI Initialization Guard
@@ -22,4 +23,5 @@ export function initOpenApi() {
 
   // Register all feature OpenAPI paths
   registerHealthOpenApi();
+  registerHelloOpenApi(); // Tasks 4.1.10 & 4.1.11 validation
 }

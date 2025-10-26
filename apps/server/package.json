@@ -126,6 +126,8 @@
   },
   "devDependencies": {
     "@stoplight/spectral-cli": "^6.15.0",
-    "@types/swagger-ui-express": "^4.1.8"
+    "@types/supertest": "^6.0.3",
+    "@types/swagger-ui-express": "^4.1.8",
+    "supertest": "^7.1.4"
   }
 }
