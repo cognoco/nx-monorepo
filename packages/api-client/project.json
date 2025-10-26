@@ -11,7 +11,7 @@
         "cwd": "{workspaceRoot}"
       },
       "outputs": ["{projectRoot}/src/gen/openapi.d.ts"],
-      "dependsOn": ["server:spec-write"],
+      "dependsOn": ["@nx-monorepo/server:spec-write"],
       "cache": true
     },
     "build": {
