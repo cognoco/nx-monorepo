@@ -1,6 +1,9 @@
 import { createBrowserClient, createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
+// Type declaration for browser global (package runs in both server and client contexts)
+declare const window: unknown | undefined;
+
 /**
  * Validates presence and format of public Supabase env vars.
  * Returns the URL and anon key or throws with actionable guidance.
