@@ -16,11 +16,9 @@ const cookieStore = {
   getAll: jest.fn(() => [{ name: 'a', value: '1' }]),
   set: jest.fn(),
 };
-const headersMock = { cookies: jest.fn(async () => cookieStore) };
 jest.mock('next/headers', () => ({
   cookies: jest.fn(async () => cookieStore),
 }));
-import { cookies as mockedCookies } from 'next/headers';
 
 const originalEnv = { ...process.env };
 const originalWindow = (global as any).window;
@@ -99,6 +97,7 @@ describe('createSupabaseServerClient', () => {
   it('creates server client and awaits cookies()', async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon';
+    const { cookies: mockedCookies } = jest.requireMock('next/headers');
     await createSupabaseServerClient();
     expect(mockedCookies as unknown as jest.Mock).toHaveBeenCalled();
     // getAll is called lazily by the adapter when cookies are read; ensure adapter was passed
