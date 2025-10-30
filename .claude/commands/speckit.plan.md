@@ -20,7 +20,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Fill Technical Context (mark unknowns as "NEEDS CLARIFICATION")
    - Fill Constitution Check section from constitution
    - Evaluate gates (ERROR if violations unjustified)
-   - Phase 0: Generate research.md (resolve all NEEDS CLARIFICATION)
+   - Phase 0: MCP Research Gate (validate material changes, create research-validation.md)
    - Phase 1: Generate data-model.md, contracts/, quickstart.md
    - Phase 1: Update agent context by running the agent script
    - Re-evaluate Constitution Check post-design
@@ -29,32 +29,134 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Phases
 
-### Phase 0: Outline & Research
+### Phase -1: Internal Governance Alignment (MANDATORY BLOCKER)
 
-1. **Extract unknowns from Technical Context** above:
-   - For each NEEDS CLARIFICATION → research task
-   - For each dependency → best practices task
-   - For each integration → patterns task
+Purpose: Verify plan aligns with existing architecture, patterns, and constraints.
 
-2. **Generate and dispatch research agents**:
+Gate Status Required: ✅ before proceeding to Phase 0
 
-   ```text
-   For each unknown in Technical Context:
-     Task: "Research {unknown} for {feature context}"
-   For each technology choice:
-     Task: "Find best practices for {tech} in {domain}"
-   ```
+Steps:
+1. Read governance index: `governance/index.json` (authoritative docs and artifact paths)
+2. Run internal alignment gate:
+   - Execute: `node tools/gates/run-internal-alignment.mjs`
+   - If violations exist and no approved exceptions: ERROR and stop
+3. Record in plan.md:
+   - Add "Governance Alignment" section with statuses for:
+     - docs/architecture-decisions.md
+     - docs/memories/adopted-patterns.md
+     - docs/tech-stack.md
+     - docs/P1-plan.md
+   - Document any conflicts and resolutions or approved exceptions
+4. Mark gate status as ✅ when complete
 
-3. **Consolidate findings** in `research.md` using format:
-   - Decision: [what was chosen]
-   - Rationale: [why chosen]
-   - Alternatives considered: [what else evaluated]
+### Phase 0: MCP Research Gate (MANDATORY - DO NOT SKIP)
 
-**Output**: research.md with all NEEDS CLARIFICATION resolved
+**Purpose**: Resolve unknowns and consolidate decisions (research.md), and validate material changes via MCP servers (research-validation.md).
+
+**Gate Status Required**: ✅ before proceeding to Phase 1
+
+#### Step 1: Identify Research Areas & Clarifications
+
+Analyze the feature spec and Technical Context for BOTH:
+1) **NEEDS CLARIFICATION** items (must be resolved and recorded in research.md)
+2) **Material changes** (require external validation and research-validation.md)
+
+- [ ] NEEDS CLARIFICATION items in Technical Context (resolve and record in research.md)
+- [ ] New external libraries/frameworks (validate in research-validation.md)
+- [ ] Cross-project architecture/build/test/config changes (validate in research-validation.md)
+- [ ] Public API contracts or data models (validate in research-validation.md)
+- [ ] Security or infrastructure decisions (validate in research-validation.md)
+- [ ] Database schema or ORM configuration (validate in research-validation.md)
+
+**If NO material changes detected**: Produce/Update research.md only and proceed to Phase 1 (external validation optional).
+
+**If material changes detected**: MUST complete Steps 2-4 before proceeding.
+
+#### Step 2: Resolve Clarifications → research.md
+
+Consolidate decisions and clarifications into `specs/{feature-name}/research.md` using this structure:
+
+```
+# Research
+
+## Decisions
+- Decision: <what was chosen>
+  - Rationale: <why chosen>
+  - Alternatives considered: <what else evaluated>
+
+## Clarifications Resolved
+- <question> → <answer/assumption>
+```
+
+> Update research.md whenever clarifications are resolved or decisions are taken. This document is the canonical Phase 0 narrative consumed by downstream steps.
+
+#### Step 3: Dispatch Parallel Research Agents (External Validation)
+
+For each material change or technology area, dispatch specialized research agents with MCP server access:
+
+**Agent Template**:
+```text
+Task: "Use MCP servers (Context7, Exa, web search) to validate {technology/pattern} for {feature context}"
+
+Requirements:
+- Context7: Fetch official documentation for {library/framework}
+- Exa: Search production code examples showing {pattern}
+- Web Search: Research industry best practices for {use case}
+
+Report:
+- Status: [✅ VALIDATED | ⚠️ CHANGES REQUIRED | ❌ ANTI-PATTERN]
+- Findings: [What did you discover?]
+- Sources: [Specific docs, examples, articles]
+- Recommendation: [Changes needed or confirmation]
+```
+
+**Dispatch Strategy**: Launch all research agents in parallel using single message with multiple Task tool calls.
+
+**MCP Server Unavailability Protocol**:
+- If Context7/Exa/web search unavailable: Immediately inform user
+- DO NOT proceed without external validation
+- DO NOT implement fallback mechanisms
+- Ask user for guidance before continuing
+
+#### Step 4: Create research-validation.md (when material changes exist)
+
+Consolidate all agent findings into `specs/{feature-name}/research-validation.md` using template from `.specify/templates/research-validation.md`.
+
+**Required Sections**:
+- Executive Summary (key findings count)
+- Research Methodology (MCP servers used)
+- Agent findings for each technology area
+- Critical Findings Summary (priority 1/2/3)
+- Validated Patterns (no changes needed)
+- Action Plan (documentation + implementation changes)
+- Lessons Learned (impact of research)
+
+**Output**: `research-validation.md` with complete findings and recommendations
+
+#### Step 5: Gate Check
+
+**BLOCKER - Cannot proceed to Phase 1 without**:
+- [ ] research.md updated with decisions and resolved clarifications
+- [ ] If material changes exist: research-validation.md exists with corresponding findings
+- [ ] Critical findings (Priority 1) addressed in plan
+- [ ] Gate status marked as ✅ in plan.md Research Validation section
+
+**Update plan.md**: Fill Research Validation section with:
+- Status: ✅ Complete
+- MCP servers used: [Context7/Exa/Web]
+- Material changes validated: [checked items]
+- Research areas: [summary of each agent's status]
+- Critical findings: [P1 items]
+- Validated patterns: [no-change items]
+- Gate status: ✅ External validation complete
+
+**If gate check fails**: ERROR and report blockers to user. Do not proceed to Phase 1.
+
+**Output**: Gate cleared, research.md (decisions/clarifications) created/updated, research-validation.md (if applicable) created, plan.md Research Validation section completed
 
 ### Phase 1: Design & Contracts
 
-**Prerequisites:** `research.md` complete
+**Prerequisites:** Phase 0 gate cleared (research-validation.md complete)
 
 1. **Extract entities from feature spec** → `data-model.md`:
    - Entity name, fields, relationships

@@ -5,7 +5,7 @@ audience: AI agents, developers, architects
 created: 2025-10-21
 last-updated: 2025-10-27
 Created: 2025-10-21T14:41
-Modified: 2025-10-28T16:27
+Modified: 2025-10-28T20:29
 ---
 
 # Memory System Documentation
@@ -175,6 +175,25 @@ Comprehensive lookup material for specific technical domains. Consult these when
 **Difference from troubleshooting.md**:
 - Testing reference = comprehensive Jest/testing configuration guide
 - Troubleshooting = quick solutions for common errors (all domains)
+
+---
+
+### Spec‑Kit Research Artifacts
+
+Purpose: Clarify the two Phase 0 research artifacts for agents.
+
+- `research.md` (canonical narrative)
+  - Contains decisions, rationales, alternatives, and resolved clarifications.
+  - Always produced/updated during Phase 0; consumed by downstream Spec‑Kit steps.
+
+- `research-validation.md` (external validation evidence)
+  - Produced when Phase 0 identifies material changes (new libs, cross‑project changes, API/data model, security/infra, DB/ORM).
+  - Consolidates MCP server findings (Context7, Exa, web) to validate chosen patterns.
+
+Guidance for agents:
+- Always update `research.md` in Phase 0.
+- Produce `research-validation.md` only when material changes exist.
+- CI validates presence of `research-validation.md` when material changes are detected and accepts `research.md` alone otherwise.
 
 ---
 

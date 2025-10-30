@@ -16,6 +16,11 @@ The text the user typed after `/speckit.specify` in the triggering message **is*
 
 Given that feature description, do this:
 
+0. **Internal Governance Check (MANDATORY)**
+   - Execute: `node tools/gates/run-internal-alignment.mjs`
+   - If violations exist (and no approved exceptions in `specs/<feature>/exceptions.md`): ERROR and stop
+   - Note key alignment assumptions in the generated spec under a short "Design Conformance" note.
+
 1. **Generate a concise short name** (2-4 words) for the branch:
    - Analyze the feature description and extract the most meaningful keywords
    - Create a 2-4 word short name that captures the essence of the feature
