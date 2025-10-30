@@ -11,7 +11,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  // NO directUrl needed (Stage 4.4a Track 1: port 5432 is direct)
+  // Single URL configuration (Stage 4.4a Track 1: port 5432 direct connection)
 }
 
 // Walking skeleton: Minimal health check model
