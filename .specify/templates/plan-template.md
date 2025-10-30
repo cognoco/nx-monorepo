@@ -77,6 +77,32 @@
 
 [Gates determined based on constitution file]
 
+## Governance Alignment
+
+**Status**: [✅ Aligned | ⚠️ Conflicts Resolved | ❌ Conflicts Exist]
+
+**Documents Checked**:
+- [ ] docs/architecture-decisions.md
+- [ ] docs/memories/adopted-patterns.md
+- [ ] docs/tech-stack.md
+- [ ] docs/P1-plan.md
+
+**Alignment Summary**:
+1. **Architecture Decisions**: [Status]
+   - Checked: [relevant decisions]
+   - Conflicts: [None | list + resolution]
+2. **Adopted Patterns**: [Status]
+   - Checked: [relevant patterns]
+   - Conflicts: [None | list + resolution]
+3. **Tech Stack Constraints**: [Status]
+   - Checked: [constraints]
+   - Conflicts: [None | list + resolution]
+4. **Phase/Stage Requirements**: [Status]
+   - Checked: [current phase requirements verified]
+   - Conflicts: [None | list + resolution]
+
+**Gate Status**: [✅ Ready for Phase 0 | ❌ Blockers exist]
+
 ## Project Structure
 
 ### Documentation (this feature)

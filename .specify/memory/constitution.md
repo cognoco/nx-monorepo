@@ -221,6 +221,23 @@ const userCanAccessResource = validateUserPermissions(user, resource);
 
 **Rationale:** Examining existing code alone misses critical issues. The walking skeleton retrospective proved 3 production bugs were prevented only through MCP research (REST error format anti-pattern, Prisma + Supabase configuration, error handling patterns). MCP servers provide: (1) Context7 - current official documentation, (2) Exa - real production code examples, (3) Web search - industry standards and consensus.
 
+### XI. Governance Alignment is Mandatory (NON-NEGOTIABLE)
+
+- All plans MUST verify alignment with existing internal governance before proposing solutions:
+  - `docs/architecture-decisions.md` (strategic architectural choices)
+  - `docs/memories/adopted-patterns.md` (monorepo standards and patterns)
+  - `docs/tech-stack.md` (version pinning and compatibility)
+  - `docs/P1-plan.md` (current phase/stage requirements)
+- Plans that contradict established governance require an explicit justification that cites a governing principle and MUST include owner approval.
+- Exceptions MUST be documented in a per-feature exceptions docket and are scoped, time-bound, and reviewable.
+
+**Implementation:**
+- Spec‑Kit planning workflow runs an Internal Governance Alignment gate (Phase -1) prior to external research.
+- Gate outputs are recorded in the plan as a "Governance Alignment" section with statuses and any conflict resolutions.
+- CI and pre‑commit hooks execute policy‑as‑code checks to prevent drift and enforce alignment.
+
+**Rationale:** Prevents planning drift by requiring verification against institutional knowledge before design begins. Reduces rework and ensures that external research validates only new or intentionally changing areas, not already-settled decisions.
+
 ## Development Workflow
 
 ### Scope of Application

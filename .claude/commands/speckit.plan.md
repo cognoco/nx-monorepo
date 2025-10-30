@@ -29,28 +29,68 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Phases
 
+### Phase -1: Internal Governance Alignment (MANDATORY BLOCKER)
+
+Purpose: Verify plan aligns with existing architecture, patterns, and constraints.
+
+Gate Status Required: ✅ before proceeding to Phase 0
+
+Steps:
+1. Read governance index: `governance/index.json` (authoritative docs and artifact paths)
+2. Run internal alignment gate:
+   - Execute: `node tools/gates/run-internal-alignment.mjs`
+   - If violations exist and no approved exceptions: ERROR and stop
+3. Record in plan.md:
+   - Add "Governance Alignment" section with statuses for:
+     - docs/architecture-decisions.md
+     - docs/memories/adopted-patterns.md
+     - docs/tech-stack.md
+     - docs/P1-plan.md
+   - Document any conflicts and resolutions or approved exceptions
+4. Mark gate status as ✅ when complete
+
 ### Phase 0: MCP Research Gate (MANDATORY - DO NOT SKIP)
 
-**Purpose**: External validation of implementation patterns using MCP servers to prevent anti-patterns and production bugs.
+**Purpose**: Resolve unknowns and consolidate decisions (research.md), and validate material changes via MCP servers (research-validation.md).
 
 **Gate Status Required**: ✅ before proceeding to Phase 1
 
-#### Step 1: Identify Research Areas
+#### Step 1: Identify Research Areas & Clarifications
 
-Analyze the feature spec and Technical Context for **material changes**:
+Analyze the feature spec and Technical Context for BOTH:
+1) **NEEDS CLARIFICATION** items (must be resolved and recorded in research.md)
+2) **Material changes** (require external validation and research-validation.md)
 
-- [ ] New external libraries/frameworks
-- [ ] Cross-project architecture/build/test/config changes
-- [ ] Public API contracts or data models
-- [ ] Security or infrastructure decisions
-- [ ] Database schema or ORM configuration
-- [ ] NEEDS CLARIFICATION items in Technical Context
+- [ ] NEEDS CLARIFICATION items in Technical Context (resolve and record in research.md)
+- [ ] New external libraries/frameworks (validate in research-validation.md)
+- [ ] Cross-project architecture/build/test/config changes (validate in research-validation.md)
+- [ ] Public API contracts or data models (validate in research-validation.md)
+- [ ] Security or infrastructure decisions (validate in research-validation.md)
+- [ ] Database schema or ORM configuration (validate in research-validation.md)
 
-**If NO material changes detected**: Mark gate as "⚠️ No material changes - research skipped" and proceed to Phase 1.
+**If NO material changes detected**: Produce/Update research.md only and proceed to Phase 1 (external validation optional).
 
 **If material changes detected**: MUST complete Steps 2-4 before proceeding.
 
-#### Step 2: Dispatch Parallel Research Agents
+#### Step 2: Resolve Clarifications → research.md
+
+Consolidate decisions and clarifications into `specs/{feature-name}/research.md` using this structure:
+
+```
+# Research
+
+## Decisions
+- Decision: <what was chosen>
+  - Rationale: <why chosen>
+  - Alternatives considered: <what else evaluated>
+
+## Clarifications Resolved
+- <question> → <answer/assumption>
+```
+
+> Update research.md whenever clarifications are resolved or decisions are taken. This document is the canonical Phase 0 narrative consumed by downstream steps.
+
+#### Step 3: Dispatch Parallel Research Agents (External Validation)
 
 For each material change or technology area, dispatch specialized research agents with MCP server access:
 
@@ -78,7 +118,7 @@ Report:
 - DO NOT implement fallback mechanisms
 - Ask user for guidance before continuing
 
-#### Step 3: Create research-validation.md
+#### Step 4: Create research-validation.md (when material changes exist)
 
 Consolidate all agent findings into `specs/{feature-name}/research-validation.md` using template from `.specify/templates/research-validation.md`.
 
@@ -93,11 +133,11 @@ Consolidate all agent findings into `specs/{feature-name}/research-validation.md
 
 **Output**: `research-validation.md` with complete findings and recommendations
 
-#### Step 4: Gate Check
+#### Step 5: Gate Check
 
 **BLOCKER - Cannot proceed to Phase 1 without**:
-- [ ] research-validation.md exists in specs directory
-- [ ] All material changes have corresponding agent findings
+- [ ] research.md updated with decisions and resolved clarifications
+- [ ] If material changes exist: research-validation.md exists with corresponding findings
 - [ ] Critical findings (Priority 1) addressed in plan
 - [ ] Gate status marked as ✅ in plan.md Research Validation section
 
@@ -112,7 +152,7 @@ Consolidate all agent findings into `specs/{feature-name}/research-validation.md
 
 **If gate check fails**: ERROR and report blockers to user. Do not proceed to Phase 1.
 
-**Output**: Gate cleared, research-validation.md created, plan.md Research Validation section completed
+**Output**: Gate cleared, research.md (decisions/clarifications) created/updated, research-validation.md (if applicable) created, plan.md Research Validation section completed
 
 ### Phase 1: Design & Contracts
 

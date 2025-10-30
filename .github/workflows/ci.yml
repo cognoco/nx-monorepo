@@ -44,6 +44,10 @@ jobs:
       - name: Validate Research Documentation
         run: pnpm run validate:research
 
+      # Validate internal governance alignment (project-owned policy)
+      - name: Validate Governance Alignment
+        run: pnpm run validate:governance
+
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: pnpm exec nx-cloud record -- echo Hello World
       # When you enable task distribution, run the e2e-ci task instead of e2e

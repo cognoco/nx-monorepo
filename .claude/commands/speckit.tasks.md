@@ -43,6 +43,12 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Parallel execution examples per story
    - Implementation strategy section (MVP first, incremental delivery)
 
+4. **Tasks Consistency Gate (MANDATORY)**
+   - After generating tasks, run internal governance gate:
+     - Execute: `node tools/gates/run-internal-alignment.mjs`
+     - If violations exist (and no approved exceptions in `specs/<feature>/exceptions.md`): ERROR and stop
+   - Append a short "Policy Checklist" summary to the end of tasks.md with gate status
+
 5. **Report**: Output path to generated tasks.md and summary:
    - Total task count
    - Task count per user story

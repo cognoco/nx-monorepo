@@ -69,6 +69,12 @@ function hasResearchValidation(specDir) {
   return fs.existsSync(researchValidationPath);
 }
 
+// Check if research.md exists in spec directory
+function hasResearchMd(specDir) {
+  const researchPath = path.join(process.cwd(), specDir, 'research.md');
+  return fs.existsSync(researchPath);
+}
+
 // Main validation logic
 function validateResearch() {
   console.log('🔍 Validating research documentation...\n');
@@ -90,10 +96,17 @@ function validateResearch() {
   console.log('');
 
   const missingResearch = [];
+  const softPass = [];
 
   affectedSpecDirs.forEach((specDir) => {
-    if (!hasResearchValidation(specDir)) {
-      missingResearch.push(specDir);
+    const hasRV = hasResearchValidation(specDir);
+    if (!hasRV) {
+      if (hasResearchMd(specDir)) {
+        // No research-validation.md, but research.md exists → allow pass (no material changes assumed)
+        softPass.push(specDir);
+      } else {
+        missingResearch.push(specDir);
+      }
     }
   });
 
@@ -107,19 +120,25 @@ function validateResearch() {
     );
     console.error('\n💡 Resolution:');
     console.error(
-      '   1. Run the /speckit.plan command to generate research-validation.md'
+      '   1. Run /speckit.plan to produce research.md and (if material changes) research-validation.md'
     );
-    console.error(
-      '   2. Or add research-validation.md manually if research was already performed'
-    );
-    console.error('   3. Ensure Phase 0: MCP Research Gate was completed\n');
+    console.error('   2. If no material changes, research.md is sufficient');
+    console.error('   3. Ensure Phase 0 gates are completed\n');
     console.error(
       '📖 See: .specify/memory/constitution.md - Principle X (External Validation is Mandatory)\n'
     );
     return 1;
   }
 
-  console.log('✅ All spec directories have research-validation.md\n');
+  if (softPass.length > 0) {
+    console.log(
+      'ℹ️  research-validation.md missing but research.md present for:'
+    );
+    softPass.forEach((dir) => console.log(`  - ${dir}`));
+    console.log('    Passing validation (no material changes assumed)\n');
+  }
+
+  console.log('✅ Research documentation validated\n');
   return 0;
 }
 

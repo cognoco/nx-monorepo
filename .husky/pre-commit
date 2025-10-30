@@ -3,6 +3,9 @@ pnpm exec lint-staged
 # Validate research documentation exists for material spec changes
 pnpm run validate:research
 
+# Validate internal governance alignment (generic, project-owned policy)
+pnpm run validate:governance
+
 NX_DAEMON=false pnpm exec nx affected -t test --base=HEAD~1
 
 
