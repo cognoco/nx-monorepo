@@ -1,6 +1,6 @@
 # Exceptions Docket (Walking Skeleton)
 
-# Template example (remove when adding real exceptions):
+# Template example:
 # - rule: PHASE1_DB_URL
 # - principle: XI. Governance Alignment is Mandatory
 # - rationale: N/A (example placeholder)

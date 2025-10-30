@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'node:path';
+import { execSync } from 'node:child_process';
 
 function readIfExists(p) {
   try {
@@ -38,6 +39,57 @@ function parseExceptions(md) {
   return rules;
 }
 
+function getChangedFiles(base = 'main') {
+  try {
+    const out = execSync(`git diff --name-only ${base}...HEAD`, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    return out.split('\n').filter(Boolean);
+  } catch {
+    try {
+      const staged = execSync('git diff --cached --name-only', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+      return staged.split('\n').filter(Boolean);
+    } catch {
+      return [];
+    }
+  }
+}
+
+function getChangedFeatureDirs(changedFiles) {
+  const p2 = (f) => f.replace(/\\/g, '/');
+  const isMaterial = (file) => {
+    const p = p2(file);
+    if (!p.startsWith('specs/')) return false;
+    const parts = p.split('/');
+    if (parts.length < 3) return false;
+    const rest = parts.slice(2);
+    const fileName = rest[rest.length - 1];
+    if (fileName === 'research.md' || fileName === 'research-validation.md' || fileName === 'exceptions.md') return false;
+    if (rest.length === 1 && (fileName === 'plan.md' || fileName === 'spec.md' || fileName === 'quickstart.md')) return true;
+    if (rest.length >= 2) {
+      const firstDir = rest[0];
+      if ((firstDir === 'contracts' || firstDir === 'data-model') && fileName.endsWith('.md')) return true;
+    }
+    return false;
+  };
+  const dirs = new Set();
+  changedFiles.forEach((f) => {
+    if (isMaterial(f)) {
+      const feature = p2(f).split('/')[1];
+      dirs.add(`specs/${feature}`);
+    }
+  });
+  return Array.from(dirs);
+}
+
+function getLatestFeatureDir(root) {
+  const specsDir = path.join(root, 'specs');
+  if (!fs.existsSync(specsDir)) return null;
+  const entries = fs.readdirSync(specsDir, { withFileTypes: true })
+    .filter((d) => d.isDirectory() && /^\d{3}-.+/.test(d.name))
+    .map((d) => d.name)
+    .sort((a, b) => parseInt(b.slice(0, 3), 10) - parseInt(a.slice(0, 3), 10));
+  return entries.length ? `specs/${entries[0]}` : null;
+}
+
 function main() {
   const root = findWorkspaceRoot();
   const govIndexPath = path.join(root, 'governance', 'index.json');
@@ -57,7 +109,8 @@ function main() {
   const webJestConfig = readIfExists(path.join(root, 'apps', 'web', 'jest.config.ts'));
   const webPkgJson = loadJson(path.join(root, 'apps', 'web', 'package.json')) || {};
 
-  const exceptionsMd = readIfExists(path.join(root, 'specs', '001-walking-skeleton', 'exceptions.md'));
+  // Global exceptions docket (project-level)
+  const exceptionsMd = readIfExists(path.join(root, 'specs', 'exceptions.md'));
   const exceptions = parseExceptions(exceptionsMd);
 
   const violations = [];
@@ -74,9 +127,12 @@ function main() {
     }
   }
 
-  // Rule: schema.prisma must not use directUrl in Phase 1
+  // Rule: schema.prisma must not use directUrl in Phase 1 (only non-comment assignment lines)
   if (phase === 'phase1') {
-    if (/\bdirectUrl\b/i.test(schemaPrisma)) {
+    const hasDirectUrl = schemaPrisma
+      .split(/\r?\n/)
+      .some((line) => /^\s*directUrl\s*=/.test(line));
+    if (hasDirectUrl) {
       const v = { rule: 'PRISMA_DIRECTURL', file: 'packages/database/prisma/schema.prisma', message: 'Phase 1: Prisma datasource must not use directUrl' };
       (exceptions.has(v.rule) ? waived : violations).push(v);
     }
@@ -98,6 +154,12 @@ function main() {
     (exceptions.has(v.rule) ? waived : violations).push(v);
   }
 
+  // Feature discovery for reporting (and future feature-scoped rules)
+  const changedFiles = getChangedFiles();
+  const changedFeatureDirs = getChangedFeatureDirs(changedFiles);
+  const latestFeatureDir = getLatestFeatureDir(root);
+  const featureDirsToEvaluate = changedFeatureDirs.length ? changedFeatureDirs : (latestFeatureDir ? [latestFeatureDir] : []);
+
   const report = {
     status: violations.length ? 'fail' : 'pass',
     phase,
@@ -105,6 +167,11 @@ function main() {
       plan: fs.existsSync(planPath),
       spec: fs.existsSync(specPath),
       tasks: fs.existsSync(tasksPath)
+    },
+    features: {
+      changed: changedFeatureDirs,
+      evaluated: featureDirsToEvaluate,
+      skippedReason: featureDirsToEvaluate.length ? null : 'no feature folders present'
     },
     violations,
     waived: Array.from(waived)
