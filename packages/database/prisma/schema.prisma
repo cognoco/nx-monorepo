@@ -9,9 +9,13 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  // Single URL configuration (Stage 4.4a Track 1: port 5432 direct connection)
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  // Supavisor connection pooler strategy (recommended 2025):
+  // - url (DATABASE_URL): Transaction mode port 6543 for queries (connection pooling)
+  // - directUrl (DIRECT_URL): Session mode port 5432 for migrations (direct connection)
+  // Research: specs/001-walking-skeleton/research-validation.md - Agent 1 findings
 }
 
 // Walking skeleton: Minimal health check model
