@@ -5,7 +5,7 @@ audience: AI agents, developers
 created: 2025-10-21
 last-updated: 2025-10-28
 Created: 2025-10-21T14:40
-Modified: 2025-10-28T13:42
+Modified: 2025-10-28T20:29
 ---
 
 # Post-Generation Checklist
@@ -280,9 +280,9 @@ Location: `packages/database/prisma/migrations/<timestamp>_<name>/migration.sql`
 
 After each CREATE TABLE statement, add:
 ```sql
--- Disable Row Level Security (API server is security boundary)
+-- Enable Row Level Security (defense-in-depth on API path)
 -- Architecture: docs/architecture-decisions.md - Stage 4.2, Decision 4
-ALTER TABLE "table_name" DISABLE ROW LEVEL SECURITY;
+ALTER TABLE "table_name" ENABLE ROW LEVEL SECURITY;
 ```
 
 Example:
@@ -295,9 +295,9 @@ CREATE TABLE "health_checks" (
     CONSTRAINT "health_checks_pkey" PRIMARY KEY ("id")
 );
 
--- Disable Row Level Security (API server is security boundary)
+-- Enable Row Level Security (defense-in-depth on API path)
 -- Architecture: docs/architecture-decisions.md - Stage 4.2, Decision 4
-ALTER TABLE "health_checks" DISABLE ROW LEVEL SECURITY;
+ALTER TABLE "health_checks" ENABLE ROW LEVEL SECURITY;
 ```
 
 **2. Format the migration with Prisma**
@@ -312,7 +312,7 @@ pnpm --filter @nx-monorepo/database prisma format
 pnpm --filter @nx-monorepo/database prisma migrate dev
 ```
 
-**4. Verify RLS is disabled**
+**4. Verify RLS is enabled**
 
 Query the database to confirm:
 ```sql
@@ -322,7 +322,7 @@ WHERE schemaname = 'public'
   AND tablename = 'your_table_name';
 ```
 
-Expected: `rowsecurity = f` (false)
+Expected: `rowsecurity = t` (true)
 
 ### Validation
 
@@ -333,7 +333,7 @@ Verify in Supabase dashboard:
 
 ### Why This Matters
 
-Our architecture uses the API server as the security boundary (not database RLS). Enabling RLS would block API server queries and break functionality. This manual step ensures migrations align with our security model.
+Our architecture uses the API server as the primary security boundary, but we enable RLS as a database-level safety net on the API path (defense-in-depth). Prisma connects via a SQL role that bypasses RLS; the service_role key applies to the PostgREST API path. Enabling RLS protects against accidental Data API exposure while keeping server-side Prisma access unaffected.
 
 **Reference**: `docs/memories/adopted-patterns.md` - Pattern 8: Prisma Schema Conventions
 

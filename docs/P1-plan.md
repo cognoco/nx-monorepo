@@ -121,12 +121,12 @@ Verify that the out-of-the-box Nx setup works correctly and meets all prerequisi
 ### Sub-stages
 
 - [x] **0.1: Verify prerequisites** ✅
-  - [x] 0.1.1: Check Node.js version (recommended: v20.x or later) - v22.20.0 ✅
-  - [x] 0.1.2: Check pnpm version (should be v8.x or later) - v10.13.1, upgraded to v10.18.3 ✅
+  - [x] 0.1.1: Check Node.js version (required: 20.19.9+) - 20.19.9 ✅
+  - [x] 0.1.2: Check pnpm version - 10.19.0 ✅
     - [x] 0.1.2.1: Run `pnpm setup` to configure global bin directory
     - [x] 0.1.2.2: Restart terminal to apply PATH changes
     - [x] 0.1.2.3: Run `pnpm self-update` to upgrade to latest version
-    - [x] 0.1.2.4: Update packageManager in package.json to pnpm@10.18.3
+    - [x] 0.1.2.4: Update packageManager in package.json to pnpm@10.19.0
   - [x] 0.1.3: Verify pnpm is set as package manager (not npm) - Added to package.json ✅
   - [x] 0.1.4: Clean up any npm artifacts (package-lock.json) if present - Deleted ✅
   - [x] 0.1.5: Verify Playwright browsers installed - v1.56.0 ✅
@@ -237,8 +237,8 @@ Verify that the out-of-the-box Nx setup works correctly and meets all prerequisi
     - React: 19.0.0
     - TypeScript: 5.9.3
     - Nx: 21.6.5
-    - Node.js: v22.20.0
-    - pnpm: 10.18.3
+    - Node.js: v20.19.9
+    - pnpm: 10.19.0
     - Additional key versions: Jest 30.2.0, Playwright 1.56.1, ESLint 9.37.0, Prettier 2.8.8
 
 ### Success Criteria
