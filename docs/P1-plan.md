@@ -805,8 +805,9 @@ Create a minimal vertical slice that exercises the entire stack: web → API cli
 
 - [ ] **5.3: Implement server endpoints + tests**
   - [ ] 5.3.1: Create health check REST endpoints in `apps/server/src/routes/health.ts`
-    - `GET /api/health` - Fetch all health checks from DB
-    - `POST /api/health/ping` - Create new health check with message
+    - HTTP: `GET /api/health` (OpenAPI path: `/health`) - Fetch all health checks from DB
+    - HTTP: `POST /api/health/ping` (OpenAPI path: `/health/ping`) - Create new health check with message
+    - OpenAPI spec uses `servers: [{ url: '/api' }]` to define base path
   - [ ] 5.3.2: Add Zod schema validation middleware for request bodies
   - [ ] 5.3.3: Update OpenAPI spec with new endpoints
   - [ ] 5.3.4: Regenerate TypeScript client types from OpenAPI spec

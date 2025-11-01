@@ -350,7 +350,8 @@ app.use('/api', apiRouter);
 - Router: `get('/')`
 - Aggregator: `/health`
 - App: `/api`
-- **Final path**: `/api/health`
+- **Final HTTP path**: `/api/health`
+- **OpenAPI representation**: Path `/health` with `servers: [{ url: '/api' }]`
 
 ### Directory Structure
 
@@ -1177,11 +1178,15 @@ type HealthCheckResponse = HealthCheckEndpoint['responses']['200']['content']['a
 // Extract component schemas
 type HealthCheck = components['schemas']['HealthCheckResponse'];
 
-// Use in fetch client
+// Use in native fetch client (requires full HTTP path)
 async function getHealth(): Promise<HealthCheckResponse> {
   const response = await fetch('/api/health');
   return response.json();
 }
+
+// Or with openapi-fetch (uses relative path + baseUrl)
+// const client = createClient<paths>({ baseUrl: 'http://localhost:3001/api' })
+// await client.GET('/health') // Resolves to /api/health automatically
 ```
 
 ### Dependencies Required
