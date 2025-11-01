@@ -39,9 +39,9 @@ No tasks - infrastructure already exists from Phase 1 Stages 0-4.
 - [ ] T001 Verify Supabase project is provisioned and connection strings are in .env
 - [ ] T002 Generate Prisma Client from schema in packages/database/prisma/schema.prisma using `pnpm exec nx run @nx-monorepo/database:db:generate`
 - [ ] T003 Verify Prisma Client imports without errors in packages/database/src/lib/prisma-client.ts
-- [ ] T004 [P] Configure Jest for packages/database with co-located test support
-- [ ] T005 [P] Configure Jest for packages/schemas with co-located test support
-- [ ] T006 [P] Configure Jest for apps/server with integration test support
+- [ ] T004 [P] Read docs/memories/adopted-patterns.md and docs/memories/testing-reference.md, then configure Jest for packages/database with co-located test support
+- [ ] T005 [P] Read docs/memories/adopted-patterns.md and docs/memories/testing-reference.md, then configure Jest for packages/schemas with co-located test support
+- [ ] T006 [P] Read docs/memories/adopted-patterns.md and docs/memories/testing-reference.md, then configure Jest for apps/server with integration test support
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
@@ -85,7 +85,7 @@ No tasks - infrastructure already exists from Phase 1 Stages 0-4.
 
 - [ ] T026 [US1] Create /health page at apps/web/src/app/health/page.tsx
 - [ ] T027 [US1] Implement health check list display using createApiClient().GET('/health') (with baseUrl configured as 'http://localhost:3001/api')
-- [ ] T028 [US1] Add Tailwind CSS styling for health check list (minimal styling acceptable)
+- [ ] T028 [US1] Add Tailwind CSS styling for health check list (basic utility classes only, no custom CSS, minimal layout)
 - [ ] T029 [US1] Add loading state while fetching health checks
 - [ ] T030 [US1] Add "use client" directive if needed for interactive features
 - [ ] T031 [US1] Manual test: Start server (`pnpm exec nx run server:serve`) and web app (`pnpm exec nx run web:dev`)
@@ -185,12 +185,13 @@ No tasks - infrastructure already exists from Phase 1 Stages 0-4.
 - [ ] T075 Run all typechecks using `pnpm exec nx run-many -t typecheck`
 - [ ] T076 Run all tests using `pnpm exec nx run-many -t test`
 - [ ] T077 Run all builds using `pnpm exec nx run-many -t build`
-- [ ] T078 Verify Nx dependency graph is clean using `pnpm exec nx graph`
+- [ ] T078 Verify Nx dependency graph is clean using `pnpm exec nx graph`. Note: Nx Cloud temporarily disabled - skip remote cache verification for 001-walking-skeleton (SC-022 deferred)
 - [ ] T079 Test pre-commit hooks by staging a change and running `git commit`
 - [ ] T080 Verify TypeScript autocomplete works for API client methods in VS Code
-- [ ] T081 Execute quickstart.md validation steps 1-8 to ensure complete infrastructure validation
-- [ ] T082 Document any residual risks or known issues in specs/001-walking-skeleton/spec.md
-- [ ] T083 Update docs/P1-plan.md Stage 5 status to "Complete"
+- [ ] T081 Verify end-to-end type safety by creating integration test that validates type flow: Prisma schema → Zod validation → OpenAPI spec → Generated types → API client → Web UI component props
+- [ ] T082 Execute quickstart.md validation steps 1-8 to ensure complete infrastructure validation
+- [ ] T083 Document any residual risks or known issues in specs/001-walking-skeleton/spec.md
+- [ ] T084 Update docs/P1-plan.md Stage 5 status to "Complete"
 
 ---
 
@@ -293,13 +294,13 @@ With multiple developers:
 
 ## Summary Statistics
 
-**Total Tasks**: 83 tasks
+**Total Tasks**: 84 tasks
 - Phase 1 (Setup): 0 tasks (already complete)
 - Phase 2 (Foundational): 6 tasks
 - Phase 3 (US1 - MVP): 27 tasks
 - Phase 4 (US2): 22 tasks
 - Phase 5 (US3): 13 tasks
-- Phase 6 (Polish): 15 tasks
+- Phase 6 (Polish): 16 tasks
 
 **Parallel Opportunities**: 5 tasks marked [P] (6%)
 
