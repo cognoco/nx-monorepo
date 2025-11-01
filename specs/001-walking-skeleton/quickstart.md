@@ -305,9 +305,9 @@ pnpm exec nx run-many -t test
 
 **Coverage Verification**:
 ```bash
-pnpm exec nx run database:test:coverage
-pnpm exec nx run schemas:test:coverage
-pnpm exec nx run api-client:test:coverage
+pnpm exec nx run database:test -- --coverage
+pnpm exec nx run schemas:test -- --coverage
+pnpm exec nx run api-client:test -- --coverage
 ```
 
 Each package should report **≥60% coverage** (Phase 1 requirement).

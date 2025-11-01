@@ -57,9 +57,9 @@ As a developer validating error handling, I need to see clear error messages whe
 
 **Acceptance Scenarios**:
 
-1. **Given** the API server is down, **When** I navigate to `/health`, **Then** I see a clear error message indicating the server is unavailable
-2. **Given** the database connection fails, **When** I attempt to load health checks, **Then** I see an error message indicating database connectivity issues
-3. **Given** I send invalid data to the ping endpoint, **When** the server validates the request, **Then** I receive a clear validation error message (tested via manual API call)
+1. **Given** the API server is down, **When** I navigate to `/health`, **Then** I see error message: "Unable to connect to server. Please ensure the API server is running."
+2. **Given** the database connection fails, **When** I attempt to load health checks, **Then** I see error message: "Database connection error. Unable to load health checks."
+3. **Given** I send invalid data to the ping endpoint, **When** the server validates the request, **Then** I receive error message with validation details (e.g., "Validation error: Expected string, received number")
 
 ---
 
@@ -82,7 +82,7 @@ As a developer validating error handling, I need to see clear error messages whe
 - **FR-006**: System MUST generate TypeScript types from OpenAPI specification using `openapi-typescript`
 - **FR-007**: System MUST provide end-to-end type safety from database schema through API client to web UI
 - **FR-008**: System MUST use REST+OpenAPI architecture for all client-server communication
-- **FR-009**: Web UI MUST be styled with Tailwind CSS (minimal styling acceptable)
+- **FR-009**: Web UI MUST be styled with Tailwind CSS (minimal styling acceptable: Tailwind utility classes only, no custom CSS, unstyled components are acceptable)
 - **FR-010**: System MUST include co-located unit tests in `src/` for all packages (database, schemas, api-client)
 - **FR-011**: System MUST include integration tests in `src/` for server endpoints
 - **FR-012**: System MUST achieve >= 60% test coverage across all shared packages
@@ -144,7 +144,7 @@ The walking skeleton proves:
 
 - **Test Coverage Threshold**: 10% until Stage 5; 60% at Stage 5 (Walking Skeleton); 80% in Phase 2+
 - **RLS Policy**: Enabled for defense-in-depth on the API path (PostgREST). Prisma uses a SQL database role (superuser in Phase 1) that bypasses RLS; service_role does not apply to Prisma.
-- **Error Handling**: Minimal implementation acceptable (basic try-catch and error messages)
+- **Error Handling**: Minimal implementation acceptable (basic try-catch covering: 500 for database errors, 400 for validation errors, connection refused handling in UI)
 - **UI Polish**: Basic Tailwind styling acceptable (focus on functionality, not design)
 - **Performance**: Not a concern for this throwaway feature (no optimization needed)
 
@@ -165,10 +165,10 @@ Per constitutional requirement III (Test-Driven Development - AI-Adapted):
    - Verify tests pass (Green)
 
 3. **Cycle 3 - Server Endpoints** (5.3):
-   - Write integration tests for `GET /api/health` and `POST /api/health/ping`
+   - Write integration tests for `GET /api/health` and `POST /api/health/ping` endpoints
    - Verify tests fail (Red)
    - Implement Express endpoints with Zod validation
-   - Generate OpenAPI spec and TypeScript types
+   - Generate OpenAPI spec (defines paths `/health` and `/health/ping` with `servers: [{ url: '/api' }]`) and TypeScript types
    - Verify tests pass (Green)
 
 4. **Cycle 4 - API Client** (5.4):

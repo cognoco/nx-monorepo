@@ -7,7 +7,7 @@
 
 ## Summary
 
-Implement a minimal health check feature (GET /api/health, POST /api/health/ping) that flows through the entire technology stack to validate infrastructure before POC development. The feature exercises Web UI → API Client → Server → Prisma → Supabase with trivial business logic to surface integration issues early.
+Implement a minimal health check feature (HTTP endpoints: GET /api/health, POST /api/health/ping) that flows through the entire technology stack to validate infrastructure before POC development. The feature exercises Web UI → API Client → Server → Prisma → Supabase with trivial business logic to surface integration issues early. OpenAPI spec defines paths `/health` and `/health/ping` with `servers: [{ url: '/api' }]`.
 
 **Primary Requirement**: Prove end-to-end type safety and data persistence work correctly across all layers.
 
@@ -134,7 +134,7 @@ Implement a minimal health check feature (GET /api/health, POST /api/health/ping
 
 **Artifacts Generated**:
 - [x] `data-model.md` - Database schema and domain model for HealthCheck entity
-- [x] `contracts/` - OpenAPI 3.1.0 specifications for GET /api/health and POST /api/health/ping
+- [x] `contracts/` - OpenAPI 3.1.0 specifications for paths `/health` (GET) and `/health/ping` (POST) with `servers: [{ url: '/api' }]`
 - [x] `contracts/README.md` - Contract documentation and toolchain integration guide
 - [x] `quickstart.md` - Developer onboarding guide with step-by-step setup instructions
 - [x] Agent context updated - `CLAUDE.md` updated with walking skeleton technology stack

@@ -106,7 +106,7 @@ getHealthChecks(): Promise<HealthCheck[]>
 ```
 - Retrieves all health check records ordered by timestamp descending
 - No pagination (Phase 1 simplification)
-- Used by: GET /api/health endpoint
+- Used by: GET /api/health HTTP endpoint (OpenAPI path: `/health` with `servers: [{ url: '/api' }]`)
 
 ### 2. Create Health Check
 ```typescript
@@ -114,7 +114,7 @@ createHealthCheck(message?: string): Promise<HealthCheck>
 ```
 - Creates new health check with optional custom message
 - Defaults to "Health check ping" if message not provided
-- Used by: POST /api/health/ping endpoint
+- Used by: POST /api/health/ping HTTP endpoint (OpenAPI path: `/health/ping` with `servers: [{ url: '/api' }]`)
 
 **No other operations**: No updates, deletes, or individual record retrieval needed for walking skeleton.
 
