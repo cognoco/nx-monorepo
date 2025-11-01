@@ -147,6 +147,19 @@ rm -rf apps/my-app/__tests__/
 
 The `@nx/jest:configuration` generator in Nx 21.6 uses outdated TypeScript defaults (`node10`). This is a known limitation - not a bug in our config.
 
+### Workspace dependency and imports (cross‑package)
+
+- Do not use manual TypeScript `paths` in `tsconfig.base.json` for workspace packages.
+- Consumers MUST declare workspace dependencies in their `package.json` when importing workspace packages, e.g.:
+  ```json
+  {
+    "dependencies": {
+      "@nx-monorepo/api-client": "workspace:*"
+    }
+  }
+  ```
+- When using `moduleResolution: "nodenext"` (Node apps/tests), use explicit `.js` extensions on relative imports.
+
 ### Last Validated
 
 2025-10-20 (TypeScript 5.9, Nx 21.6, Jest 30.2)

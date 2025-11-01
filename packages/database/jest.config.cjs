@@ -12,9 +12,15 @@ module.exports = {
   displayName: '@nx-monorepo/database',
   preset: '../../jest.preset.js',
   testEnvironment: 'node',
+  testMatch: ['<rootDir>/src/**/*.(spec|test).[jt]s?(x)'],
   transform: {
     '^.+\\.[tj]s$': ['@swc/jest', swcJestConfig],
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
-  coverageDirectory: 'test-output/jest/coverage',
+  coverageDirectory: '../../coverage/packages/database',
+  collectCoverageFrom: [
+    'src/**/*.{ts,tsx,js,jsx}',
+    '!src/**/*.spec.{ts,tsx,js,jsx}',
+    '!src/**/*.test.{ts,tsx,js,jsx}',
+  ],
 };

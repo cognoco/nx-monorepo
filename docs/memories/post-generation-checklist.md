@@ -171,6 +171,30 @@ export default {
 };
 ```
 
+**5. Add workspace dependency for cross‑package imports**
+
+When a project imports a workspace package (e.g., `@nx-monorepo/api-client`), add it to the consumer `package.json` with a workspace version and reinstall:
+
+```json
+{
+  "dependencies": {
+    "@nx-monorepo/api-client": "workspace:*"
+  }
+}
+```
+
+```bash
+pnpm install
+```
+
+**6. Ensure import style under nodenext**
+
+If the consumer uses `moduleResolution: "nodenext"` (Node apps or test configs), relative imports MUST include the `.js` extension at runtime (TypeScript ESM rule). Adjust local relative imports accordingly.
+
+**7. Ensure Jest config compatibility with ESM packages**
+
+If the package has `"type": "module"`, the Jest config file should use `.cjs` extension (e.g., `jest.config.cjs`).
+
 **4. Update coverage configuration**
 
 File: `<project>/jest.config.ts`

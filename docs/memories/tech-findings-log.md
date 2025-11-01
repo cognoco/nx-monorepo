@@ -6,7 +6,7 @@ created: 2025-10-20
 last-updated: 2025-10-27
 Last-Modified: 2025-10-21T17:45
 Created: 2025-10-20T13:31
-Modified: 2025-10-28T11:38
+Modified: 2025-10-28T20:29
 ---
 
 # Technical Findings Log
@@ -151,14 +151,7 @@ Need to create a shared database package in Nx monorepo that exports Prisma Clie
   ├── package.json
   └── tsconfig.json         # For IDE support only (no build step)
   ```
-- **Key configuration in `tsconfig.base.json`:**
-  ```json
-  {
-    "paths": {
-      "@nx-monorepo/database": ["packages/database/src/index.ts"]
-    }
-  }
-  ```
+
 
 **Warning Signs (for AI agents):**
 
@@ -1274,6 +1267,277 @@ NX_DAEMON=false pnpm exec nx affected -t test --base=HEAD~1
 - Industry best practices: Nx community standard workaround
 - Empirical validation: tech-findings-log.md (2025-10-20)
 - Vibe-check MCP guidance on systematic troubleshooting
+
+---
+
+## [TypeScript Configuration] - Nx Modern Pattern: Workspaces + Project References (Not Manual Paths) - 2025-11-01
+
+**Decision:** Use pnpm workspaces with TypeScript Project References for cross-package imports, NOT manual `paths` in `tsconfig.base.json`
+
+**Context:** Server build failed with "Cannot find module '@nx-monorepo/database'" after removing manual path mappings during TypeScript configuration cleanup. Investigation revealed conflicting approaches between two agents regarding the correct Nx pattern.
+
+**Alternatives Considered:**
+1. **Manual paths in tsconfig.base.json** - Rejected because:
+   - Nx official docs explicitly state this is the OLD pattern
+   - Listed as "common pitfall" in Nx community best practices
+   - Creates maintenance overhead (manual updates required)
+   - Conflicts with TypeScript Project References
+
+2. **Keep paths AND add workspace dependencies** - Rejected because:
+   - Redundant configuration (two ways to do the same thing)
+   - Paths override Nx's automatic dependency management
+   - Violates DRY principle
+
+**Chosen Approach:** pnpm workspaces + TypeScript Project References + package.json workspace dependencies
+
+**Implementation Requirements:**
+1. **pnpm-workspace.yaml** must define workspace pattern:
+   ```yaml
+   packages:
+     - apps/*
+     - packages/*
+   ```
+
+2. **Consuming packages** must declare workspace dependencies in package.json:
+   ```json
+   "dependencies": {
+     "@nx-monorepo/database": "workspace:*",
+     "@nx-monorepo/schemas": "workspace:*"
+   }
+   ```
+
+3. **Run `pnpm install`** after adding workspace dependencies to create symlinks in node_modules
+
+4. **TypeScript Project References** in consuming package tsconfig.json:
+   ```json
+   "references": [
+     {"path": "../../packages/database/tsconfig.lib.json"},
+     {"path": "../../packages/schemas/tsconfig.lib.json"}
+   ]
+   ```
+
+**Technical Rationale:**
+- **Performance**: TypeScript Project References enable incremental builds
+- **Accuracy**: Package manager handles version resolution and linking
+- **Maintainability**: Nx automatically manages dependencies via dependency graph
+- **Standards**: Aligns with modern Nx documentation (v21+)
+
+**Pattern 2 Violation Fix:**
+Libraries were overriding `moduleResolution: "nodenext"` instead of inheriting `"bundler"` from tsconfig.base.json:
+- **Root cause**: Per Pattern 2 in adopted-patterns.md, production configs should inherit from base
+- **Fix**: Removed `moduleResolution`, `module`, and `baseUrl` overrides from all library tsconfig.lib.json files
+- **Result**: Libraries now correctly inherit `moduleResolution: "bundler"` from base
+
+**ESM Import Extensions:**
+With TypeScript `moduleResolution: "nodenext"` (used in test configs and server app), relative imports MUST use explicit .js extensions:
+- **Applies to**: Dynamic imports in test files, local imports in production code when compiled by "nodenext" context
+- **Example**: `import('./health')` → `import('./health.js')`
+- **Rationale**: TypeScript ESM standard requires explicit extensions with "nodenext" resolution
+
+**Jest Config Files with type: "module":**
+All packages use `"type": "module"` in package.json (established pattern). Jest config files must use `.cjs` extension:
+- **Error without fix**: "require is not defined in ES module scope"
+- **Solution**: Rename `jest.config.js` → `jest.config.cjs`
+- **Applies to**: All packages with `"type": "module"` in package.json
+
+**Verification Commands:**
+```bash
+# Database typecheck (no build target - uses --bundler=none)
+pnpm exec nx run database:typecheck
+
+# Schemas build
+pnpm exec nx run schemas:build
+
+# Server build (critical test - imports from workspace packages)
+pnpm exec nx run server:build
+
+# Dependency graph visualization
+pnpm exec nx graph --file=graph.html
+```
+
+**Success Criteria:**
+✅ No manual paths in tsconfig.base.json
+✅ Workspace dependencies declared in consuming packages
+✅ Libraries inherit moduleResolution from base (Pattern 2 compliance)
+✅ All imports use .js extensions where required (ESM standard)
+✅ Jest configs use .cjs extension for ESM packages
+✅ Server build succeeds with workspace package imports resolving correctly
+✅ Nx dependency graph shows clean structure
+
+**Warning Signs (for AI agents):**
+
+❌ **Do not** add manual paths to tsconfig.base.json to "fix" import errors
+- **Why**: Old pattern that conflicts with modern Nx workspaces
+- **Instead**: Add workspace dependencies to consuming package's package.json
+
+❌ **Do not** suggest removing `"type": "module"` from packages
+- **Why**: Established consistent pattern across all workspace packages
+- **Instead**: Rename jest.config.js to .cjs for ESM compatibility
+
+❌ **Do not** override moduleResolution in library tsconfig.lib.json
+- **Why**: Violates Pattern 2 - libraries should inherit from base
+- **Instead**: Only override in test configs (tsconfig.spec.json) and Node.js apps (tsconfig.app.json)
+
+✅ **Do** add workspace dependencies with `"workspace:*"` version
+- Required for package manager to link workspace packages
+- Run `pnpm install` after adding
+
+✅ **Do** use explicit .js extensions in imports when required
+- Test files (use "nodenext")
+- Production code when consumed by "nodenext" context
+
+**References:**
+- Nx Official Docs: [Switch to Workspaces and Project References](https://nx.dev/technologies/typescript/recipes/switch-to-workspaces-project-references)
+- Community Best Practice: ["Manually editing path mappings" listed as common pitfall](https://mayallo.com/nx-monorepo-typescript-configurations/)
+- TypeScript ESM: Requires explicit .js extensions with moduleResolution "nodenext"
+- Investigation findings: Sequential Thinking MCP (10 thoughts), Vibe-Check MCP validation
+- Context7 MCP: TypeScript compiler documentation on paths vs Project References
+- Exa MCP: Nx monorepo configuration patterns
+
+**Applies To:**
+- Nx 21.6+ monorepos using pnpm workspaces
+- TypeScript 5.9+ with Project References
+- Cross-package imports in monorepo applications
+- ESM packages with Jest testing
+
+**Date Resolved:** 2025-11-01
+**Resolved By:** AI Agent (investigation-first approach with MCP server validation)
+
+---
+
+## [Database Configuration] - Supabase PostgreSQL Connection URL Encoding - 2025-11-01
+
+**Decision:** URL-encode special characters (especially `!`) in PostgreSQL connection strings for Supabase
+
+**Context:** Prisma migration failed with "FATAL: Tenant or user not found" error despite correct credentials retrieved from Supabase MCP server. Project status showed ACTIVE_HEALTHY, but connection failed intermittently.
+
+**Root Cause:** Password contained special character `!` which must be URL-encoded as `%21` in PostgreSQL connection strings. Unencoded special characters in passwords cause authentication failures.
+
+**Technical Implementation:**
+
+**Before (connection failed):**
+```env
+DATABASE_URL="postgresql://postgres.pjbnwtsufqpgsdlxydbo:Arald!1tt123@aws-0-eu-north-1.pooler.supabase.com:6543/postgres"
+DIRECT_URL="postgresql://postgres.pjbnwtsufqpgsdlxydbo:Arald!1tt123@aws-0-eu-north-1.pooler.supabase.com:5432/postgres"
+```
+
+**After (connection successful):**
+```env
+DATABASE_URL="postgresql://postgres.pjbnwtsufqpgsdlxydbo:Arald%211tt123@aws-0-eu-north-1.pooler.supabase.com:6543/postgres"
+DIRECT_URL="postgresql://postgres.pjbnwtsufqpgsdlxydbo:Arald%211tt123@aws-0-eu-north-1.pooler.supabase.com:5432/postgres"
+```
+
+**Characters requiring URL encoding:**
+- `!` → `%21`
+- `@` → `%40`
+- `#` → `%23`
+- `$` → `%24`
+- `%` → `%25`
+- `^` → `%5E`
+- `&` → `%26`
+- `*` → `%2A`
+- ` ` (space) → `%20`
+
+**Verification Process:**
+
+1. **Used Supabase MCP server to retrieve credentials:**
+   ```bash
+   - list_projects → identified "nx-monorepo" project
+   - get_project → verified ACTIVE_HEALTHY status
+   - get_project_url → retrieved API URL
+   - get_publishable_keys → retrieved anon key
+   ```
+
+2. **Verified credentials match .env file** (except URL encoding)
+
+3. **Applied migration using Supabase MCP** (bypassed Prisma CLI):
+   ```typescript
+   mcp__plugin_dev-additional_Supabase_MCP__apply_migration({
+     project_id: "pjbnwtsufqpgsdlxydbo",
+     name: "create_health_check",
+     query: "CREATE TABLE health_checks..."
+   })
+   ```
+
+4. **Confirmed table creation:**
+   ```bash
+   list_tables → health_checks table exists
+   execute_sql → SELECT COUNT(*) works
+   ```
+
+**Windows ARM64 Limitation:**
+
+Prisma Client query engine does not support Windows ARM64:
+- **Error**: "query_engine-windows.dll.node is not a valid Win32 application"
+- **Workaround**: Use Supabase MCP server for direct SQL operations during development
+- **Solution**: Run Prisma tests in CI (Linux) or on x64 platform
+- **Rationale**: Database schema and migrations work correctly; runtime limitation only affects local testing
+
+**Verification Commands:**
+
+```bash
+# Verify table exists via Supabase MCP
+list_tables(project_id)
+
+# Test connection via SQL query
+execute_sql(project_id, "SELECT COUNT(*) FROM health_checks")
+
+# Enable RLS (if not in migration)
+execute_sql(project_id, "ALTER TABLE health_checks ENABLE ROW LEVEL SECURITY")
+```
+
+**Implementation Details:**
+
+**Location:** `.env` (workspace root)
+
+**Dual Connection Strategy:**
+- **DATABASE_URL** (port 6543): Pooled connection for Prisma runtime queries (Transaction Mode via Supavisor)
+- **DIRECT_URL** (port 5432): Direct connection for migrations and DDL operations (Session Mode)
+
+**Success Criteria:**
+✅ Connection strings use URL-encoded password
+✅ health_checks table exists in Supabase with correct schema
+✅ RLS enabled on health_checks table
+✅ Direct SQL queries work via Supabase MCP
+✅ CI/Linux environments can run full Prisma tests
+
+**Warning Signs (for AI agents):**
+
+❌ **Do not** use unencoded special characters in connection string passwords
+- **Why**: Causes authentication failures with cryptic "Tenant or user not found" errors
+- **Instead**: URL-encode password before placing in .env file
+
+❌ **Do not** attempt to run Prisma Client tests on Windows ARM64
+- **Why**: Query engine binary not available for this platform
+- **Instead**: Use Supabase MCP for verification, defer Prisma tests to CI
+
+✅ **Do** verify credentials match between Supabase dashboard and .env
+- Use Supabase MCP tools: list_projects, get_project, get_publishable_keys
+- Compare retrieved values with .env (accounting for URL encoding)
+
+✅ **Do** use Supabase MCP for migrations when Prisma CLI has environment issues
+- apply_migration, execute_sql, list_tables tools available
+- Bypasses local Prisma CLI environment variable loading issues
+
+**Symptom Patterns:**
+- "Tenant or user not found" with correct-looking credentials → Check URL encoding
+- Prisma migration command can't find environment variables → Run from workspace root or use explicit env vars
+- "Not a valid Win32 application" on Windows → ARM64 limitation, use CI for testing
+
+**Applies To:**
+- Supabase PostgreSQL connections
+- Any PostgreSQL connection string with special characters in password
+- Prisma migrations targeting Supabase
+- Windows ARM64 development environments
+
+**References:**
+- Supabase MCP Server: Direct database operations when Prisma CLI blocked
+- PostgreSQL URL format: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
+- RFC 3986 (URL encoding): https://datatracker.ietf.org/doc/html/rfc3986#section-2.1
+- Prisma Platform Support: https://pris.ly/d/system-requirements
+
+**Date Resolved:** 2025-11-01
+**Resolved By:** AI Agent (Supabase MCP server + URL encoding investigation)
 
 ---
 

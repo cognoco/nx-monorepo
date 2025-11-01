@@ -204,6 +204,9 @@ importers:
       '@asteasolutions/zod-to-openapi':
         specifier: ^8.1.0
         version: 8.1.0(zod@4.1.12)
+      '@nx-monorepo/database':
+        specifier: workspace:*
+        version: link:../../packages/database
       '@nx-monorepo/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
