@@ -29,6 +29,7 @@ jobs:
           - 5432:5432
     env:
       DATABASE_URL: postgresql://prisma:prisma@localhost:5432/tests?schema=public
+      DIRECT_URL: postgresql://prisma:prisma@localhost:5432/tests?schema=public
       CI: true
     steps:
       - uses: actions/checkout@v4
