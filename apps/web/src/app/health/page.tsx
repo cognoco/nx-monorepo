@@ -14,6 +14,8 @@ export default function HealthPage() {
   const [healthChecks, setHealthChecks] = useState<HealthCheck[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pinging, setPinging] = useState(false);
+  const [pingError, setPingError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchHealthChecks = async () => {
@@ -23,7 +25,7 @@ export default function HealthPage() {
 
         // Create API client with server URL
         const client = createApiClient({
-          baseUrl: 'http://localhost:3001/api',
+          baseUrl: process.env.NEXT_PUBLIC_API_URL || '/api',
         });
 
         // Type-safe API call
@@ -48,12 +50,63 @@ export default function HealthPage() {
     fetchHealthChecks();
   }, []);
 
+  const handlePing = async () => {
+    try {
+      setPinging(true);
+      setPingError(null);
+
+      // Create API client with server URL
+      const client = createApiClient({
+        baseUrl: process.env.NEXT_PUBLIC_API_URL || '/api',
+      });
+
+      // Type-safe POST request to create health check
+      const { data, error: apiError } = await client.POST('/health/ping', {
+        body: {},
+      });
+
+      if (apiError) {
+        throw new Error('Failed to create health check');
+      }
+
+      if (data) {
+        // Optimistic UI update - add new health check to the top of the list
+        setHealthChecks((prev) => [data.healthCheck, ...prev]);
+      }
+    } catch (err) {
+      setPingError(
+        err instanceof Error ? err.message : 'An unknown error occurred'
+      );
+    } finally {
+      setPinging(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="mx-auto max-w-4xl">
-        <h1 className="mb-8 text-3xl font-bold text-gray-900">
-          Health Check Records
-        </h1>
+        <div className="mb-8 flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-gray-900">
+            Health Check Records
+          </h1>
+          <button
+            onClick={handlePing}
+            disabled={pinging || loading}
+            className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white shadow-md transition-all hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-400"
+          >
+            {pinging ? 'Pinging...' : 'Ping'}
+          </button>
+        </div>
+
+        {/* Ping Error State */}
+        {pingError && (
+          <div className="mb-4 rounded-lg bg-yellow-50 p-4 shadow">
+            <h3 className="mb-1 font-semibold text-yellow-900">
+              Failed to Create Health Check
+            </h3>
+            <p className="text-yellow-700">{pingError}</p>
+          </div>
+        )}
 
         {/* Loading State */}
         {loading && (
@@ -71,7 +124,8 @@ export default function HealthPage() {
             </h2>
             <p className="text-red-700">{error}</p>
             <p className="mt-4 text-sm text-red-600">
-              Make sure the server is running at http://localhost:3001
+              Make sure the server is running (default: http://localhost:3001).
+              API requests are proxied through /api via Next.js rewrites.
             </p>
           </div>
         )}

@@ -1541,6 +1541,290 @@ execute_sql(project_id, "ALTER TABLE health_checks ENABLE ROW LEVEL SECURITY")
 
 ---
 
+## [Nx Configuration] - Nx dependsOn Syntax: String Form vs Object Form - 2025-11-02
+
+**Decision:** String form `"@scope/project:target"` is valid and appropriate for explicit cross-project dependencies in Nx
+
+**Context:** During dependency wiring implementation, an agent review claimed that string form dependency syntax was "fragile" and "nonstandard," recommending conversion to object form. Investigation via Context7 MCP and official Nx documentation revealed this claim was incorrect.
+
+**Alternatives Considered:**
+
+1. **Object form `{"target": "...", "projects": [...]}`**
+   - Use case: Required for parameter forwarding, wildcards, or dependency placeholders
+   - Example: `{"target": "build", "projects": "dependencies"}`
+   - When needed: Dynamic dependency resolution, passing parameters between tasks
+   - Rejected for our use case: Adds unnecessary complexity when explicit dependency is sufficient
+
+2. **String form `"@scope/project:target"`**
+   - Use case: Simple explicit cross-project dependencies
+   - Example: `"@nx-monorepo/database:typecheck"`
+   - When appropriate: Known project, known target, no parameter forwarding
+   - **CHOSEN**: Official Nx syntax, clear, readable, no complexity overhead
+
+**Chosen Approach:** String form for explicit dependencies (no parameter forwarding needed)
+
+**Technical Rationale:**
+
+**Why string form is valid:**
+- Officially documented in Nx v21.6.3 documentation (verified via Context7 MCP)
+- Used extensively in Nx official examples and recipes
+- Provides explicit, readable dependency declarations
+- No fragility - Nx validates project and target names at build time
+- Nx graph visualization shows these dependencies correctly
+
+**Why object form is NOT required here:**
+- No parameter forwarding needed (our targets don't pass parameters)
+- No wildcard patterns needed (explicit project dependencies)
+- No dependency placeholders needed (e.g., `"dependencies"`, `"^"`)
+- Object form would add visual noise without functional benefit
+
+**When to use each form:**
+
+**Use string form when:**
+```json
+"dependsOn": [
+  "@nx-monorepo/database:typecheck",
+  "@nx-monorepo/schemas:build"
+]
+```
+- Fixed, known project and target
+- No parameters to forward
+- Simple explicit dependency
+
+**Use object form when:**
+```json
+"dependsOn": [
+  {"target": "build", "projects": "dependencies"},
+  {"target": "^build", "params": "forward"}
+]
+```
+- Dynamic dependency resolution (`"dependencies"`, `"self"`)
+- Parameter forwarding between tasks
+- Wildcard patterns (all deps, all dependents)
+- Using `^` for upstream dependencies
+
+**Implementation Details:**
+
+**Location:** `packages/database/project.json`, `packages/schemas/project.json`
+
+**Example configuration:**
+```json
+{
+  "targets": {
+    "typecheck": {
+      "dependsOn": ["@nx-monorepo/schemas:build"]
+    }
+  }
+}
+```
+
+**Verification:**
+```bash
+# Nx graph shows dependency correctly
+pnpm exec nx graph
+
+# Nx validates project/target names
+pnpm exec nx run database:typecheck
+```
+
+**Warning Signs (for AI agents):**
+
+❌ **Do not** claim string form is "fragile" or "nonstandard"
+- **Why**: Officially documented Nx syntax, used in official examples
+- **Result**: Creates unnecessary churn converting valid syntax
+
+❌ **Do not** convert string form to object form without specific need
+- **Why**: Adds complexity without benefit
+- **When to convert**: Only if parameter forwarding or wildcards are needed
+
+✅ **Do recognize** string form is appropriate for explicit dependencies
+- Clear intent: This target depends on that specific project's target
+- Nx validates names at build time (not fragile)
+
+✅ **Do use** object form when you need advanced features
+- Dynamic resolution: `"projects": "dependencies"`
+- Parameter forwarding: `"params": "forward"`
+- Wildcard patterns: `"^build"` for all upstream deps
+
+**Cross-References:**
+- Related to: [TypeScript Configuration] - Nx Modern Pattern: Workspaces + Project References (2025-11-01)
+- Complements: TypeScript Project References for compile-time dependencies
+- Used with: Workspace dependency resolution strategy
+
+**References:**
+- Nx Official Docs: [dependsOn configuration](https://nx.dev/reference/project-configuration#dependson) (verified via Context7 MCP /nrwl/nx/v21.6.3)
+- Nx Task Pipeline: https://nx.dev/concepts/task-pipeline-configuration
+- Context7 MCP validation: 2025-11-02
+- Investigation: Agent review disagreement → MCP server fact-check
+
+**Applies To:**
+- Nx 21.6+ monorepos
+- Cross-project task dependencies
+- Build orchestration and dependency wiring
+
+**Date Resolved:** 2025-11-02
+**Resolved By:** AI Agent (Context7 MCP documentation validation)
+
+---
+
+## [Web App Configuration] - API URL Configuration: Rewrites + Environment Variable Override - 2025-11-02
+
+**Decision:** Use Next.js rewrites for development + NEXT_PUBLIC_API_URL override for production (Option 3)
+
+**Context:** The web app had hardcoded API URL `http://localhost:3001/api`, which broke portability (different port configurations) and caused CORS issues. Need flexible configuration that works in development and production with minimal setup.
+
+**Alternatives Considered:**
+
+1. **Environment variable only**
+   - Implementation: `NEXT_PUBLIC_API_URL` in .env.local, client uses `process.env.NEXT_PUBLIC_API_URL`
+   - Rejected: Requires manual .env.local creation for all developers
+   - Problem: CORS issues in development (browser → localhost:3000 → localhost:3001)
+   - Problem: No automatic fallback if env var missing
+
+2. **Next.js rewrites only**
+   - Implementation: `rewrites()` in next.config.js proxying /api → http://localhost:3001/api
+   - Rejected: Inflexible for production deployments
+   - Problem: Can't override API URL for different deployment patterns (Docker, cloud hosting, etc.)
+   - Problem: Hardcodes localhost assumptions
+
+3. **Both: Rewrites for dev + env var override for production** ✅ **CHOSEN**
+   - Implementation: next.config.js rewrites + `NEXT_PUBLIC_API_URL` optional override
+   - Client code: `const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api'`
+   - Development: Rewrites work immediately (no .env.local needed)
+   - Production: Override via environment variable if needed
+
+**Chosen Approach:** Rewrites + environment variable override
+
+**Technical Rationale:**
+
+**Why this combination works:**
+
+**Development (default behavior):**
+1. Developer runs `pnpm run dev` (web on :3000, server on :3001)
+2. No .env.local configuration needed
+3. Next.js rewrites `/api/*` → `http://localhost:3001/api/*` server-side
+4. Client makes requests to `/api/health` (same-origin, no CORS)
+5. Next.js proxy forwards to server
+6. Result: Zero configuration, works immediately
+
+**Production (environment variable override):**
+1. Set `NEXT_PUBLIC_API_URL=https://api.example.com` in deployment environment
+2. Client code uses env var: `process.env.NEXT_PUBLIC_API_URL || '/api'`
+3. Requests go directly to production API URL (no proxy)
+4. Supports any deployment pattern:
+   - Docker Compose: Container-to-container networking
+   - Cloud platforms: Separate API domain
+   - Kubernetes: Service mesh routing
+   - Edge deployments: CDN + API separation
+
+**Implementation Details:**
+
+**Location:** `apps/web/next.config.js`, `apps/web/.env.local.example`, client API code
+
+**next.config.js configuration:**
+```javascript
+async rewrites() {
+  return [
+    {
+      source: '/api/:path*',
+      destination: 'http://localhost:3001/api/:path*',
+    },
+  ];
+}
+```
+
+**.env.local.example (template for developers):**
+```env
+# Optional: Override API URL for production or custom server port
+# NEXT_PUBLIC_API_URL=http://localhost:3001/api
+# NEXT_PUBLIC_API_URL=https://api.example.com
+```
+
+**Client code pattern:**
+```typescript
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+
+// Usage in API client
+fetch(`${API_BASE_URL}/health`)
+```
+
+**CORS configuration (server):**
+```typescript
+// apps/server/src/main.ts
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  credentials: true,
+}));
+```
+
+**Why rewrites solve CORS in development:**
+- Browser request: `http://localhost:3000/api/health` (same-origin)
+- Next.js server: Proxies to `http://localhost:3001/api/health` (server-to-server, no CORS)
+- Response: Returns to browser with same-origin headers
+- Result: No CORS preflight, no CORS headers needed for development
+
+**Verification Commands:**
+```bash
+# Development (default, no env var)
+pnpm run dev
+curl http://localhost:3000/api/health  # Should proxy to server
+
+# Production (with env var override)
+NEXT_PUBLIC_API_URL=http://localhost:3001/api pnpm run dev
+curl http://localhost:3000/api/health  # Should call server directly
+```
+
+**Success Criteria:**
+✅ Development works without .env.local configuration
+✅ No CORS errors in browser console
+✅ Production deployments can override API URL via environment variable
+✅ .env.local.example documents the override option
+✅ Client code uses consistent pattern: `process.env.NEXT_PUBLIC_API_URL || '/api'`
+
+**Warning Signs (for AI agents):**
+
+❌ **Do not** hardcode API URLs in client code
+- **Why**: Breaks portability and deployment flexibility
+- **Instead**: Use `process.env.NEXT_PUBLIC_API_URL || '/api'` pattern
+
+❌ **Do not** remove rewrites to "simplify" configuration
+- **Why**: Forces all developers to create .env.local manually
+- **Result**: Poor developer experience, CORS issues
+
+❌ **Do not** rely only on environment variables
+- **Why**: Requires manual setup for every developer
+- **Result**: "Works on my machine" syndrome
+
+✅ **Do preserve** rewrites in next.config.js for development
+- Zero-config development experience
+- Automatic CORS handling via proxy
+
+✅ **Do support** NEXT_PUBLIC_API_URL override for production
+- Deployment flexibility
+- Different API URL patterns (cloud, containers, edge)
+
+**Applies To:**
+- Next.js applications in Nx monorepo
+- Development with separate frontend/backend processes
+- Production deployments with flexible API URL requirements
+- Any scenario requiring CORS-free development + production override
+
+**Symptom Patterns:**
+- CORS errors in development → Missing rewrites configuration
+- Hardcoded localhost URLs → Missing environment variable override pattern
+- "API not found" after deployment → No NEXT_PUBLIC_API_URL set in production
+
+**References:**
+- Next.js Rewrites: https://nextjs.org/docs/app/api-reference/next-config-js/rewrites
+- Next.js Environment Variables: https://nextjs.org/docs/app/building-your-application/configuring/environment-variables
+- Implementation: apps/web/next.config.js, apps/web/.env.local.example (2025-11-02)
+- Related issue: Hardcoded API URL causing portability problems
+
+**Date Resolved:** 2025-11-02
+**Resolved By:** AI Agent (API URL configuration strategy design)
+
+---
+
 ## Future Entries
 
 [Add new technical findings below using the template above]
