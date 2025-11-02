@@ -1,5 +1,5 @@
 import { Router, type Router as RouterType } from 'express';
-import { healthRouter } from './health';
+import { healthRouter } from './health.js';
 import { helloRouter } from './hello.js';
 
 /**

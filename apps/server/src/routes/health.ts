@@ -1,5 +1,5 @@
 import { Router, type Router as RouterType } from 'express';
-import { healthController } from '../controllers/health.controller';
+import { healthController } from '../controllers/health.controller.js';
 
 /**
  * Health check routes
