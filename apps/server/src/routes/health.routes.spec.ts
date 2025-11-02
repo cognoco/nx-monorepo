@@ -4,7 +4,10 @@
 
 import request from 'supertest';
 import { createApp } from '../app.js';
-import type { HealthCheckListResponse } from '@nx-monorepo/schemas';
+import type {
+  HealthCheckListResponse,
+  HealthCheckPingResponse,
+} from '@nx-monorepo/schemas';
 
 describe('Health Check API Integration (Walking Skeleton)', () => {
   const app = createApp();
@@ -57,6 +60,79 @@ describe('Health Check API Integration (Walking Skeleton)', () => {
     });
   });
 
-  // POST /api/health/ping tests will be added in User Story 2
-  // Currently implementing User Story 1 (GET /api/health only)
+  describe('POST /api/health/ping', () => {
+    it('should create health check with default message when no body provided', async () => {
+      const response = await request(app)
+        .post('/api/health/ping')
+        .send({})
+        .expect('Content-Type', /json/)
+        .expect(201);
+
+      // Validate response structure matches HealthCheckPingResponse schema
+      expect(response.body).toHaveProperty('healthCheck');
+
+      // Type assertion for TypeScript
+      const data = response.body as HealthCheckPingResponse;
+      const healthCheck = data.healthCheck;
+
+      expect(healthCheck).toHaveProperty('id');
+      expect(healthCheck).toHaveProperty('message');
+      expect(healthCheck).toHaveProperty('timestamp');
+
+      // Validate types
+      expect(typeof healthCheck.id).toBe('string');
+      expect(typeof healthCheck.message).toBe('string');
+      expect(typeof healthCheck.timestamp).toBe('string');
+
+      // Validate UUID format
+      expect(healthCheck.id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      );
+
+      // Validate ISO 8601 timestamp format
+      expect(healthCheck.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+
+      // Default message should be "Health check ping"
+      expect(healthCheck.message).toBe('Health check ping');
+    });
+
+    it('should create health check with custom message', async () => {
+      const customMessage = 'Custom ping message from test';
+
+      const response = await request(app)
+        .post('/api/health/ping')
+        .send({ message: customMessage })
+        .expect('Content-Type', /json/)
+        .expect(201);
+
+      expect(response.body).toHaveProperty('healthCheck');
+
+      const data = response.body as HealthCheckPingResponse;
+      const healthCheck = data.healthCheck;
+
+      expect(healthCheck.message).toBe(customMessage);
+    });
+
+    it('should reject invalid request body (non-string message)', async () => {
+      const response = await request(app)
+        .post('/api/health/ping')
+        .send({ message: 123 })
+        .expect('Content-Type', /json/)
+        .expect(400);
+
+      // Zod validation error should be returned
+      expect(response.body).toHaveProperty('error');
+    });
+
+    it('should accept empty message string', async () => {
+      const response = await request(app)
+        .post('/api/health/ping')
+        .send({ message: '' })
+        .expect('Content-Type', /json/)
+        .expect(201);
+
+      const data = response.body as HealthCheckPingResponse;
+      expect(data.healthCheck.message).toBe('');
+    });
+  });
 });

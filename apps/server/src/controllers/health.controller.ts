@@ -1,8 +1,12 @@
 // WALKING SKELETON: Delete after infrastructure validation
 
 import { Request, Response } from 'express';
-import { getHealthChecks } from '@nx-monorepo/database';
-import type { HealthCheckListResponse } from '@nx-monorepo/schemas';
+import { getHealthChecks, createHealthCheck } from '@nx-monorepo/database';
+import {
+  HealthCheckPingRequestSchema,
+  type HealthCheckListResponse,
+  type HealthCheckPingResponse,
+} from '@nx-monorepo/schemas';
 
 /**
  * Health check controller
@@ -36,6 +40,47 @@ export const healthController = {
       res.status(500).json({
         error: 'InternalServerError',
         message: 'Failed to fetch health checks from database',
+      });
+    }
+  },
+
+  /**
+   * Create a new health check (ping)
+   * Accepts optional message in request body
+   */
+  async ping(req: Request, res: Response): Promise<void> {
+    try {
+      // Validate request body using Zod schema
+      const validation = HealthCheckPingRequestSchema.safeParse(req.body);
+
+      if (!validation.success) {
+        res.status(400).json({
+          error: 'ValidationError',
+          message: 'Invalid request body',
+          details: validation.error.issues,
+        });
+        return;
+      }
+
+      // Create health check in database via Prisma
+      const record = await createHealthCheck(validation.data.message);
+
+      // Transform Prisma record to API response format
+      const response: HealthCheckPingResponse = {
+        healthCheck: {
+          id: record.id,
+          message: record.message,
+          timestamp: record.timestamp.toISOString(),
+        },
+      };
+
+      res.status(201).json(response);
+    } catch (error) {
+      // Basic error handling for Phase 1 (no comprehensive error middleware yet)
+      console.error('Error creating health check:', error);
+      res.status(500).json({
+        error: 'InternalServerError',
+        message: 'Failed to create health check in database',
       });
     }
   },
