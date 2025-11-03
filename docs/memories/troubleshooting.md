@@ -15,18 +15,82 @@ Modified: 2025-10-28T20:30
 
 This document provides troubleshooting solutions for common development issues in the nx-monorepo. These solutions have been validated through empirical testing.
 
-**⚠️ For Jest hanging issues (Windows)**: See `.ruler/AGENTS.md` - this is the most frequent issue and requires special handling.
-
 ---
 
 ## Table of Contents
 
+- [Jest Hanging on Windows](#jest-hanging-on-windows)
 - [Nx Cache Issues](#nx-cache-issues)
 - [TypeScript Path Resolution](#typescript-path-resolution)
 - [Build Failures](#build-failures)
 - [Test Failures](#test-failures)
 - [Prisma Issues](#prisma-issues)
 - [Related Documentation](#related-documentation)
+
+---
+
+## Jest Hanging on Windows
+
+**Symptoms**: Jest prints "did not exit one second after the test run" or shows "Terminate batch job (Y/N)?". Tests hang indefinitely on Windows.
+
+**✅ Fixed Projects**:
+- **@nx-monorepo/web** (2025-11-03): Configuration applied via Pattern 12
+
+**Solution for Fixed Projects**:
+Projects with the fix applied will work automatically:
+```bash
+pnpm exec nx run web:test  # Works without hanging
+```
+
+**Solution for Unfixed Projects**:
+
+**Option 1: Apply Pattern 12** (Recommended - Permanent Fix)
+
+See **Pattern 12** in `docs/memories/adopted-patterns.md` for complete instructions.
+
+Quick summary:
+1. Add to `<project>/project.json`:
+   ```json
+   {
+     "targets": {
+       "test": {
+         "options": {
+           "env": {
+             "NX_DAEMON": "false",
+             "TS_NODE_COMPILER_OPTIONS": "{\"moduleResolution\":\"node10\",\"module\":\"commonjs\",\"customConditions\":null}"
+           }
+         }
+       }
+     }
+   }
+   ```
+
+2. Ensure `<project>/tsconfig.spec.json` has:
+   ```json
+   {
+     "compilerOptions": {
+       "module": "nodenext",
+       "moduleResolution": "nodenext"
+     }
+   }
+   ```
+
+**Option 2: Manual Workaround** (Temporary)
+
+```bash
+# Run with environment variable
+NX_DAEMON=false pnpm exec nx run <project>:test
+```
+
+**Important Notes**:
+- Root cause not fully understood - may vary by system state
+- Fix has been empirically validated (2025-10-20, 2025-11-03)
+- Apply per-project only when problem manifests (don't apply preemptively)
+- For detailed troubleshooting steps, see `.ruler/AGENTS.md`
+
+**Related**:
+- Pattern 12: Windows Jest Hanging - Per-Project Environment Variables
+- Pattern 2: TypeScript Module Resolution
 
 ---
 
@@ -76,7 +140,7 @@ pnpm exec nx affected:graph
 
 ## Test Failures
 
-**Symptoms**: Tests fail, unexpected test behavior (excluding Jest hanging - see AGENTS.md for that).
+**Symptoms**: Tests fail, unexpected test behavior.
 
 **Solutions**:
 
@@ -91,7 +155,7 @@ pnpm exec nx run web:test --watch
 pnpm exec nx run web:test --clearCache
 ```
 
-**⚠️ For Jest hanging/slow exit on Windows**: See `.ruler/AGENTS.md` for comprehensive troubleshooting steps.
+**⚠️ For Jest hanging/slow exit on Windows**: See [Jest Hanging on Windows](#jest-hanging-on-windows) section above.
 
 ---
 

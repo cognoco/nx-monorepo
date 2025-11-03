@@ -8,7 +8,9 @@
     "pnpm": ">=9.0.0"
   },
   "scripts": {
-    "dev": "nx run web:dev",
+    "dev": "nx run-many -t dev --projects=web,server --parallel=2",
+    "dev:web": "nx run web:dev",
+    "dev:server": "nx run server:serve",
     "build": "nx run-many -t build",
     "test": "nx run-many -t test",
     "test:coverage": "nx run-many -t test --coverage",

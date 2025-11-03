@@ -4,6 +4,14 @@
   "sourceRoot": "apps/web/src",
   "projectType": "application",
   "targets": {
+    "test": {
+      "options": {
+        "env": {
+          "NX_DAEMON": "false",
+          "TS_NODE_COMPILER_OPTIONS": "{\"moduleResolution\":\"node10\",\"module\":\"commonjs\",\"customConditions\":null}"
+        }
+      }
+    },
     "typecheck": {
       "executor": "nx:run-commands",
       "dependsOn": ["^build"],
