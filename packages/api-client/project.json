@@ -39,7 +39,8 @@
           }
         }
       }
-    }
+    },
+    "format:check": {}
   },
   "tags": ["npm:private"]
 }

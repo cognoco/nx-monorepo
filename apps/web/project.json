@@ -23,6 +23,7 @@
         "technologies": ["typescript"],
         "description": "Runs type-checking for the project."
       }
-    }
+    },
+    "format:check": {}
   }
 }
