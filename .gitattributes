@@ -1,2 +1,10 @@
+# Enforce LF line endings for all text files across all platforms
+# This ensures consistency between Windows, WSL, and Linux CI
+* text=auto eol=lf
+
+# Windows-specific files (if any) can use CRLF
+*.bat eol=crlf
+*.cmd eol=crlf
+
 # Husky hooks must always use LF line endings (not CRLF) for Git Bash compatibility
 .husky/* text eol=lf
