@@ -25,7 +25,9 @@ const { existsSync } = require('fs');
 try {
   const env = process.env.NODE_ENV || 'development';
   const envFile = `.env.${env}.local`;
-  const envPath = resolve(process.cwd(), envFile);
+  // Use __dirname to find workspace root (where this file lives)
+  // NOT process.cwd() which varies based on which project runs tests
+  const envPath = resolve(__dirname, envFile);
 
   if (!existsSync(envPath)) {
     throw new Error(
