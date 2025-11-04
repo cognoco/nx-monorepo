@@ -3,7 +3,7 @@ title: Technical Findings Log
 purpose: Record technical decisions, empirical findings, troubleshooting patterns, and non-obvious constraints to guide AI agents and developers
 audience: AI agents, developers, architects
 created: 2025-10-20
-last-updated: 2025-10-27
+last-updated: 2025-11-04
 Last-Modified: 2025-10-21T17:45
 Created: 2025-10-20T13:31
 Modified: 2025-10-28T20:29
@@ -1822,6 +1822,421 @@ curl http://localhost:3000/api/health  # Should call server directly
 
 **Date Resolved:** 2025-11-02
 **Resolved By:** AI Agent (API URL configuration strategy design)
+
+---
+
+## [Server Configuration] - Express CORS Configuration - 2025-11-03
+
+**Decision:** Use `cors` package with environment-variable-based origin configuration for Express API server
+
+**Context:** The web application (localhost:3000) needs to make cross-origin requests to the API server (localhost:3001) per the documented architecture in `docs/architecture-decisions.md` (Decision 3). Browser security (CORS) blocks these requests by default unless the server explicitly allows them via Access-Control-Allow-Origin headers.
+
+**Alternatives Considered:**
+
+1. **No CORS configuration (rely solely on Next.js rewrites)**
+   - Works: Development with rewrites proxies requests server-side (same-origin)
+   - Problem: Breaks in production deployments, direct API access, or when NEXT_PUBLIC_API_URL is set
+   - Rejected: Not flexible enough for all deployment scenarios
+
+2. **Wildcard origin (`origin: '*'`)**
+   - Works: Allows all origins
+   - Problem: Security risk - any website could call our API
+   - Problem: Incompatible with `credentials: true` (needed for auth)
+   - Rejected: Violates security best practices
+
+3. **Hardcoded origin array**
+   - Works: Specific origins only
+   - Problem: Requires code changes for different deployment environments
+   - Problem: Less flexible than environment variable
+   - Rejected: Environment variable pattern is more maintainable
+
+**Chosen Approach:** Environment variable with sensible default (`process.env.CORS_ORIGIN || 'http://localhost:3000'`)
+
+**Technical Rationale:**
+
+**Why CORS is required by our architecture:**
+- Architecture explicitly mandates: Browser → Express API → Prisma → PostgreSQL
+- Never allow direct client → database access (security boundary)
+- Web app (port 3000) and API server (port 3001) are different origins
+- Browser blocks cross-origin requests without proper CORS headers
+
+**Why the cors package:**
+- Industry standard Express middleware (Trust Score: 9/10)
+- Simple, well-documented API
+- Maintained by Express.js team
+- Handles preflight requests (OPTIONS) automatically
+
+**Configuration choices:**
+
+1. **Origin configuration:**
+   ```typescript
+   origin: process.env.CORS_ORIGIN || 'http://localhost:3000'
+   ```
+   - Development: Defaults to web app origin (localhost:3000)
+   - Production: Override via CORS_ORIGIN environment variable
+   - No wildcard: Explicit origins only for security
+
+2. **Credentials enabled:**
+   ```typescript
+   credentials: true
+   ```
+   - Required for future cookie-based authentication
+   - Allows cookies, authorization headers, TLS client certificates
+   - Incompatible with wildcard origin (security constraint)
+
+**Implementation Details:**
+
+- **Location**: `apps/server/src/app.ts`
+- **Dependencies**: `cors` (runtime), `@types/cors` (dev)
+- **Installation**:
+  ```bash
+  pnpm add cors --filter @nx-monorepo/server
+  pnpm add -D @types/cors --filter @nx-monorepo/server
+  ```
+
+- **Configuration**:
+  ```typescript
+  import cors from 'cors';
+
+  app.use(cors({
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    credentials: true,
+  }));
+  ```
+
+- **Environment variable**: Documented in `.env.example`
+  ```env
+  # CORS origin for API server (allows cross-origin requests from this domain)
+  # Development: Defaults to http://localhost:3000
+  # Production: Set to your deployed web app URL
+  CORS_ORIGIN="http://localhost:3000"
+  ```
+
+**Relationship to Next.js Rewrites:**
+
+The project uses both CORS and Next.js rewrites (documented in tech-findings entry "API URL Configuration"):
+- **Development default**: Next.js rewrites proxy `/api/*` to server (no CORS needed, same-origin)
+- **Production/override**: Direct API calls use CORS (when NEXT_PUBLIC_API_URL is set)
+- **CORS provides flexibility** for various deployment patterns without changing code
+
+**Verification:**
+
+✅ Build passes: `pnpm exec nx run server:build`
+✅ Lint passes: `pnpm exec nx run server:lint`
+✅ Tests run: Database errors are pre-existing, not CORS-related
+✅ Dependencies added to `apps/server/package.json`
+✅ Documentation updated in `.env.example`
+
+**Warning Signs (for AI agents):**
+
+❌ **Do not remove** CORS middleware from Express app
+- **Why**: Required by architecture for browser-to-API communication
+- **What breaks**: Direct API calls fail with CORS errors, production deployments break
+
+❌ **Do not use** wildcard origin (`'*'`)
+- **Why**: Security risk, incompatible with credentials
+- **What breaks**: Any website can call your API, credentials won't work
+
+❌ **Do not assume** Next.js rewrites eliminate need for CORS
+- **Why**: Rewrites only work in development, production needs CORS
+- **What breaks**: Production deployments fail with CORS errors
+
+✅ **Do preserve** environment variable pattern
+- Allows deployment flexibility without code changes
+- Documented in `.env.example` for all developers
+
+✅ **Do keep** `credentials: true`
+- Required for future authentication implementation
+- Standard practice for APIs that will use cookies/auth
+
+**Symptom Patterns:**
+
+- "No 'Access-Control-Allow-Origin' header" → CORS not configured or wrong origin
+- "Credentials flag is 'true', but the 'Access-Control-Allow-Origin' header is '*'" → Can't use wildcard with credentials
+- Production API calls fail but development works → Check CORS_ORIGIN environment variable
+
+**Applies To:**
+
+- Express-based API servers in Nx monorepo
+- Any browser-to-server communication across different ports/domains
+- Production deployments requiring direct API access
+
+**References:**
+
+- Express CORS package: https://github.com/expressjs/cors (Trust Score: 9/10)
+- Context7 MCP documentation: /expressjs/cors
+- Architecture decision: `docs/architecture-decisions.md` (Decision 3)
+- Related: tech-findings "[Web App Configuration] - API URL Configuration" (2025-11-02)
+
+**Date Resolved:** 2025-11-03
+**Resolved By:** AI Agent (Sequential Thinking + Vibe Check + Context7 research)
+
+---
+
+## [Database Configuration] - Supabase Pooler Hostname Discovery - 2025-11-04
+
+**Finding:** Supabase pooler hostname varies by region and server assignment. Must copy from dashboard, cannot assume `aws-0` pattern.
+
+**Context:** During Phase 4 multi-environment setup, Prisma CLI consistently failed with "FATAL: Tenant or user not found" despite correct password and username format. Investigation revealed the pooler hostname in our `.env` files was incorrect.
+
+**Root Cause:**
+- Assumed pooler hostname: `aws-0-eu-north-1.pooler.supabase.com`
+- Actual pooler hostname: `aws-1-eu-north-1.pooler.supabase.com`
+- Supabase assigns projects to different pooler instances (`aws-0`, `aws-1`, `aws-2`, etc.)
+- Using wrong hostname results in "Tenant or user not found" error (misleading - actually a routing error)
+
+**Discovery Process:**
+1. Password reset attempts failed (not the issue)
+2. Username format verification passed (postgres.{project-ref} was correct)
+3. Network connectivity test showed pooler was reachable
+4. Checked Supabase dashboard connection string → revealed `aws-1` not `aws-0`
+5. Updated hostname → immediate success
+
+**Technical Details:**
+
+**Incorrect assumption:**
+```env
+DATABASE_URL="postgresql://postgres.pjbnwtsufqpgsdlxydbo:password@aws-0-eu-north-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres.pjbnwtsufqpgsdlxydbo:password@aws-0-eu-north-1.pooler.supabase.com:5432/postgres"
+```
+
+**Correct configuration (must copy from dashboard):**
+```env
+DATABASE_URL="postgresql://postgres.pjbnwtsufqpgsdlxydbo:password@aws-1-eu-north-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres.pjbnwtsufqpgsdlxydbo:password@aws-1-eu-north-1.pooler.supabase.com:5432/postgres"
+```
+
+**Why hostname varies:**
+- Supabase uses multiple pooler instances for load distribution
+- Projects may be assigned to different pooler instances based on:
+  - Creation time
+  - Region capacity
+  - Load balancing
+  - Internal routing policies
+
+**How to get correct hostname:**
+1. Go to: https://supabase.com/dashboard/project/{PROJECT_ID}/settings/database
+2. Scroll to "Connection string" section
+3. Select "Session pooler" (or "Use connection pooling") tab
+4. Copy the exact hostname from the displayed connection string
+5. Example format: `aws-X-{region}.pooler.supabase.com` where X varies
+
+**Verification:**
+```bash
+# Test connectivity to pooler
+nc -zv aws-1-eu-north-1.pooler.supabase.com 5432  # Should succeed
+nc -zv aws-1-eu-north-1.pooler.supabase.com 6543  # Should succeed
+
+# Test Prisma connection
+pnpm run db:push:dev  # Should succeed with correct hostname
+```
+
+**Implementation Details:**
+- **Location**: `.env.development.local`, `.env.test.local` (workspace root, gitignored)
+- **Pattern**: Always copy full connection string from Supabase dashboard
+- **Documentation**: Added to Pattern 13 in adopted-patterns.md (troubleshooting section)
+
+**Warning Signs (for AI agents):**
+
+❌ **Do not assume** pooler hostname follows `aws-0-{region}` pattern
+- **Why**: Hostname varies by project assignment
+- **Result**: "Tenant or user not found" error (misleading message)
+
+❌ **Do not suggest** password reset for "Tenant or user not found" errors
+- **Why**: Error often indicates wrong hostname, not authentication failure
+- **First check**: Verify hostname matches Supabase dashboard exactly
+
+✅ **Do copy** exact hostname from Supabase dashboard connection string
+- Navigate to Project Settings → Database → Connection String
+- Select appropriate pooler mode (Session or Transaction)
+- Copy entire connection string, extract hostname
+
+✅ **Do verify** both ports accessible on the pooler hostname
+- Port 5432: Session mode (for migrations, schema operations)
+- Port 6543: Transaction mode (for application queries)
+
+**Symptom Patterns:**
+- "Tenant or user not found" with correct password → Check hostname
+- Prisma connects in Supabase Studio but not via CLI → Wrong pooler hostname
+- Connection works on one machine but not another → Check .env hostname matches dashboard
+
+**Applies To:**
+- All Supabase projects using connection pooling (Supavisor)
+- Both free and paid tier projects
+- All regions (`eu-north-1`, `us-east-1`, etc.)
+- Prisma, pg, and any PostgreSQL client library
+
+**References:**
+- GitHub Discussion: https://github.com/orgs/supabase/discussions/30107 (similar issue)
+- Supabase Docs: https://supabase.com/docs/guides/database/connecting-to-postgres
+- Prisma/Supabase Integration: https://supabase.com/partners/integrations/prisma
+- Investigation: 2025-11-04 (Phase 4 implementation, multiple troubleshooting iterations)
+
+**Cross-References:**
+- Related to: adopted-patterns.md Pattern 13 (Database Environment Management)
+- Related to: Next tech finding (IPv6 Requirement and Free Tier Workaround)
+
+---
+
+## [Database Configuration] - IPv6 Requirement and Free Tier Workaround - 2025-11-04
+
+**Finding:** Supabase direct database connections require IPv6 support. Free tier provides IPv4-compatible pooler (Supavisor) as workaround.
+
+**Context:** After fixing pooler hostname, investigated why direct connection (port 5432 to `db.{project-ref}.supabase.co`) was unreachable on WSL2/Windows development environment. Network diagnostics revealed IPv6-only connectivity for direct connections.
+
+**Technical Discovery:**
+
+**Direct connection behavior:**
+```bash
+# Direct database hostname (port 5432)
+nc -zv db.pjbnwtsufqpgsdlxydbo.supabase.co 5432
+# Result: Network is unreachable (2a05:d016:...)
+# Resolves to IPv6 address only
+
+# Force IPv4 resolution
+nc -4 -zv db.pjbnwtsufqpgsdlxydbo.supabase.co 5432
+# Result: No address associated with hostname
+# No IPv4 address available
+
+# Pooler hostname (ports 5432 and 6543)
+nc -zv aws-1-eu-north-1.pooler.supabase.com 5432
+# Result: Connection succeeded! (13.48.169.15)
+# Resolves to IPv4 address
+
+nc -zv aws-1-eu-north-1.pooler.supabase.com 6543
+# Result: Connection succeeded! (16.16.102.12)
+# Resolves to IPv4 address
+```
+
+**Root Cause:**
+- Supabase direct connections (`db.{project-ref}.supabase.co`) use IPv6 addresses only
+- Many development environments lack IPv6 support:
+  - WSL2 on Windows (common configuration issue)
+  - Some corporate networks
+  - Certain cloud platforms
+  - Docker default networking
+- Supabase pooler provides IPv4 compatibility layer
+
+**Tier Comparison:**
+
+**Free Tier:**
+- ✅ Connection pooler (Supavisor) with IPv4 support (ports 5432 and 6543)
+- ❌ No IPv4 add-on available
+- ✅ Workaround: Use pooler for both DATABASE_URL and DIRECT_URL
+- Cost: $0
+
+**Paid Tier (Pro+):**
+- ✅ Connection pooler (Supavisor) with IPv4 support
+- ✅ IPv4 add-on available (~$4/month)
+- ✅ Can enable dedicated IPv4 address for direct connection
+- Cost: $25/month (Pro) + $4/month (IPv4 add-on)
+
+**Chosen Approach:** Use pooler for both connections (works on free tier)
+
+**Technical Rationale:**
+
+**Why pooler works:**
+- Supavisor connection pooler resolves to IPv4 addresses
+- Supports two modes on different ports:
+  - Port 6543: Transaction mode (for queries, limited prepared statements)
+  - Port 5432: Session mode (for migrations, full PostgreSQL feature support)
+- Official Prisma/Supabase integration docs recommend this pattern
+
+**Configuration pattern:**
+```env
+# Transaction mode for queries (DATABASE_URL)
+DATABASE_URL="postgresql://postgres.{project-ref}:{password}@aws-X-{region}.pooler.supabase.com:6543/postgres?pgbouncer=true"
+
+# Session mode for migrations (DIRECT_URL)
+DIRECT_URL="postgresql://postgres.{project-ref}:{password}@aws-X-{region}.pooler.supabase.com:5432/postgres"
+```
+
+**Why two ports on pooler:**
+- **Port 6543 (Transaction mode)**:
+  - Optimized for short-lived queries
+  - Multiplexes connections at transaction boundary
+  - Best for application runtime (DATABASE_URL)
+  - `?pgbouncer=true` parameter indicates transaction mode
+
+- **Port 5432 (Session mode)**:
+  - Full PostgreSQL protocol support
+  - Prepared statements, advisory locks, LISTEN/NOTIFY
+  - Required for schema operations (migrations, db push)
+  - Best for Prisma CLI commands (DIRECT_URL)
+
+**Verification:**
+```bash
+# Both should work with pooler hostname
+pnpm run db:push:dev         # Uses DIRECT_URL (port 5432)
+NODE_ENV=development pnpm exec nx run server:serve  # Uses DATABASE_URL (port 6543)
+curl http://localhost:3001/api/health              # Should query database successfully
+```
+
+**Implementation Details:**
+- **Location**: `.env.development.local`, `.env.test.local`
+- **Pattern**: Both DATABASE_URL and DIRECT_URL use pooler hostname, different ports
+- **Official source**: Prisma/Supabase integration guide
+- **Validation**: Prisma CLI commands work, application queries work
+
+**Alternative Solutions (if IPv6 support needed):**
+
+**Enable IPv6 in WSL2:**
+```bash
+# Edit /etc/resolv.conf in WSL2
+sudo vi /etc/resolv.conf
+# Add nameserver that supports IPv6
+nameserver 2001:4860:4860::8888  # Google DNS IPv6
+
+# Or enable IPv6 in Windows networking + WSL2 configuration
+```
+
+**Use paid tier IPv4 add-on:**
+- Cost: ~$4/month
+- Provides dedicated IPv4 address for direct connection
+- Navigate to: Project Settings → Add-ons → IPv4
+
+**Warning Signs (for AI agents):**
+
+❌ **Do not suggest** using direct connection on free tier without IPv6 support
+- **Why**: `db.{project-ref}.supabase.co` resolves IPv6-only
+- **Result**: "Network is unreachable" or "Cannot resolve hostname"
+
+❌ **Do not suggest** IPv6 is only required on free tier
+- **Why**: All tiers use IPv6 for direct connections by default
+- **Difference**: Paid tier can purchase IPv4 add-on
+
+✅ **Do use** pooler for both DATABASE_URL and DIRECT_URL
+- Official Prisma/Supabase integration pattern
+- Works on all tiers, no IPv6 required
+- Full functionality (queries + migrations)
+
+✅ **Do recognize** this is a network capability issue, not a configuration error
+- Many environments lack IPv6 support
+- Pooler provides IPv4 compatibility layer
+- This is expected behavior, not a bug
+
+**Symptom Patterns:**
+- "Can't reach database server" with direct connection → Check IPv6 support
+- Pooler connection works but direct connection fails → Expected on IPv4-only network
+- "Network is unreachable" with IPv6 address shown → Use pooler instead
+
+**Applies To:**
+- All Supabase tiers (free, pro, enterprise)
+- Development environments without IPv6 support
+- WSL2 on Windows, Docker, some corporate networks
+- Any scenario requiring IPv4-only connectivity
+
+**References:**
+- Supabase Docs: https://supabase.com/docs/guides/troubleshooting/supabase--your-network-ipv4-and-ipv6-compatibility-cHe3BP
+- Prisma/Supabase Integration: https://supabase.com/partners/integrations/prisma
+- Supabase Pricing (IPv4 add-on): https://supabase.com/pricing
+- Investigation: 2025-11-04 (Phase 4 network connectivity diagnostics)
+- Web search: "Supabase IPv6 requirement free tier paid tier 2025"
+
+**Cross-References:**
+- Related to: adopted-patterns.md Pattern 13 (Database Environment Management)
+- Related to: Previous finding (Supabase Pooler Hostname Discovery)
+- Complements: Prisma multi-environment configuration strategy
 
 ---
 

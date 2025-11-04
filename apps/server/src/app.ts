@@ -1,4 +1,5 @@
 import express, { type Express } from 'express';
+import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import { apiRouter } from './routes/index.js';
 import { getOpenApiSpec } from './openapi/index.js';
@@ -16,6 +17,14 @@ export function createApp(): Express {
 
   // Middleware
   app.use(express.json());
+
+  // CORS configuration
+  app.use(
+    cors({
+      origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+      credentials: true,
+    })
+  );
 
   // Root endpoint (keep for backwards compatibility)
   app.get('/', (_req, res) => {
