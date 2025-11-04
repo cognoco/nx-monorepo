@@ -54,9 +54,20 @@ out
 test-output
 
 # Environment variables
+# IMPORTANT: .env.example IS tracked (template for developers)
+# All other .env files contain secrets and MUST NOT be committed
 .env
 .env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
 .env*.local
+
+# Keep .env.example tracked
+!.env.example
 
 nul
 temp/*

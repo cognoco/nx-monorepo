@@ -3,7 +3,7 @@ title: Adopted Patterns
 purpose: Monorepo-specific standards that override framework defaults
 audience: AI agents, developers
 created: 2025-10-21
-last-updated: 2025-10-28
+last-updated: 2025-11-04
 Created: 2025-10-21T14:39
 Modified: 2025-10-28T20:29
 ---
@@ -873,7 +873,7 @@ paths: { '/health': ... }    # ✅ No /api duplication
    pnpm exec nx run server:spec-write    # Generate artifact
    pnpm exec nx run server:spec-validate # Validate with Spectral
    pnpm exec nx run server:serve         # Start server
-   # Visit http://localhost:3001/api/docs to see Swagger UI
+   # Visit http://localhost:4000/api/docs to see Swagger UI
    ```
 
 ### Dependencies Required
@@ -926,7 +926,7 @@ registry.registerPath({ ... }); // in main.ts
 ❌ **Hardcoding server URLs**:
 ```yaml
 # WRONG - environment-specific
-servers: [{ url: 'http://localhost:3001/api' }]
+servers: [{ url: 'http://localhost:4000/api' }]
 ```
 
 ✅ **Correct - relative URLs**:
@@ -959,7 +959,7 @@ pnpm exec nx run server:spec-validate
 
 # View in Swagger UI
 pnpm exec nx run server:serve
-# Visit http://localhost:3001/api/docs
+# Visit http://localhost:4000/api/docs
 ```
 
 **CI/CD:**
@@ -969,7 +969,7 @@ pnpm exec nx run server:serve
 ```
 
 **Online validation:**
-1. Download spec: `curl http://localhost:3001/api/docs/openapi.json > spec.json`
+1. Download spec: `curl http://localhost:4000/api/docs/openapi.json > spec.json`
 2. Validate at: https://editor.swagger.io/
 3. Or use: https://ratemyopenapi.com/
 
@@ -1198,7 +1198,7 @@ async function getHealth(): Promise<HealthCheckResponse> {
 }
 
 // Or with openapi-fetch (uses relative path + baseUrl)
-// const client = createClient<paths>({ baseUrl: 'http://localhost:3001/api' })
+// const client = createClient<paths>({ baseUrl: 'http://localhost:4000/api' })
 // await client.GET('/health') // Resolves to /api/health automatically
 ```
 
@@ -1232,7 +1232,7 @@ async function getHealth(): Promise<HealthCheckResponse> {
 ```json
 // WRONG - requires server to be running
 {
-  "command": "openapi-typescript http://localhost:3001/api/docs/openapi.json"
+  "command": "openapi-typescript http://localhost:4000/api/docs/openapi.json"
 }
 ```
 
@@ -2176,6 +2176,407 @@ All apps and packages (web, server, web-e2e, database, schemas, api-client, supa
 - docs/memories/troubleshooting.md - "Jest Exits Slowly or Hangs (Windows)"
 - AGENTS.md - "Jest & Testing Configuration" section
 - Research validation: 2025-11-03 (Sub-agent analysis of 5 approaches)
+
+---
+
+## Pattern 13: Database Environment Management
+
+**Our Standard**: Use dotenv-cli with environment-specific .env files for Prisma CLI commands
+
+### Pattern
+
+**Environment Files Structure:**
+```
+.env.development.local   # Development database credentials (gitignored)
+.env.test.local          # Test database credentials (gitignored)
+.env.example             # Template for new developers (committed)
+```
+
+**Database Command Scripts** (`package.json`):
+```json
+{
+  "scripts": {
+    "db:push:dev": "dotenv -e .env.development.local -- npx prisma db push --schema=packages/database/prisma/schema.prisma",
+    "db:push:test": "dotenv -e .env.test.local -- npx prisma db push --schema=packages/database/prisma/schema.prisma",
+    "db:migrate:dev": "dotenv -e .env.development.local -- npx prisma migrate dev --schema=packages/database/prisma/schema.prisma",
+    "db:migrate:test": "dotenv -e .env.test.local -- npx prisma migrate dev --schema=packages/database/prisma/schema.prisma",
+    "db:migrate:deploy:dev": "dotenv -e .env.development.local -- npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma",
+    "db:migrate:deploy:test": "dotenv -e .env.test.local -- npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma",
+    "db:studio:dev": "dotenv -e .env.development.local -- npx prisma studio --schema=packages/database/prisma/schema.prisma",
+    "db:studio:test": "dotenv -e .env.test.local -- npx prisma studio --schema=packages/database/prisma/schema.prisma",
+    "db:generate": "dotenv -e .env.development.local -- npx prisma generate --schema=packages/database/prisma/schema.prisma"
+  }
+}
+```
+
+**Application Runtime Loading** (`apps/server/src/main.ts`):
+```typescript
+// Load environment variables FIRST, before any other imports
+import { config } from 'dotenv';
+import { resolve } from 'path';
+import { existsSync } from 'fs';
+
+const env = process.env.NODE_ENV || 'development';
+const envFile = `.env.${env}.local`;
+const envPath = resolve(process.cwd(), envFile);
+
+if (!existsSync(envPath)) {
+  throw new Error(
+    `Environment file not found: ${envFile}\n` +
+      `Expected location: ${envPath}\n` +
+      `See: docs/environment-setup.md`
+  );
+}
+
+config({ path: envPath });
+console.log(`✅ Loaded environment variables from: ${envFile}`);
+
+// Now import other modules that need env vars
+import { createApp } from './app.js';
+```
+
+**Jest Test Setup** (`jest.setup.js`):
+```javascript
+const { config } = require('dotenv');
+const { resolve } = require('path');
+const { existsSync } = require('fs');
+
+try {
+  const env = process.env.NODE_ENV || 'development';
+  const envFile = `.env.${env}.local`;
+  const envPath = resolve(process.cwd(), envFile);
+
+  if (!existsSync(envPath)) {
+    throw new Error(
+      `Environment file not found: ${envFile}\n` +
+        `Expected location: ${envPath}\n` +
+        `See: docs/environment-setup.md`
+    );
+  }
+
+  config({ path: envPath });
+  // Silent mode - no console output during tests
+} catch (error) {
+  console.error('❌ Failed to load environment variables for tests:');
+  console.error(error.message);
+  console.error('\nTests cannot run without environment configuration.');
+  console.error('See: docs/environment-setup.md\n');
+  process.exit(1);
+}
+```
+
+### Applies To
+
+All Prisma-based database packages and applications that need multi-environment database support
+
+### Rationale
+
+**Why dotenv-cli:**
+- ✅ **Officially recommended** by Prisma documentation for multi-environment setups
+- ✅ **Industry standard** pattern used by Next.js, Nx, and Prisma communities
+- ✅ **Explicit file selection**: Prisma CLI loads `.env` by default and ignores NODE_ENV; dotenv-cli explicitly specifies which file to load
+- ✅ **Minimal complexity**: Simple CLI wrapper, no custom scripts or configuration needed
+- ✅ **Excellent security posture**: Credentials remain in gitignored files, never in code or config
+
+**Problem it solves:**
+- Prisma CLI has its own .env loading mechanism separate from Node.js/Nx
+- Prisma CLI loads `.env` from root directory by default
+- Prisma CLI does NOT respect NODE_ENV or load environment-specific files automatically
+- Without dotenv-cli, developers must manually manage which .env file is active (error-prone)
+
+**Alternatives considered and rejected:**
+
+1. **Nx-native environment configuration** (rejected):
+   - ❌ Would require credentials in `project.json` or `nx.json` (security risk)
+   - ❌ Not compatible with Prisma's .env file expectations
+   - ❌ Does not work with Prisma CLI commands
+
+2. **Shell scripts with inline variables** (rejected):
+   - ❌ Major security risk (credentials visible in process list)
+   - ❌ Platform-specific (different syntax for Windows/Linux)
+   - ❌ Not officially documented by Prisma
+
+3. **Symbolic link strategy** (rejected):
+   - ❌ Stateful (must remember to switch links)
+   - ❌ Error-prone (easy to run against wrong database)
+   - ❌ Manual process (no automation)
+
+4. **Keep .env as development default** (rejected):
+   - ❌ Inconsistent pattern (dev implicit, test explicit)
+   - ❌ Still requires dotenv-cli for test environment
+   - ❌ Less explicit than environment-specific scripts
+
+5. **dotenvx (modern alternative)** (considered but not chosen):
+   - ✅ Modern, feature-rich alternative to dotenv-cli
+   - ✅ Supports encryption, multiple environments
+   - ❌ Less documentation, newer tool (less battle-tested)
+   - ❌ Not specifically mentioned in Prisma docs
+   - **Decision**: Chose dotenv-cli for alignment with official Prisma documentation
+
+**2-environment architecture:**
+- Development: Existing Supabase project (`pjbnwtsufqpgsdlxydbo` in ZIX-DEV org)
+- Test: New Supabase project (`uvhnqtzufwvaqvbdgcnn` in ZIX-DEV org)
+- Production: Deferred until needed (Supabase free tier limit: 2 projects per user)
+
+**Runtime vs. CLI loading:**
+- **Application runtime** (Express, Jest): Inline dotenv loading in entry points
+- **Prisma CLI**: dotenv-cli wrapper in npm scripts
+- **Why both?**: Different execution contexts require different loading mechanisms
+
+### When Working with Database Commands
+
+**Always use npm scripts, never raw Prisma commands:**
+
+```bash
+# ✅ Correct - uses environment-specific credentials
+pnpm run db:push:dev          # Push schema to development
+pnpm run db:push:test         # Push schema to test
+pnpm run db:migrate:dev       # Create migration in development
+pnpm run db:migrate:deploy:dev # Apply migrations to development
+pnpm run db:studio:dev        # Open Prisma Studio for development
+
+# ❌ Wrong - loads default .env (if it exists) or fails
+npx prisma db push
+npx prisma migrate dev
+```
+
+**Why always use scripts:**
+- Ensures correct environment credentials are loaded
+- Prevents accidental operations on wrong database
+- Self-documenting (script names clearly show which environment)
+- Consistent team workflow
+
+### Dependencies Required
+
+**Workspace root** (`package.json`):
+```json
+{
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^11.0.0"
+  }
+}
+```
+
+**Why dotenv in dependencies:**
+- Used in application runtime code (`apps/server/src/main.ts`)
+- Needed in production deployments
+
+**Why dotenv-cli in devDependencies:**
+- Only used during development for Prisma CLI commands
+- Not needed in production (environment variables provided by platform)
+
+### Anti-Patterns to Avoid
+
+❌ **Running Prisma commands without dotenv-cli**:
+```bash
+# WRONG - may load wrong .env or fail
+npx prisma db push
+```
+
+✅ **Correct - use npm scripts**:
+```bash
+# RIGHT - loads correct environment
+pnpm run db:push:dev
+```
+
+❌ **Creating .env file alongside .env.*.local files**:
+```bash
+# WRONG - causes confusion about which file is used
+touch .env
+```
+
+✅ **Correct - only environment-specific files**:
+```bash
+# RIGHT - explicit environment selection
+ls .env.*.local
+# .env.development.local  .env.test.local
+```
+
+❌ **Committing environment files with credentials**:
+```bash
+# WRONG - credentials in git
+git add .env.development.local
+```
+
+✅ **Correct - only commit example file**:
+```bash
+# RIGHT - template without credentials
+git add .env.example
+```
+
+❌ **Using NODE_ENV without dotenv-cli for Prisma**:
+```bash
+# WRONG - Prisma CLI ignores NODE_ENV
+NODE_ENV=test npx prisma db push
+```
+
+✅ **Correct - explicit file with dotenv-cli**:
+```bash
+# RIGHT - dotenv-cli explicitly loads file
+pnpm run db:push:test
+```
+
+### Troubleshooting
+
+**Issue**: Prisma command fails with "Environment variable not found: DATABASE_URL"
+**Fix**: Verify `.env.*.local` file exists and contains DATABASE_URL. Use npm scripts, not raw Prisma commands.
+
+**Issue**: Prisma connects to wrong database
+**Fix**: Delete any `.env` or `.env.local` files in root directory. Only keep `.env.*.local` files.
+
+**Issue**: Application starts but can't connect to database
+**Fix**: Verify inline dotenv loading happens BEFORE any imports that use Prisma client.
+
+**Issue**: Tests fail with database connection errors
+**Fix**: Verify `jest.setup.js` is loaded via `setupFiles` in `jest.preset.js`.
+
+### Last Validated
+
+2025-11-03 (Prisma 6.17.1, dotenv 16.4.5, dotenv-cli 11.0.0, Supabase PostgreSQL 15)
+
+**References**:
+- [Prisma Multi-Environment Guide](https://www.prisma.io/docs/orm/more/development-environment/environment-variables/using-multiple-env-files)
+- docs/environment-setup.md (comprehensive environment configuration guide)
+- docs/supabase-projects.md (Supabase project credentials)
+- Research conducted: 2025-11-03 with 4 parallel research agents (Prisma patterns, dotenv-cli, Nx integration, Next.js community practices)
+
+---
+
+## Pattern 14: Migration Management and Rollback
+
+**Our Standard**: Use `prisma migrate deploy` for production-safe migrations; manual rollback process documented
+
+### Pattern
+
+**Migration Application** (Forward):
+```bash
+# Development database
+pnpm run db:migrate:deploy:dev
+
+# Test database
+pnpm run db:migrate:deploy:test
+
+# Production database (future)
+pnpm run db:migrate:deploy:prod
+```
+
+**Migration Rollback** (Manual Process):
+
+Prisma does not have a built-in rollback command. To revert a migration:
+
+1. **Identify the migration to rollback**:
+   ```bash
+   # List all migrations
+   ls packages/database/prisma/migrations/
+   ```
+
+2. **Create a new migration that reverses the changes**:
+   ```bash
+   # For development (creates new migration)
+   pnpm run db:migrate:dev
+
+   # Manually edit the generated migration.sql to reverse the schema changes
+   # Example: If migration added a table, the rollback drops that table
+   ```
+
+3. **Example rollback migration**:
+   ```sql
+   -- Rollback for: 20251027072808_create_health_check
+   -- This migration would drop the table created by that migration
+   DROP TABLE IF EXISTS "health_checks";
+   ```
+
+4. **Apply the rollback migration**:
+   ```bash
+   pnpm run db:migrate:deploy:dev    # Apply to development
+   pnpm run db:migrate:deploy:test   # Apply to test
+   ```
+
+**Best Practices**:
+
+- **Never rollback in production** unless absolutely necessary - prefer forward-only migrations
+- **Test rollback locally first** - Always test on development/test databases before production
+- **Data loss warning** - Rollbacks that drop columns/tables will permanently delete data
+- **Migration naming** - Name rollback migrations clearly: `20251104_rollback_health_check`
+- **Version control** - Commit rollback migrations to git like any other migration
+- **Database backups** - Always backup production database before applying any migration or rollback
+
+**Emergency Rollback** (Production):
+
+If a production migration causes critical issues:
+
+1. **Backup the database immediately**:
+   ```bash
+   # Via Supabase dashboard: Database > Backups > Create backup
+   ```
+
+2. **Create and test rollback migration locally**:
+   ```bash
+   # On local dev database
+   pnpm run db:migrate:dev  # Create rollback migration
+   # Edit migration.sql to reverse changes
+   pnpm run db:migrate:deploy:dev  # Test locally
+   ```
+
+3. **Apply to test database**:
+   ```bash
+   pnpm run db:migrate:deploy:test  # Verify on test
+   ```
+
+4. **Apply to production** (only after local + test verification):
+   ```bash
+   pnpm run db:migrate:deploy:prod
+   ```
+
+### Applies To
+
+All environments (development, test, production) and all Prisma-managed databases
+
+### Rationale
+
+**Why `migrate deploy` instead of `migrate dev`:**
+- `migrate deploy` is production-safe (non-interactive, fails on conflicts)
+- `migrate dev` is interactive and can make assumptions (not safe for CI/CD)
+- Aligns with Prisma's recommended deployment workflow
+
+**Why manual rollback process:**
+- Prisma philosophy: forward-only migrations are safer
+- Rollbacks risk data loss and schema inconsistencies
+- Manual process forces deliberate review of rollback safety
+- Industry standard: Django, Rails, Laravel all use manual rollbacks
+
+**Why document emergency procedures:**
+- Production incidents require clear, tested procedures
+- Reduces panic-driven mistakes during outages
+- Ensures rollbacks are tested before production application
+
+### When Adding New Migrations
+
+**⚠️ Common migration pitfalls:**
+- Forgetting to test rollback procedures locally
+- Not considering data migration during rollback
+- Applying migrations directly to production without testing
+- Not backing up production database before migrations
+
+**Required workflow:**
+1. Create migration on development database
+2. Test forward migration on dev/test
+3. Create and test rollback migration on dev/test
+4. Verify data integrity after rollback
+5. Only then apply to production (if applicable)
+
+### Last Validated
+
+2025-11-04 (Prisma 6.17.1, Supabase PostgreSQL 15)
+
+**References**:
+- [Prisma Migration Deployment Guide](https://www.prisma.io/docs/orm/prisma-migrate/workflows/production-troubleshooting)
+- [Prisma Migrate Deploy Documentation](https://www.prisma.io/docs/orm/reference/prisma-cli-reference#migrate-deploy)
+- docs/environment-setup.md - Environment-specific migration commands
+- Pattern 13 (this document) - Database environment management
 
 ---
 

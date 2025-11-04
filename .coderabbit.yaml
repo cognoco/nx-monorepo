@@ -143,6 +143,38 @@ static_analysis:
     - prettier
     - typescript
 
+  # Security: Secret Detection Patterns
+  security:
+    secrets:
+      enabled: true
+      patterns:
+        # Database credentials
+        - pattern: "(?i)(database_url|direct_url)\\s*=\\s*[\"\\']?postgresql://"
+          message: "⚠️ Potential database credential detected. Ensure this is in .env files, not committed code."
+          severity: high
+
+        # Supabase credentials
+        - pattern: "(?i)(supabase.*key|anon.*key|service.*role.*key)\\s*=\\s*[\"\\']?[a-zA-Z0-9_-]{20,}"
+          message: "⚠️ Potential Supabase API key detected. API keys should only be in .env files."
+          severity: high
+
+        # Generic API keys/tokens
+        - pattern: "(?i)(api.*key|api.*token|access.*token)\\s*=\\s*[\"\\']?[a-zA-Z0-9_-]{20,}"
+          message: "⚠️ Potential API key/token detected. Credentials should be in .env files."
+          severity: medium
+
+        # Password patterns
+        - pattern: "(?i)(password|passwd|pwd)\\s*=\\s*[\"\\']?[^\"\\s]{8,}"
+          message: "⚠️ Potential hardcoded password detected."
+          severity: high
+
+  # Path-based security filters
+  path_filters:
+    # Ignore .env.example files (templates are OK)
+    - path: "**/.env*.example"
+      exclude_patterns:
+        - "(?i)(database_url|supabase.*key)"
+
 # Chat settings
 chat:
   # Allow interactive refinement of reviews

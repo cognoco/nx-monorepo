@@ -4,6 +4,7 @@
 /dist
 /build
 /.next
+**/.next
 /out
 **/dist
 **/out-tsc
