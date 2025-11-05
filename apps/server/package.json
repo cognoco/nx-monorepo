@@ -127,6 +127,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@nx-monorepo/test-utils": "workspace:*",
     "@stoplight/spectral-cli": "^6.15.0",
     "@types/cors": "^2.8.19",
     "@types/supertest": "^6.0.3",

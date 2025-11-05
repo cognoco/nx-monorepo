@@ -3,7 +3,7 @@ title: Technical Findings Log
 purpose: Record technical decisions, empirical findings, troubleshooting patterns, and non-obvious constraints to guide AI agents and developers
 audience: AI agents, developers, architects
 created: 2025-10-20
-last-updated: 2025-11-04
+last-updated: 2025-11-05
 Last-Modified: 2025-10-21T17:45
 Created: 2025-10-20T13:31
 Modified: 2025-10-28T20:29
@@ -2490,6 +2490,139 @@ Validated that:
 2025-11-05 (Node.js 20.x, validate-env.js v1.1)
 
 **Tags**: #environment #validation #optional-variables #issue-23 #pr-20
+
+---
+
+### [Testing Architecture] - Per-Project Jest Setup Files (Principle of Least Privilege) - 2025-11-05
+
+**Decision:** Use per-project `setupFiles` configuration instead of workspace-level `jest.preset.js` setup for loading environment variables
+
+**Context:**
+GitHub Issue #22 identified that all 7+ workspace projects were loading database credentials (`DATABASE_URL`, `DIRECT_URL`) during test execution, even though only 2 projects (database package and server application) actually need database access. This violated the Principle of Least Privilege and exposed credentials unnecessarily to frontend packages that should never have direct database access.
+
+**Alternatives Considered:**
+
+1. **Workspace-level setupFiles in jest.preset.js (original approach)**
+   - Rejected: Violates Principle of Least Privilege
+   - Problem: Gives database credentials to all projects (schemas, api-client, web, mobile)
+   - Security risk: Frontend packages should never have direct database credentials
+   - Architectural concern: Makes it easy to accidentally write direct database queries in wrong packages
+
+2. **Conditional loading in workspace jest.setup.js**
+   - Rejected: Still exposes credentials to all projects
+   - Problem: Environment variables still loaded for all projects, just doesn't fail
+   - Still violates PoLP: Even if not used, credentials are available in process.env
+   - Doesn't enforce architectural boundaries
+
+3. **Duplicate environment loading code in each project**
+   - Rejected: Code duplication, harder to maintain
+   - Problem: 2+ projects would have identical environment loading logic
+   - Maintenance burden: Changes to loading logic require updates in multiple places
+   - Bug risk: Easy to introduce inconsistencies (e.g., one project uses `process.cwd()`, another uses `__dirname`)
+
+**Chosen Approach:** Per-project `setupFiles` with shared `@nx-monorepo/test-utils` package
+
+**Technical Rationale:**
+
+**Security (Principle of Least Privilege):**
+- Only database and server projects load credentials
+- Frontend packages (schemas, api-client, web, mobile) run tests WITHOUT database credentials
+- Limits blast radius if credentials leak from test logs/CI artifacts
+- Enforces architectural boundary: frontend must use API client, not direct database
+
+**Code reuse without duplication:**
+- Shared `loadDatabaseEnv()` utility in `@nx-monorepo/test-utils` package
+- DRY principle maintained while allowing selective loading
+- Single source of truth for environment loading logic
+- Consistent error messages across projects
+
+**Preserves existing patterns:**
+- Maintains `__dirname` pattern (prevents `process.cwd()` bugs documented in earlier findings)
+- Works with existing `@swc/jest` transformer configuration
+- Compatible with `customExportConditions` for Nx unbundled architecture
+- No changes needed to test or testTimeout settings
+
+**Implementation Details:**
+
+**Created:**
+- `packages/test-utils/` - Buildable library with `loadDatabaseEnv()` utility
+- `packages/database/jest.setup.ts` - Per-project setup file
+- `apps/server/jest.setup.ts` - Per-project setup file
+
+**Modified:**
+- `jest.preset.js` - Removed workspace-level `setupFiles` (now just spreads `nxPreset`)
+- `packages/database/jest.config.cjs` - Added `setupFiles: [join(__dirname, 'jest.setup.ts')]`
+- `apps/server/jest.config.cjs` - Added `setupFiles: [join(__dirname, 'jest.setup.ts')]`
+- `packages/database/package.json` - Added `@nx-monorepo/test-utils` devDependency
+- `apps/server/package.json` - Added `@nx-monorepo/test-utils` devDependency
+
+**Deleted:**
+- `jest.setup.js` (workspace root) - No longer needed
+
+**Test utilities pattern:**
+```typescript
+// packages/test-utils/src/lib/load-database-env.ts
+export function loadDatabaseEnv(workspaceRoot: string): void {
+  const env = process.env.NODE_ENV || 'development';
+  const envFile = `.env.${env}.local`;
+  const envPath = resolve(workspaceRoot, envFile);
+
+  if (!existsSync(envPath)) {
+    throw new Error(`Environment file not found: ${envFile}`);
+  }
+
+  config({ path: envPath });
+}
+```
+
+**Per-project usage:**
+```typescript
+// packages/database/jest.setup.ts
+import { loadDatabaseEnv } from '@nx-monorepo/test-utils';
+import { resolve } from 'path';
+
+loadDatabaseEnv(resolve(__dirname, '../..'));
+```
+
+**Warning Signs (for AI agents):**
+
+**If you see:**
+- New project needs database access for tests
+- Tests failing with "DATABASE_URL is not defined"
+- Request to add environment variables to jest.preset.js
+
+**Do NOT:**
+- Add `setupFiles` back to `jest.preset.js` (violates PoLP)
+- Add environment loading to workspace preset
+- Suggest duplicating environment loading code
+
+**DO instead:**
+1. Add `@nx-monorepo/test-utils` to project's `devDependencies`
+2. Create per-project `jest.setup.ts` that calls `loadDatabaseEnv()`
+3. Add `setupFiles: [join(__dirname, 'jest.setup.ts')]` to project's jest.config
+4. Verify project actually NEEDS database credentials (frontend shouldn't)
+
+**Validation:**
+
+Ran full test suite after implementation:
+- ✅ All 52 tests passed across 6 projects
+- ✅ Database tests pass (has credentials)
+- ✅ Server tests pass (has credentials)
+- ✅ api-client tests pass (no credentials - correct)
+- ✅ schemas tests pass (no credentials - correct)
+- ✅ supabase-client tests pass (no credentials - correct)
+- ✅ web tests pass (no credentials - correct)
+
+**Last Validated**
+
+2025-11-05 (Nx 21.6, Jest 30, Node 22, pnpm 10.19)
+
+**References:**
+- GitHub Issue #22 - Security concern about credential exposure
+- Pattern 15 in `docs/memories/adopted-patterns.md` - Full pattern documentation
+- Pattern 13 in `docs/memories/adopted-patterns.md` - Database environment management
+
+**Tags**: #testing #jest #security #principle-of-least-privilege #environment-variables #issue-22
 
 ---
 

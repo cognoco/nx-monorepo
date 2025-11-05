@@ -24,8 +24,12 @@ export function createApp(): Express {
   const corsOrigin = process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
     : process.env.NODE_ENV === 'production'
-      ? ['https://your-domain.com'] // Configure for production
-      : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'];
+    ? ['https://your-domain.com'] // Configure for production
+    : [
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:3002',
+      ];
 
   app.use(
     cors({
