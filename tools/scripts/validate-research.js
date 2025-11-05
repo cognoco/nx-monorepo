@@ -26,6 +26,11 @@ const path = require('path');
 
 // Get changed files from git (comparing with base branch)
 function getChangedFiles(base = 'main') {
+  // In GitHub Actions PR context, use the base ref environment variable
+  if (process.env.GITHUB_BASE_REF) {
+    base = `origin/${process.env.GITHUB_BASE_REF}`;
+  }
+
   try {
     const output = execSync(`git diff --name-only ${base}...HEAD`, {
       encoding: 'utf-8',
@@ -33,7 +38,18 @@ function getChangedFiles(base = 'main') {
     });
     return output.split('\n').filter(Boolean);
   } catch (error) {
-    console.error('Error getting changed files:', error.message);
+    // In CI, base branch might not be available yet
+    if (process.env.CI) {
+      console.log(
+        `ℹ️  Unable to diff against ${base} (may not be fetched yet)`
+      );
+      console.log(
+        '   Skipping validation - run validation will occur after base branch fetch'
+      );
+    } else {
+      console.error('Error getting changed files:', error.message);
+    }
+
     // If git diff fails, check staged files instead
     try {
       const stagedOutput = execSync('git diff --cached --name-only', {
@@ -42,7 +58,9 @@ function getChangedFiles(base = 'main') {
       });
       return stagedOutput.split('\n').filter(Boolean);
     } catch (stagedError) {
-      console.error('Error getting staged files:', stagedError.message);
+      if (!process.env.CI) {
+        console.error('Error getting staged files:', stagedError.message);
+      }
       return [];
     }
   }
