@@ -10,6 +10,11 @@ import { PrismaClient } from '@prisma/client';
  */
 
 const prismaClientSingleton = () => {
+  // DIAGNOSTIC: Check if DATABASE_URL is available at Prisma init
+  console.log(
+    '[DEBUG] DATABASE_URL at Prisma init:',
+    process.env.DATABASE_URL ? 'PRESENT' : 'MISSING'
+  );
   return new PrismaClient();
 };
 
