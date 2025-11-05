@@ -605,6 +605,41 @@ If this issue recurs, document:
 
 ---
 
+### [Build Architecture] - Nx Unbundled Builds: Two-Layer Architecture - 2025-11-05
+
+**Context**: Server application (`@nx-monorepo/server`) uses `bundle: false` with workspace dependencies (`@nx-monorepo/database`, `@nx-monorepo/schemas`)
+
+**Finding**: Nx generates a two-layer output structure for unbundled builds with workspace dependencies:
+- **Root layer**: `dist/apps/server/main.js` - Nx-generated module resolution wrapper (patches Node.js `Module._resolveFilename`)
+- **Nested layer**: `dist/apps/server/apps/server/src/` - Actual transpiled application code (esbuild output)
+
+**Why**: Enables workspace path mappings (`@nx-monorepo/*`) to resolve at runtime without bundling all code into a single file. The root wrapper sets up module resolution, then loads the nested application code.
+
+**Deployment Impact**:
+- **Entry point**: Must use root `main.js`, NOT nested `apps/server/src/main.js`
+- **Deploy**: Entire `dist/apps/server/` directory (both layers required for runtime)
+- **Structure**: Nested path `dist/apps/server/apps/server/src/` is correct and intentional, not a configuration error
+
+**Trade-off**: Nested structure adds deployment complexity, but scales better for multi-app monorepo:
+- ✅ Preserves Nx caching for workspace dependencies
+- ✅ Faster development builds (unbundled)
+- ✅ Clear boundaries between packages
+- ❌ More complex deployment (requires understanding two-layer architecture)
+
+**Alternative**: Bundled mode (`bundle: true`) produces simpler output (single `main.js`), but requires Prisma driver adapter and loses Nx caching benefits. Decision: Keep unbundled for long-term monorepo scaling.
+
+**Details**: See `docs/guides/server-deployment.md` for comprehensive deployment workflow and architecture explanation
+
+**Related**:
+- Issue #21 (deployment documentation)
+- PR #20 (Phase 5-6 validation)
+- P1-plan.md lines 613-619 (infrastructure migration notes)
+- Research: Sequential Thinking analysis 2025-11-05 (bundled vs unbundled trade-offs)
+
+**Tags**: #build #deployment #nx #esbuild #architecture #workspace-dependencies
+
+---
+
 ### [TypeScript Configuration] - Next.js TypeScript Project References Incompatibility - 2025-10-21
 
 **Finding:** Next.js applications cannot use TypeScript Project References due to fundamental incompatibility between `noEmit: true` (required by Next.js) and `composite: true` (required by Project References)
