@@ -26,6 +26,15 @@ import { resolve } from 'path';
 import { existsSync } from 'fs';
 
 export function loadDatabaseEnv(workspaceRoot: string): void {
+  // If DATABASE_URL already exists (CI, Docker, cloud platforms), skip file loading
+  if (process.env.DATABASE_URL) {
+    console.log(
+      '✅ DATABASE_URL already set (CI or pre-configured environment)'
+    );
+    return;
+  }
+
+  // Otherwise, load from .env file (local development)
   try {
     const env = process.env.NODE_ENV || 'development';
     const envFile = `.env.${env}.local`;
@@ -40,7 +49,7 @@ export function loadDatabaseEnv(workspaceRoot: string): void {
     }
 
     config({ path: envPath });
-    // Silent mode - no console output
+    console.log(`✅ Loaded environment variables from: ${envFile}`);
   } catch (error) {
     console.error('❌ Failed to load environment variables for tests:');
     if (error instanceof Error) {
