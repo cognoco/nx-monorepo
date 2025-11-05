@@ -48,11 +48,24 @@ cp .env.example .env.test.local
 
 ### Step 2: Get Credentials from Supabase Dashboard
 
-You need to fill in 4 variables for each environment:
+You need to fill in 4 **required** variables for each environment:
 - `DATABASE_URL` - Pooled connection for queries (port 6543)
 - `DIRECT_URL` - Pooled connection for migrations (port 5432)
 - `NEXT_PUBLIC_SUPABASE_URL` - Public API URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Public anonymous key
+
+#### Optional Variables
+
+The following variables are optional and have defaults in the application:
+
+- **CORS_ORIGIN**: Defaults to `http://localhost:3000,http://localhost:3001,http://localhost:3002` in development
+- **HOST**: Defaults to `localhost`
+- **PORT**: Defaults to `4000`
+- **NODE_ENV**: Defaults to `development`
+
+You only need to set these if you want to override the defaults. Most developers can skip these.
+
+---
 
 **For Development Database:**
 
@@ -193,11 +206,29 @@ After setting up your environment files, run these checks:
 pnpm run validate:env
 ```
 
-This checks that all required variables are present and non-empty.
+This checks that:
+- All required variables are present and properly formatted
+- Optional variables (if present) have valid formats
+- No unexpected variables exist
+
+**What gets validated:**
+
+**Required variables** (must be present):
+- DATABASE_URL
+- DIRECT_URL
+- NEXT_PUBLIC_SUPABASE_URL
+- NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+**Optional variables** (validated only if present):
+- CORS_ORIGIN
+- HOST
+- PORT
+- NODE_ENV
 
 **Troubleshooting validation errors:**
 - `Missing or empty: DATABASE_URL` → Variable not set or has no value
 - `Invalid format: DATABASE_URL` → Check connection string format
+- `CORS_ORIGIN format issues` → Check that origins start with http:// or https://
 - See `.env.example` for correct format
 
 ### 2. Database Connectivity Test

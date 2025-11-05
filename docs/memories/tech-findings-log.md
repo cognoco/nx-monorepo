@@ -2359,6 +2359,140 @@ pnpm run db:migrate:deploy:test
 
 ---
 
+## [Environment Validation] - Optional Variables Allowlist (Issue #23) - 2025-11-05
+
+**Context**: Environment validation script warning about unexpected CORS_ORIGIN variable
+
+**Problem**
+
+The `scripts/validate-env.js` validation script flagged CORS_ORIGIN as an "unexpected variable" even though:
+1. It's documented in .env.example
+2. It has a runtime default in apps/server/src/app.ts
+3. It's a legitimate optional configuration variable
+
+This created confusion for developers who thought they might have a configuration error.
+
+**Root Cause**
+
+The validation script only knew about REQUIRED_VARS and variables starting with NEXT_PUBLIC_. It had no concept of "optional but valid" variables, leading to false positive warnings.
+
+**Solution Implemented**
+
+**Solution #1: Explicit Allowlist** (chosen for clarity and explicit validation)
+
+Added OPTIONAL_VARS configuration array with:
+- Variable name
+- Description
+
+**Optional variables recognized:**
+1. CORS_ORIGIN - Comma-separated CORS origins (default: localhost:3000-3002 in dev)
+2. HOST - Server host address (default: localhost)
+3. PORT - Server port number (default: 4000)
+4. NODE_ENV - Node environment (default: development)
+
+**Validation behavior:**
+- Optional variables are NOT required to be present
+- If present, they are validated for correct format
+- Format errors are reported as validation failures
+- Unexpected variables still generate warnings
+
+**Benefits**
+
+✅ **Explicit documentation**: Clear list of all recognized variables
+✅ **Format validation**: Catches configuration mistakes early
+✅ **No false positives**: CORS_ORIGIN and other optional vars no longer warn
+✅ **Maintainable**: Easy to add new optional variables
+✅ **Educational**: Developers learn what variables are available
+
+**Implementation Details**
+
+**Files modified:**
+1. `scripts/validate-env.js`:
+   - Added OPTIONAL_VARS array (lines 31-50)
+   - Added validator functions: validateCorsOrigin, validateHost, validatePort, validateNodeEnv (lines 151-228)
+   - Updated validation logic to recognize optional variables (lines 277-314)
+
+2. `.env.example`:
+   - Updated CORS_ORIGIN comment to indicate it's optional (line 67)
+   - Added "Optional Server Configuration" section with examples (lines 77-90)
+
+3. `docs/environment-setup.md`:
+   - Added "Optional Variables" section explaining defaults (lines 57-66)
+   - Updated validation explanation to clarify optional vs required (lines 209-232)
+
+4. `docs/memories/tech-findings-log.md`:
+   - This entry
+
+**IPv6 Support Fix (2025-11-05):**
+
+Initial implementation blocked IPv6 addresses (e.g., `::1`, `::`, `fe80::1`) because `validateHost()` rejected any value containing colons. Fixed by:
+- Detecting IPv6 addresses (contain colons + hex/colon characters)
+- Skipping port number check for IPv6
+- Preserving hostname:port error detection for non-IPv6 values
+
+Tested and validated:
+- ✅ IPv6 localhost (`::1`) - passes
+- ✅ IPv6 all interfaces (`::`) - passes
+- ✅ Full IPv6 addresses (`fe80::1`) - passes
+- ✅ IPv4 addresses (`0.0.0.0`) - passes
+- ✅ Hostnames (`localhost`) - passes
+- ✅ Invalid hostname:port (`localhost:4000`) - fails as expected
+
+**Alternatives Considered**
+
+**Solution #2: Environment Profiles**
+- Profile system (dev/test/prod) with categorization
+- Rejected: More complex than needed for current scope (4-6 hours vs 50 minutes)
+
+**Solution #3: Zod Schema Migration**
+- Migrate to Zod with full type safety
+- Rejected: Architectural shift, 7-11 hours, better for Phase 2+
+
+**Solution #4: Runtime Context Detection**
+- Automatic context detection via call stack analysis
+- Rejected: Very high complexity (7-9 days), fragile, over-engineered
+
+**Rationale for Solution #1:**
+- Fast implementation (50 minutes vs days/weeks)
+- Extends existing pattern (no architectural shift)
+- Very low risk (minimal code changes)
+- Can migrate to Solutions #2 or #3 later if needed
+- Perfect for immediate Issue #23 fix before PR #20 merge
+
+**References**
+
+- Issue #23: "Unexpected variable warning for CORS_ORIGIN"
+- `apps/server/src/app.ts:24` - CORS_ORIGIN usage with defaults
+- `apps/server/src/main.ts:24-25` - HOST and PORT usage with defaults
+- `.env.example:75` - CORS_ORIGIN documentation
+- Multi-agent root cause analysis (2025-11-05)
+- Solution comparison and ranking (2025-11-05)
+
+**Testing**
+
+Validated that:
+- ✅ Missing optional variables: No warnings
+- ✅ Valid optional variables: No warnings
+- ✅ Invalid format optional variables: Error reported
+- ✅ Required variables: Still validated as before
+- ✅ Truly unexpected variables: Still generate warnings
+
+**Test Cases:**
+1. No optional variables → Pass with no warnings
+2. Valid optional variables → Pass with no warnings
+3. Invalid CORS_ORIGIN format (missing http://) → Fail with format error
+4. Invalid PORT format (not a number) → Fail with format error
+5. Missing DATABASE_URL (regression test) → Fail as expected
+6. Typo in variable name → Warning generated (not an error)
+
+**Last Validated**
+
+2025-11-05 (Node.js 20.x, validate-env.js v1.1)
+
+**Tags**: #environment #validation #optional-variables #issue-23 #pr-20
+
+---
+
 ## Future Entries
 
 [Add new technical findings below using the template above]
