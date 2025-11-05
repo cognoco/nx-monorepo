@@ -120,7 +120,7 @@ SUPABASE_ANON_KEY="[your-anon-key]"
 SUPABASE_SERVICE_ROLE_KEY="[your-service-role-key]"
 
 # Server configuration
-PORT=3001
+PORT=4000
 API_BASE_URL="http://localhost:4000"
 
 # Web configuration

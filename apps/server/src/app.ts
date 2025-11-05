@@ -19,9 +19,17 @@ export function createApp(): Express {
   app.use(express.json());
 
   // CORS configuration
+  // Support multiple origins (comma-separated) for development scenarios
+  // where multiple web apps run on different ports (3000, 3001, etc.)
+  const corsOrigin = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
+    : process.env.NODE_ENV === 'production'
+      ? ['https://your-domain.com'] // Configure for production
+      : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'];
+
   app.use(
     cors({
-      origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+      origin: corsOrigin,
       credentials: true,
     })
   );
