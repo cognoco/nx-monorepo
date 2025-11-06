@@ -8,7 +8,9 @@
     "pnpm": ">=9.0.0"
   },
   "scripts": {
-    "dev": "nx run web:dev",
+    "dev": "nx run-many -t dev --projects=web,server --parallel=2",
+    "dev:web": "nx run web:dev",
+    "dev:server": "nx run server:serve",
     "build": "nx run-many -t build",
     "test": "nx run-many -t test",
     "test:coverage": "nx run-many -t test --coverage",
@@ -20,10 +22,21 @@
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,scss,html}\"",
     "validate:research": "node tools/scripts/validate-research.js",
     "validate:governance": "node tools/gates/run-internal-alignment.mjs",
-    "prepare": "husky"
+    "validate:env": "node scripts/validate-env.js",
+    "prepare": "husky",
+    "db:push:dev": "dotenv -e .env.development.local -- npx prisma db push --schema=packages/database/prisma/schema.prisma",
+    "db:push:test": "dotenv -e .env.test.local -- npx prisma db push --schema=packages/database/prisma/schema.prisma",
+    "db:migrate:dev": "dotenv -e .env.development.local -- npx prisma migrate dev --schema=packages/database/prisma/schema.prisma",
+    "db:migrate:test": "dotenv -e .env.test.local -- npx prisma migrate dev --schema=packages/database/prisma/schema.prisma",
+    "db:migrate:deploy:dev": "dotenv -e .env.development.local -- npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma",
+    "db:migrate:deploy:test": "dotenv -e .env.test.local -- npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma",
+    "db:studio:dev": "dotenv -e .env.development.local -- npx prisma studio --schema=packages/database/prisma/schema.prisma",
+    "db:studio:test": "dotenv -e .env.test.local -- npx prisma studio --schema=packages/database/prisma/schema.prisma",
+    "db:generate": "dotenv -e .env.development.local -- npx prisma generate --schema=packages/database/prisma/schema.prisma"
   },
   "private": true,
   "dependencies": {
+    "dotenv": "^16.4.5",
     "express": "^4.21.2",
     "next": "~15.2.4",
     "react": "19.0.0",
@@ -62,6 +75,7 @@
     "@types/react-dom": "19.0.0",
     "autoprefixer": "10.4.13",
     "babel-jest": "30.2.0",
+    "dotenv-cli": "^11.0.0",
     "esbuild": "^0.19.2",
     "eslint": "9.37.0",
     "eslint-config-next": "^15.2.4",

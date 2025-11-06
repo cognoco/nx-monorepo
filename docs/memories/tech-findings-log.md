@@ -3,7 +3,7 @@ title: Technical Findings Log
 purpose: Record technical decisions, empirical findings, troubleshooting patterns, and non-obvious constraints to guide AI agents and developers
 audience: AI agents, developers, architects
 created: 2025-10-20
-last-updated: 2025-10-27
+last-updated: 2025-11-05
 Last-Modified: 2025-10-21T17:45
 Created: 2025-10-20T13:31
 Modified: 2025-10-28T20:29
@@ -602,6 +602,41 @@ If this issue recurs, document:
 - [Nx Flaky Tasks](https://nx.dev/ci/features/flaky-tasks)
 - Investigation: P1-S1 substage 1.2 validation (2025-10-20)
 - Nx flake detection: https://cloud.nx.app/runs/Jj7HeO4RIe
+
+---
+
+### [Build Architecture] - Nx Unbundled Builds: Two-Layer Architecture - 2025-11-05
+
+**Context**: Server application (`@nx-monorepo/server`) uses `bundle: false` with workspace dependencies (`@nx-monorepo/database`, `@nx-monorepo/schemas`)
+
+**Finding**: Nx generates a two-layer output structure for unbundled builds with workspace dependencies:
+- **Root layer**: `dist/apps/server/main.js` - Nx-generated module resolution wrapper (patches Node.js `Module._resolveFilename`)
+- **Nested layer**: `dist/apps/server/apps/server/src/` - Actual transpiled application code (esbuild output)
+
+**Why**: Enables workspace path mappings (`@nx-monorepo/*`) to resolve at runtime without bundling all code into a single file. The root wrapper sets up module resolution, then loads the nested application code.
+
+**Deployment Impact**:
+- **Entry point**: Must use root `main.js`, NOT nested `apps/server/src/main.js`
+- **Deploy**: Entire `dist/apps/server/` directory (both layers required for runtime)
+- **Structure**: Nested path `dist/apps/server/apps/server/src/` is correct and intentional, not a configuration error
+
+**Trade-off**: Nested structure adds deployment complexity, but scales better for multi-app monorepo:
+- ✅ Preserves Nx caching for workspace dependencies
+- ✅ Faster development builds (unbundled)
+- ✅ Clear boundaries between packages
+- ❌ More complex deployment (requires understanding two-layer architecture)
+
+**Alternative**: Bundled mode (`bundle: true`) produces simpler output (single `main.js`), but requires Prisma driver adapter and loses Nx caching benefits. Decision: Keep unbundled for long-term monorepo scaling.
+
+**Details**: See `docs/guides/server-deployment.md` for comprehensive deployment workflow and architecture explanation
+
+**Related**:
+- Issue #21 (deployment documentation)
+- PR #20 (Phase 5-6 validation)
+- P1-plan.md lines 613-619 (infrastructure migration notes)
+- Research: Sequential Thinking analysis 2025-11-05 (bundled vs unbundled trade-offs)
+
+**Tags**: #build #deployment #nx #esbuild #architecture #workspace-dependencies
 
 ---
 
@@ -1671,18 +1706,18 @@ pnpm exec nx run database:typecheck
 
 **Decision:** Use Next.js rewrites for development + NEXT_PUBLIC_API_URL override for production (Option 3)
 
-**Context:** The web app had hardcoded API URL `http://localhost:3001/api`, which broke portability (different port configurations) and caused CORS issues. Need flexible configuration that works in development and production with minimal setup.
+**Context:** The web app had hardcoded API URL `http://localhost:4000/api`, which broke portability (different port configurations) and caused CORS issues. Need flexible configuration that works in development and production with minimal setup.
 
 **Alternatives Considered:**
 
 1. **Environment variable only**
    - Implementation: `NEXT_PUBLIC_API_URL` in .env.local, client uses `process.env.NEXT_PUBLIC_API_URL`
    - Rejected: Requires manual .env.local creation for all developers
-   - Problem: CORS issues in development (browser → localhost:3000 → localhost:3001)
+   - Problem: CORS issues in development (browser → localhost:3000 → localhost:4000)
    - Problem: No automatic fallback if env var missing
 
 2. **Next.js rewrites only**
-   - Implementation: `rewrites()` in next.config.js proxying /api → http://localhost:3001/api
+   - Implementation: `rewrites()` in next.config.js proxying /api → http://localhost:4000/api
    - Rejected: Inflexible for production deployments
    - Problem: Can't override API URL for different deployment patterns (Docker, cloud hosting, etc.)
    - Problem: Hardcodes localhost assumptions
@@ -1700,9 +1735,9 @@ pnpm exec nx run database:typecheck
 **Why this combination works:**
 
 **Development (default behavior):**
-1. Developer runs `pnpm run dev` (web on :3000, server on :3001)
+1. Developer runs `pnpm run dev` (web on :3000, server on :4000)
 2. No .env.local configuration needed
-3. Next.js rewrites `/api/*` → `http://localhost:3001/api/*` server-side
+3. Next.js rewrites `/api/*` → `http://localhost:4000/api/*` server-side
 4. Client makes requests to `/api/health` (same-origin, no CORS)
 5. Next.js proxy forwards to server
 6. Result: Zero configuration, works immediately
@@ -1727,7 +1762,7 @@ async rewrites() {
   return [
     {
       source: '/api/:path*',
-      destination: 'http://localhost:3001/api/:path*',
+      destination: 'http://localhost:4000/api/:path*',
     },
   ];
 }
@@ -1736,7 +1771,7 @@ async rewrites() {
 **.env.local.example (template for developers):**
 ```env
 # Optional: Override API URL for production or custom server port
-# NEXT_PUBLIC_API_URL=http://localhost:3001/api
+# NEXT_PUBLIC_API_URL=http://localhost:4000/api
 # NEXT_PUBLIC_API_URL=https://api.example.com
 ```
 
@@ -1759,7 +1794,7 @@ app.use(cors({
 
 **Why rewrites solve CORS in development:**
 - Browser request: `http://localhost:3000/api/health` (same-origin)
-- Next.js server: Proxies to `http://localhost:3001/api/health` (server-to-server, no CORS)
+- Next.js server: Proxies to `http://localhost:4000/api/health` (server-to-server, no CORS)
 - Response: Returns to browser with same-origin headers
 - Result: No CORS preflight, no CORS headers needed for development
 
@@ -1770,7 +1805,7 @@ pnpm run dev
 curl http://localhost:3000/api/health  # Should proxy to server
 
 # Production (with env var override)
-NEXT_PUBLIC_API_URL=http://localhost:3001/api pnpm run dev
+NEXT_PUBLIC_API_URL=http://localhost:4000/api pnpm run dev
 curl http://localhost:3000/api/health  # Should call server directly
 ```
 
@@ -1822,6 +1857,772 @@ curl http://localhost:3000/api/health  # Should call server directly
 
 **Date Resolved:** 2025-11-02
 **Resolved By:** AI Agent (API URL configuration strategy design)
+
+---
+
+## [Server Configuration] - Express CORS Configuration - 2025-11-03
+
+**Decision:** Use `cors` package with environment-variable-based origin configuration for Express API server
+
+**Context:** The web application (localhost:3000) needs to make cross-origin requests to the API server (localhost:4000) per the documented architecture in `docs/architecture-decisions.md` (Decision 3). Browser security (CORS) blocks these requests by default unless the server explicitly allows them via Access-Control-Allow-Origin headers.
+
+**Alternatives Considered:**
+
+1. **No CORS configuration (rely solely on Next.js rewrites)**
+   - Works: Development with rewrites proxies requests server-side (same-origin)
+   - Problem: Breaks in production deployments, direct API access, or when NEXT_PUBLIC_API_URL is set
+   - Rejected: Not flexible enough for all deployment scenarios
+
+2. **Wildcard origin (`origin: '*'`)**
+   - Works: Allows all origins
+   - Problem: Security risk - any website could call our API
+   - Problem: Incompatible with `credentials: true` (needed for auth)
+   - Rejected: Violates security best practices
+
+3. **Hardcoded origin array**
+   - Works: Specific origins only
+   - Problem: Requires code changes for different deployment environments
+   - Problem: Less flexible than environment variable
+   - Rejected: Environment variable pattern is more maintainable
+
+**Chosen Approach:** Environment variable with sensible default (`process.env.CORS_ORIGIN || 'http://localhost:3000'`)
+
+**Technical Rationale:**
+
+**Why CORS is required by our architecture:**
+- Architecture explicitly mandates: Browser → Express API → Prisma → PostgreSQL
+- Never allow direct client → database access (security boundary)
+- Web app (port 3000) and API server (port 4000) are different origins
+- Browser blocks cross-origin requests without proper CORS headers
+
+**Why the cors package:**
+- Industry standard Express middleware (Trust Score: 9/10)
+- Simple, well-documented API
+- Maintained by Express.js team
+- Handles preflight requests (OPTIONS) automatically
+
+**Configuration choices:**
+
+1. **Origin configuration:**
+   ```typescript
+   origin: process.env.CORS_ORIGIN || 'http://localhost:3000'
+   ```
+   - Development: Defaults to web app origin (localhost:3000)
+   - Production: Override via CORS_ORIGIN environment variable
+   - No wildcard: Explicit origins only for security
+
+2. **Credentials enabled:**
+   ```typescript
+   credentials: true
+   ```
+   - Required for future cookie-based authentication
+   - Allows cookies, authorization headers, TLS client certificates
+   - Incompatible with wildcard origin (security constraint)
+
+**Implementation Details:**
+
+- **Location**: `apps/server/src/app.ts`
+- **Dependencies**: `cors` (runtime), `@types/cors` (dev)
+- **Installation**:
+  ```bash
+  pnpm add cors --filter @nx-monorepo/server
+  pnpm add -D @types/cors --filter @nx-monorepo/server
+  ```
+
+- **Configuration**:
+  ```typescript
+  import cors from 'cors';
+
+  app.use(cors({
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    credentials: true,
+  }));
+  ```
+
+- **Environment variable**: Documented in `.env.example`
+  ```env
+  # CORS origin for API server (allows cross-origin requests from this domain)
+  # Development: Defaults to http://localhost:3000
+  # Production: Set to your deployed web app URL
+  CORS_ORIGIN="http://localhost:3000"
+  ```
+
+**Relationship to Next.js Rewrites:**
+
+The project uses both CORS and Next.js rewrites (documented in tech-findings entry "API URL Configuration"):
+- **Development default**: Next.js rewrites proxy `/api/*` to server (no CORS needed, same-origin)
+- **Production/override**: Direct API calls use CORS (when NEXT_PUBLIC_API_URL is set)
+- **CORS provides flexibility** for various deployment patterns without changing code
+
+**Verification:**
+
+✅ Build passes: `pnpm exec nx run server:build`
+✅ Lint passes: `pnpm exec nx run server:lint`
+✅ Tests run: Database errors are pre-existing, not CORS-related
+✅ Dependencies added to `apps/server/package.json`
+✅ Documentation updated in `.env.example`
+
+**Warning Signs (for AI agents):**
+
+❌ **Do not remove** CORS middleware from Express app
+- **Why**: Required by architecture for browser-to-API communication
+- **What breaks**: Direct API calls fail with CORS errors, production deployments break
+
+❌ **Do not use** wildcard origin (`'*'`)
+- **Why**: Security risk, incompatible with credentials
+- **What breaks**: Any website can call your API, credentials won't work
+
+❌ **Do not assume** Next.js rewrites eliminate need for CORS
+- **Why**: Rewrites only work in development, production needs CORS
+- **What breaks**: Production deployments fail with CORS errors
+
+✅ **Do preserve** environment variable pattern
+- Allows deployment flexibility without code changes
+- Documented in `.env.example` for all developers
+
+✅ **Do keep** `credentials: true`
+- Required for future authentication implementation
+- Standard practice for APIs that will use cookies/auth
+
+**Symptom Patterns:**
+
+- "No 'Access-Control-Allow-Origin' header" → CORS not configured or wrong origin
+- "Credentials flag is 'true', but the 'Access-Control-Allow-Origin' header is '*'" → Can't use wildcard with credentials
+- Production API calls fail but development works → Check CORS_ORIGIN environment variable
+
+**Applies To:**
+
+- Express-based API servers in Nx monorepo
+- Any browser-to-server communication across different ports/domains
+- Production deployments requiring direct API access
+
+**References:**
+
+- Express CORS package: https://github.com/expressjs/cors (Trust Score: 9/10)
+- Context7 MCP documentation: /expressjs/cors
+- Architecture decision: `docs/architecture-decisions.md` (Decision 3)
+- Related: tech-findings "[Web App Configuration] - API URL Configuration" (2025-11-02)
+
+**Date Resolved:** 2025-11-03
+**Resolved By:** AI Agent (Sequential Thinking + Vibe Check + Context7 research)
+
+---
+
+## [Database Configuration] - Supabase Pooler Hostname Discovery - 2025-11-04
+
+**Finding:** Supabase pooler hostname varies by region and server assignment. Must copy from dashboard, cannot assume `aws-0` pattern.
+
+**Context:** During Phase 4 multi-environment setup, Prisma CLI consistently failed with "FATAL: Tenant or user not found" despite correct password and username format. Investigation revealed the pooler hostname in our `.env` files was incorrect.
+
+**Root Cause:**
+- Assumed pooler hostname: `aws-0-eu-north-1.pooler.supabase.com`
+- Actual pooler hostname: `aws-1-eu-north-1.pooler.supabase.com`
+- Supabase assigns projects to different pooler instances (`aws-0`, `aws-1`, `aws-2`, etc.)
+- Using wrong hostname results in "Tenant or user not found" error (misleading - actually a routing error)
+
+**Discovery Process:**
+1. Password reset attempts failed (not the issue)
+2. Username format verification passed (postgres.{project-ref} was correct)
+3. Network connectivity test showed pooler was reachable
+4. Checked Supabase dashboard connection string → revealed `aws-1` not `aws-0`
+5. Updated hostname → immediate success
+
+**Technical Details:**
+
+**Incorrect assumption:**
+```env
+DATABASE_URL="postgresql://postgres.pjbnwtsufqpgsdlxydbo:password@aws-0-eu-north-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres.pjbnwtsufqpgsdlxydbo:password@aws-0-eu-north-1.pooler.supabase.com:5432/postgres"
+```
+
+**Correct configuration (must copy from dashboard):**
+```env
+DATABASE_URL="postgresql://postgres.pjbnwtsufqpgsdlxydbo:password@aws-1-eu-north-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres.pjbnwtsufqpgsdlxydbo:password@aws-1-eu-north-1.pooler.supabase.com:5432/postgres"
+```
+
+**Why hostname varies:**
+- Supabase uses multiple pooler instances for load distribution
+- Projects may be assigned to different pooler instances based on:
+  - Creation time
+  - Region capacity
+  - Load balancing
+  - Internal routing policies
+
+**How to get correct hostname:**
+1. Go to: https://supabase.com/dashboard/project/{PROJECT_ID}/settings/database
+2. Scroll to "Connection string" section
+3. Select "Session pooler" (or "Use connection pooling") tab
+4. Copy the exact hostname from the displayed connection string
+5. Example format: `aws-X-{region}.pooler.supabase.com` where X varies
+
+**Verification:**
+```bash
+# Test connectivity to pooler
+nc -zv aws-1-eu-north-1.pooler.supabase.com 5432  # Should succeed
+nc -zv aws-1-eu-north-1.pooler.supabase.com 6543  # Should succeed
+
+# Test Prisma connection
+pnpm run db:push:dev  # Should succeed with correct hostname
+```
+
+**Implementation Details:**
+- **Location**: `.env.development.local`, `.env.test.local` (workspace root, gitignored)
+- **Pattern**: Always copy full connection string from Supabase dashboard
+- **Documentation**: Added to Pattern 13 in adopted-patterns.md (troubleshooting section)
+
+**Warning Signs (for AI agents):**
+
+❌ **Do not assume** pooler hostname follows `aws-0-{region}` pattern
+- **Why**: Hostname varies by project assignment
+- **Result**: "Tenant or user not found" error (misleading message)
+
+❌ **Do not suggest** password reset for "Tenant or user not found" errors
+- **Why**: Error often indicates wrong hostname, not authentication failure
+- **First check**: Verify hostname matches Supabase dashboard exactly
+
+✅ **Do copy** exact hostname from Supabase dashboard connection string
+- Navigate to Project Settings → Database → Connection String
+- Select appropriate pooler mode (Session or Transaction)
+- Copy entire connection string, extract hostname
+
+✅ **Do verify** both ports accessible on the pooler hostname
+- Port 5432: Session mode (for migrations, schema operations)
+- Port 6543: Transaction mode (for application queries)
+
+**Symptom Patterns:**
+- "Tenant or user not found" with correct password → Check hostname
+- Prisma connects in Supabase Studio but not via CLI → Wrong pooler hostname
+- Connection works on one machine but not another → Check .env hostname matches dashboard
+
+**Applies To:**
+- All Supabase projects using connection pooling (Supavisor)
+- Both free and paid tier projects
+- All regions (`eu-north-1`, `us-east-1`, etc.)
+- Prisma, pg, and any PostgreSQL client library
+
+**References:**
+- GitHub Discussion: https://github.com/orgs/supabase/discussions/30107 (similar issue)
+- Supabase Docs: https://supabase.com/docs/guides/database/connecting-to-postgres
+- Prisma/Supabase Integration: https://supabase.com/partners/integrations/prisma
+- Investigation: 2025-11-04 (Phase 4 implementation, multiple troubleshooting iterations)
+
+**Cross-References:**
+- Related to: adopted-patterns.md Pattern 13 (Database Environment Management)
+- Related to: Next tech finding (IPv6 Requirement and Free Tier Workaround)
+
+---
+
+## [Database Configuration] - IPv6 Requirement and Free Tier Workaround - 2025-11-04
+
+**Finding:** Supabase direct database connections require IPv6 support. Free tier provides IPv4-compatible pooler (Supavisor) as workaround.
+
+**Context:** After fixing pooler hostname, investigated why direct connection (port 5432 to `db.{project-ref}.supabase.co`) was unreachable on WSL2/Windows development environment. Network diagnostics revealed IPv6-only connectivity for direct connections.
+
+**Technical Discovery:**
+
+**Direct connection behavior:**
+```bash
+# Direct database hostname (port 5432)
+nc -zv db.pjbnwtsufqpgsdlxydbo.supabase.co 5432
+# Result: Network is unreachable (2a05:d016:...)
+# Resolves to IPv6 address only
+
+# Force IPv4 resolution
+nc -4 -zv db.pjbnwtsufqpgsdlxydbo.supabase.co 5432
+# Result: No address associated with hostname
+# No IPv4 address available
+
+# Pooler hostname (ports 5432 and 6543)
+nc -zv aws-1-eu-north-1.pooler.supabase.com 5432
+# Result: Connection succeeded! (13.48.169.15)
+# Resolves to IPv4 address
+
+nc -zv aws-1-eu-north-1.pooler.supabase.com 6543
+# Result: Connection succeeded! (16.16.102.12)
+# Resolves to IPv4 address
+```
+
+**Root Cause:**
+- Supabase direct connections (`db.{project-ref}.supabase.co`) use IPv6 addresses only
+- Many development environments lack IPv6 support:
+  - WSL2 on Windows (common configuration issue)
+  - Some corporate networks
+  - Certain cloud platforms
+  - Docker default networking
+- Supabase pooler provides IPv4 compatibility layer
+
+**Tier Comparison:**
+
+**Free Tier:**
+- ✅ Connection pooler (Supavisor) with IPv4 support (ports 5432 and 6543)
+- ❌ No IPv4 add-on available
+- ✅ Workaround: Use pooler for both DATABASE_URL and DIRECT_URL
+- Cost: $0
+
+**Paid Tier (Pro+):**
+- ✅ Connection pooler (Supavisor) with IPv4 support
+- ✅ IPv4 add-on available (~$4/month)
+- ✅ Can enable dedicated IPv4 address for direct connection
+- Cost: $25/month (Pro) + $4/month (IPv4 add-on)
+
+**Chosen Approach:** Use pooler for both connections (works on free tier)
+
+**Technical Rationale:**
+
+**Why pooler works:**
+- Supavisor connection pooler resolves to IPv4 addresses
+- Supports two modes on different ports:
+  - Port 6543: Transaction mode (for queries, limited prepared statements)
+  - Port 5432: Session mode (for migrations, full PostgreSQL feature support)
+- Official Prisma/Supabase integration docs recommend this pattern
+
+**Configuration pattern:**
+```env
+# Transaction mode for queries (DATABASE_URL)
+DATABASE_URL="postgresql://postgres.{project-ref}:{password}@aws-X-{region}.pooler.supabase.com:6543/postgres?pgbouncer=true"
+
+# Session mode for migrations (DIRECT_URL)
+DIRECT_URL="postgresql://postgres.{project-ref}:{password}@aws-X-{region}.pooler.supabase.com:5432/postgres"
+```
+
+**Why two ports on pooler:**
+- **Port 6543 (Transaction mode)**:
+  - Optimized for short-lived queries
+  - Multiplexes connections at transaction boundary
+  - Best for application runtime (DATABASE_URL)
+  - `?pgbouncer=true` parameter indicates transaction mode
+
+- **Port 5432 (Session mode)**:
+  - Full PostgreSQL protocol support
+  - Prepared statements, advisory locks, LISTEN/NOTIFY
+  - Required for schema operations (migrations, db push)
+  - Best for Prisma CLI commands (DIRECT_URL)
+
+**Verification:**
+```bash
+# Both should work with pooler hostname
+pnpm run db:push:dev         # Uses DIRECT_URL (port 5432)
+NODE_ENV=development pnpm exec nx run server:serve  # Uses DATABASE_URL (port 6543)
+curl http://localhost:4000/api/health              # Should query database successfully
+```
+
+**Implementation Details:**
+- **Location**: `.env.development.local`, `.env.test.local`
+- **Pattern**: Both DATABASE_URL and DIRECT_URL use pooler hostname, different ports
+- **Official source**: Prisma/Supabase integration guide
+- **Validation**: Prisma CLI commands work, application queries work
+
+**Alternative Solutions (if IPv6 support needed):**
+
+**Enable IPv6 in WSL2:**
+```bash
+# Edit /etc/resolv.conf in WSL2
+sudo vi /etc/resolv.conf
+# Add nameserver that supports IPv6
+nameserver 2001:4860:4860::8888  # Google DNS IPv6
+
+# Or enable IPv6 in Windows networking + WSL2 configuration
+```
+
+**Use paid tier IPv4 add-on:**
+- Cost: ~$4/month
+- Provides dedicated IPv4 address for direct connection
+- Navigate to: Project Settings → Add-ons → IPv4
+
+**Warning Signs (for AI agents):**
+
+❌ **Do not suggest** using direct connection on free tier without IPv6 support
+- **Why**: `db.{project-ref}.supabase.co` resolves IPv6-only
+- **Result**: "Network is unreachable" or "Cannot resolve hostname"
+
+❌ **Do not suggest** IPv6 is only required on free tier
+- **Why**: All tiers use IPv6 for direct connections by default
+- **Difference**: Paid tier can purchase IPv4 add-on
+
+✅ **Do use** pooler for both DATABASE_URL and DIRECT_URL
+- Official Prisma/Supabase integration pattern
+- Works on all tiers, no IPv6 required
+- Full functionality (queries + migrations)
+
+✅ **Do recognize** this is a network capability issue, not a configuration error
+- Many environments lack IPv6 support
+- Pooler provides IPv4 compatibility layer
+- This is expected behavior, not a bug
+
+**Symptom Patterns:**
+- "Can't reach database server" with direct connection → Check IPv6 support
+- Pooler connection works but direct connection fails → Expected on IPv4-only network
+- "Network is unreachable" with IPv6 address shown → Use pooler instead
+
+**Applies To:**
+- All Supabase tiers (free, pro, enterprise)
+- Development environments without IPv6 support
+- WSL2 on Windows, Docker, some corporate networks
+- Any scenario requiring IPv4-only connectivity
+
+**References:**
+- Supabase Docs: https://supabase.com/docs/guides/troubleshooting/supabase--your-network-ipv4-and-ipv6-compatibility-cHe3BP
+- Prisma/Supabase Integration: https://supabase.com/partners/integrations/prisma
+- Supabase Pricing (IPv4 add-on): https://supabase.com/pricing
+- Investigation: 2025-11-04 (Phase 4 network connectivity diagnostics)
+- Web search: "Supabase IPv6 requirement free tier paid tier 2025"
+
+**Cross-References:**
+- Related to: adopted-patterns.md Pattern 13 (Database Environment Management)
+- Related to: Previous finding (Supabase Pooler Hostname Discovery)
+- Complements: Prisma multi-environment configuration strategy
+
+---
+
+## Phase 5 Completion: Multi-Environment Migration Synchronization
+
+**Date**: 2025-11-04
+**Phase**: Phase 5 - Apply Migrations to Dev and Test Databases
+**Category**: Database Migration Management
+
+**Context:**
+After implementing multi-environment database setup with dotenv-cli (Phase 4), Phase 5 focused on ensuring both development and test databases have identical schemas through Prisma migrations.
+
+**Findings:**
+
+1. **Initial State Discovery:**
+   - Dev database (pjbnwtsufqpgsdlxydbo): Already had migration applied (1 row in `_prisma_migrations`)
+   - Test database (uvhnqtzufwvaqvbdgcnn): Completely empty, no tables
+
+2. **Migration Applied:**
+   - Migration: `20251027072808_create_health_check`
+   - Creates `health_checks` table with UUID id, text message, timestamptz timestamp
+   - Enables Row Level Security (RLS) on the table
+   - Dev database: Verified synchronized (no pending migrations)
+   - Test database: Successfully applied migration
+
+3. **Verification Results:**
+   Both databases now have identical schemas:
+   - `_prisma_migrations` table (1 row each)
+   - `health_checks` table with RLS enabled
+   - Same column definitions: id (UUID), message (TEXT), timestamp (TIMESTAMPTZ)
+   - Same primary key constraint on id column
+
+**Commands Used:**
+```bash
+# Verify dev database (already in sync)
+pnpm run db:migrate:deploy:dev
+# Output: "No pending migrations to apply."
+
+# Apply to test database
+pnpm run db:migrate:deploy:test
+# Output: "Applying migration `20251027072808_create_health_check`"
+# "All migrations have been successfully applied."
+
+# Verification via Supabase MCP
+# Both databases confirmed to have matching table structures
+```
+
+**Rollback Documentation:**
+- Documented as Pattern 14 in adopted-patterns.md
+- Prisma has no built-in rollback command (by design)
+- Manual rollback process: Create new migration that reverses changes
+- Best practice: Forward-only migrations, test locally before production
+- Emergency rollback procedure documented for production scenarios
+
+**Success Criteria Met:**
+- ✅ Dev database verified synchronized
+- ✅ Test database migration applied successfully
+- ✅ Both databases have identical schemas
+- ✅ Migration rollback procedure documented
+- ✅ Best practices for migration management established
+
+**Key Takeaways:**
+- `migrate deploy` is production-safe and non-interactive
+- Always verify migrations on dev/test before production
+- Rollback procedures must be tested locally first
+- Database backups are mandatory before production migrations
+- Forward-only migration philosophy reduces risk
+
+**Tools/Versions:**
+- Prisma CLI: 6.17.1
+- Prisma Client: 6.18.0
+- Supabase PostgreSQL: 15
+- dotenv-cli: 11.0.0
+
+**References:**
+- adopted-patterns.md Pattern 14 (Migration Management and Rollback)
+- adopted-patterns.md Pattern 13 (Database Environment Management)
+- docs/environment-setup.md (migration command reference)
+- Prisma Migration Deployment Guide: https://www.prisma.io/docs/orm/prisma-migrate/workflows/production-troubleshooting
+
+**Cross-References:**
+- Related to: Pattern 13 (dotenv-cli multi-environment setup)
+- Builds upon: Phases 0-4 (multi-environment architecture implementation)
+- Prepares for: Phase 6 (final validation and CI/CD integration)
+
+---
+
+## [Environment Validation] - Optional Variables Allowlist (Issue #23) - 2025-11-05
+
+**Context**: Environment validation script warning about unexpected CORS_ORIGIN variable
+
+**Problem**
+
+The `scripts/validate-env.js` validation script flagged CORS_ORIGIN as an "unexpected variable" even though:
+1. It's documented in .env.example
+2. It has a runtime default in apps/server/src/app.ts
+3. It's a legitimate optional configuration variable
+
+This created confusion for developers who thought they might have a configuration error.
+
+**Root Cause**
+
+The validation script only knew about REQUIRED_VARS and variables starting with NEXT_PUBLIC_. It had no concept of "optional but valid" variables, leading to false positive warnings.
+
+**Solution Implemented**
+
+**Solution #1: Explicit Allowlist** (chosen for clarity and explicit validation)
+
+Added OPTIONAL_VARS configuration array with:
+- Variable name
+- Description
+
+**Optional variables recognized:**
+1. CORS_ORIGIN - Comma-separated CORS origins (default: localhost:3000-3002 in dev)
+2. HOST - Server host address (default: localhost)
+3. PORT - Server port number (default: 4000)
+4. NODE_ENV - Node environment (default: development)
+
+**Validation behavior:**
+- Optional variables are NOT required to be present
+- If present, they are validated for correct format
+- Format errors are reported as validation failures
+- Unexpected variables still generate warnings
+
+**Benefits**
+
+✅ **Explicit documentation**: Clear list of all recognized variables
+✅ **Format validation**: Catches configuration mistakes early
+✅ **No false positives**: CORS_ORIGIN and other optional vars no longer warn
+✅ **Maintainable**: Easy to add new optional variables
+✅ **Educational**: Developers learn what variables are available
+
+**Implementation Details**
+
+**Files modified:**
+1. `scripts/validate-env.js`:
+   - Added OPTIONAL_VARS array (lines 31-50)
+   - Added validator functions: validateCorsOrigin, validateHost, validatePort, validateNodeEnv (lines 151-228)
+   - Updated validation logic to recognize optional variables (lines 277-314)
+
+2. `.env.example`:
+   - Updated CORS_ORIGIN comment to indicate it's optional (line 67)
+   - Added "Optional Server Configuration" section with examples (lines 77-90)
+
+3. `docs/environment-setup.md`:
+   - Added "Optional Variables" section explaining defaults (lines 57-66)
+   - Updated validation explanation to clarify optional vs required (lines 209-232)
+
+4. `docs/memories/tech-findings-log.md`:
+   - This entry
+
+**IPv6 Support Fix (2025-11-05):**
+
+Initial implementation blocked IPv6 addresses (e.g., `::1`, `::`, `fe80::1`) because `validateHost()` rejected any value containing colons. Fixed by:
+- Detecting IPv6 addresses (contain colons + hex/colon characters)
+- Skipping port number check for IPv6
+- Preserving hostname:port error detection for non-IPv6 values
+
+Tested and validated:
+- ✅ IPv6 localhost (`::1`) - passes
+- ✅ IPv6 all interfaces (`::`) - passes
+- ✅ Full IPv6 addresses (`fe80::1`) - passes
+- ✅ IPv4 addresses (`0.0.0.0`) - passes
+- ✅ Hostnames (`localhost`) - passes
+- ✅ Invalid hostname:port (`localhost:4000`) - fails as expected
+
+**Alternatives Considered**
+
+**Solution #2: Environment Profiles**
+- Profile system (dev/test/prod) with categorization
+- Rejected: More complex than needed for current scope (4-6 hours vs 50 minutes)
+
+**Solution #3: Zod Schema Migration**
+- Migrate to Zod with full type safety
+- Rejected: Architectural shift, 7-11 hours, better for Phase 2+
+
+**Solution #4: Runtime Context Detection**
+- Automatic context detection via call stack analysis
+- Rejected: Very high complexity (7-9 days), fragile, over-engineered
+
+**Rationale for Solution #1:**
+- Fast implementation (50 minutes vs days/weeks)
+- Extends existing pattern (no architectural shift)
+- Very low risk (minimal code changes)
+- Can migrate to Solutions #2 or #3 later if needed
+- Perfect for immediate Issue #23 fix before PR #20 merge
+
+**References**
+
+- Issue #23: "Unexpected variable warning for CORS_ORIGIN"
+- `apps/server/src/app.ts:24` - CORS_ORIGIN usage with defaults
+- `apps/server/src/main.ts:24-25` - HOST and PORT usage with defaults
+- `.env.example:75` - CORS_ORIGIN documentation
+- Multi-agent root cause analysis (2025-11-05)
+- Solution comparison and ranking (2025-11-05)
+
+**Testing**
+
+Validated that:
+- ✅ Missing optional variables: No warnings
+- ✅ Valid optional variables: No warnings
+- ✅ Invalid format optional variables: Error reported
+- ✅ Required variables: Still validated as before
+- ✅ Truly unexpected variables: Still generate warnings
+
+**Test Cases:**
+1. No optional variables → Pass with no warnings
+2. Valid optional variables → Pass with no warnings
+3. Invalid CORS_ORIGIN format (missing http://) → Fail with format error
+4. Invalid PORT format (not a number) → Fail with format error
+5. Missing DATABASE_URL (regression test) → Fail as expected
+6. Typo in variable name → Warning generated (not an error)
+
+**Last Validated**
+
+2025-11-05 (Node.js 20.x, validate-env.js v1.1)
+
+**Tags**: #environment #validation #optional-variables #issue-23 #pr-20
+
+---
+
+### [Testing Architecture] - Per-Project Jest Setup Files (Principle of Least Privilege) - 2025-11-05
+
+**Decision:** Use per-project `setupFiles` configuration instead of workspace-level `jest.preset.js` setup for loading environment variables
+
+**Context:**
+GitHub Issue #22 identified that all 7+ workspace projects were loading database credentials (`DATABASE_URL`, `DIRECT_URL`) during test execution, even though only 2 projects (database package and server application) actually need database access. This violated the Principle of Least Privilege and exposed credentials unnecessarily to frontend packages that should never have direct database access.
+
+**Alternatives Considered:**
+
+1. **Workspace-level setupFiles in jest.preset.js (original approach)**
+   - Rejected: Violates Principle of Least Privilege
+   - Problem: Gives database credentials to all projects (schemas, api-client, web, mobile)
+   - Security risk: Frontend packages should never have direct database credentials
+   - Architectural concern: Makes it easy to accidentally write direct database queries in wrong packages
+
+2. **Conditional loading in workspace jest.setup.js**
+   - Rejected: Still exposes credentials to all projects
+   - Problem: Environment variables still loaded for all projects, just doesn't fail
+   - Still violates PoLP: Even if not used, credentials are available in process.env
+   - Doesn't enforce architectural boundaries
+
+3. **Duplicate environment loading code in each project**
+   - Rejected: Code duplication, harder to maintain
+   - Problem: 2+ projects would have identical environment loading logic
+   - Maintenance burden: Changes to loading logic require updates in multiple places
+   - Bug risk: Easy to introduce inconsistencies (e.g., one project uses `process.cwd()`, another uses `__dirname`)
+
+**Chosen Approach:** Per-project `setupFiles` with shared `@nx-monorepo/test-utils` package
+
+**Technical Rationale:**
+
+**Security (Principle of Least Privilege):**
+- Only database and server projects load credentials
+- Frontend packages (schemas, api-client, web, mobile) run tests WITHOUT database credentials
+- Limits blast radius if credentials leak from test logs/CI artifacts
+- Enforces architectural boundary: frontend must use API client, not direct database
+
+**Code reuse without duplication:**
+- Shared `loadDatabaseEnv()` utility in `@nx-monorepo/test-utils` package
+- DRY principle maintained while allowing selective loading
+- Single source of truth for environment loading logic
+- Consistent error messages across projects
+
+**Preserves existing patterns:**
+- Maintains `__dirname` pattern (prevents `process.cwd()` bugs documented in earlier findings)
+- Works with existing `@swc/jest` transformer configuration
+- Compatible with `customExportConditions` for Nx unbundled architecture
+- No changes needed to test or testTimeout settings
+
+**Implementation Details:**
+
+**Created:**
+- `packages/test-utils/` - Buildable library with `loadDatabaseEnv()` utility
+- `packages/database/jest.setup.ts` - Per-project setup file
+- `apps/server/jest.setup.ts` - Per-project setup file
+
+**Modified:**
+- `jest.preset.js` - Removed workspace-level `setupFiles` (now just spreads `nxPreset`)
+- `packages/database/jest.config.cjs` - Added `setupFiles: [join(__dirname, 'jest.setup.ts')]`
+- `apps/server/jest.config.cjs` - Added `setupFiles: [join(__dirname, 'jest.setup.ts')]`
+- `packages/database/package.json` - Added `@nx-monorepo/test-utils` devDependency
+- `apps/server/package.json` - Added `@nx-monorepo/test-utils` devDependency
+
+**Deleted:**
+- `jest.setup.js` (workspace root) - No longer needed
+
+**Test utilities pattern:**
+```typescript
+// packages/test-utils/src/lib/load-database-env.ts
+export function loadDatabaseEnv(workspaceRoot: string): void {
+  const env = process.env.NODE_ENV || 'development';
+  const envFile = `.env.${env}.local`;
+  const envPath = resolve(workspaceRoot, envFile);
+
+  if (!existsSync(envPath)) {
+    throw new Error(`Environment file not found: ${envFile}`);
+  }
+
+  config({ path: envPath });
+}
+```
+
+**Per-project usage:**
+```typescript
+// packages/database/jest.setup.ts
+import { loadDatabaseEnv } from '@nx-monorepo/test-utils';
+import { resolve } from 'path';
+
+loadDatabaseEnv(resolve(__dirname, '../..'));
+```
+
+**Warning Signs (for AI agents):**
+
+**If you see:**
+- New project needs database access for tests
+- Tests failing with "DATABASE_URL is not defined"
+- Request to add environment variables to jest.preset.js
+
+**Do NOT:**
+- Add `setupFiles` back to `jest.preset.js` (violates PoLP)
+- Add environment loading to workspace preset
+- Suggest duplicating environment loading code
+
+**DO instead:**
+1. Add `@nx-monorepo/test-utils` to project's `devDependencies`
+2. Create per-project `jest.setup.ts` that calls `loadDatabaseEnv()`
+3. Add `setupFiles: [join(__dirname, 'jest.setup.ts')]` to project's jest.config
+4. Verify project actually NEEDS database credentials (frontend shouldn't)
+
+**Validation:**
+
+Ran full test suite after implementation:
+- ✅ All 52 tests passed across 6 projects
+- ✅ Database tests pass (has credentials)
+- ✅ Server tests pass (has credentials)
+- ✅ api-client tests pass (no credentials - correct)
+- ✅ schemas tests pass (no credentials - correct)
+- ✅ supabase-client tests pass (no credentials - correct)
+- ✅ web tests pass (no credentials - correct)
+
+**Last Validated**
+
+2025-11-05 (Nx 21.6, Jest 30, Node 22, pnpm 10.19)
+
+**References:**
+- GitHub Issue #22 - Security concern about credential exposure
+- Pattern 15 in `docs/memories/adopted-patterns.md` - Full pattern documentation
+- Pattern 13 in `docs/memories/adopted-patterns.md` - Database environment management
+
+**Tags**: #testing #jest #security #principle-of-least-privilege #environment-variables #issue-22
 
 ---
 

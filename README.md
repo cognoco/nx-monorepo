@@ -208,6 +208,75 @@ pnpm exec nx graph
 pnpm exec nx reset
 ```
 
+### Database Commands
+
+The project uses **dotenv-cli** for environment-specific database operations. This ensures Prisma CLI commands use the correct database credentials based on the environment.
+
+**Environment-specific commands:**
+
+```bash
+# Development Database
+pnpm run db:push:dev          # Push schema changes to development
+pnpm run db:migrate:dev       # Create and apply migration in development
+pnpm run db:migrate:deploy:dev # Apply pending migrations to development
+pnpm run db:studio:dev        # Open Prisma Studio for development database
+
+# Test Database
+pnpm run db:push:test         # Push schema changes to test
+pnpm run db:migrate:test      # Create and apply migration in test
+pnpm run db:migrate:deploy:test # Apply pending migrations to test
+pnpm run db:studio:test       # Open Prisma Studio for test database
+
+# Schema Management
+pnpm run db:generate          # Generate Prisma Client (after schema changes)
+```
+
+**Important Notes:**
+
+- ✅ **Always use npm scripts** - Never run raw Prisma CLI commands (`npx prisma`) directly
+- ✅ **Scripts handle environment loading** - dotenv-cli automatically loads the correct `.env.*.local` file
+- ❌ **Never commit .env files** - Only `.env.example` should be in git
+
+**Environment files** (gitignored):
+- `.env.development.local` - Development database credentials
+- `.env.test.local` - Test database credentials
+- `.env.example` - Template for setting up new environments
+
+**Required environment variables:**
+```env
+# Transaction mode pooler for application queries
+DATABASE_URL="postgresql://postgres.{project-ref}:{password}@aws-X-{region}.pooler.supabase.com:6543/postgres?pgbouncer=true"
+
+# Session mode pooler for migrations and schema operations
+DIRECT_URL="postgresql://postgres.{project-ref}:{password}@aws-X-{region}.pooler.supabase.com:5432/postgres"
+
+# Supabase public credentials (safe for client-side)
+NEXT_PUBLIC_SUPABASE_URL="https://{project-ref}.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="{your-anon-key}"
+```
+
+**Getting Supabase connection strings:**
+
+1. Go to: https://supabase.com/dashboard/project/{PROJECT_ID}/settings/database
+2. Scroll to "Connection string" section
+3. Select "Session pooler" tab
+4. Copy the **exact hostname** from the connection string (don't assume `aws-0`, it may be `aws-1`, `aws-2`, etc.)
+5. Update both `.env.development.local` and `.env.test.local`
+
+**Why dotenv-cli?**
+
+Prisma CLI doesn't respect `NODE_ENV` or load environment-specific files automatically. dotenv-cli explicitly specifies which `.env` file to load, ensuring database commands target the correct environment. See `docs/memories/adopted-patterns.md` (Pattern 13) for full rationale.
+
+**Troubleshooting:**
+
+- **"Tenant or user not found"** → Verify pooler hostname matches Supabase dashboard exactly
+- **"Can't reach database server"** → Check network connectivity, verify you're using pooler (not direct connection)
+- **Missing DATABASE_URL** → Ensure `.env.*.local` file exists and contains all required variables
+
+For detailed troubleshooting, see:
+- `docs/memories/adopted-patterns.md` - Pattern 13 (Database Environment Management)
+- `docs/memories/tech-findings-log.md` - Supabase pooler hostname and IPv6 findings
+
 ## Development Workflow
 
 ### Adding a New Feature

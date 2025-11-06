@@ -99,7 +99,7 @@ No tasks - infrastructure already exists from Phase 1 Stages 0-4.
 ### Web UI Layer for User Story 1 (TDD Cycle 5 - partial, manual testing acceptable)
 
 - [x] T026 [US1] Create /health page at apps/web/src/app/health/page.tsx
-- [x] T027 [US1] Implement health check list display using createApiClient().GET('/health') (with baseUrl configured as 'http://localhost:3001/api')
+- [x] T027 [US1] Implement health check list display using createApiClient().GET('/health') (with baseUrl configured as 'http://localhost:4000/api')
 - [x] T028 [US1] Add Tailwind CSS styling for health check list (basic utility classes only, no custom CSS, minimal layout)
 - [x] T029 [US1] Add loading state while fetching health checks
 - [x] T030 [US1] Add "use client" directive if needed for interactive features
@@ -155,7 +155,7 @@ No tasks - infrastructure already exists from Phase 1 Stages 0-4.
 ### Web UI Layer for User Story 2 (TDD Cycle 5 - continued)
 
 - [x] T049 [US2] Add "Ping" button to apps/web/src/app/health/page.tsx
-- [x] T050 [US2] Implement button click handler using createApiClient().POST('/health/ping', {body: {}}) (with baseUrl configured as 'http://localhost:3001/api')
+- [x] T050 [US2] Implement button click handler using createApiClient().POST('/health/ping', {body: {}}) (with baseUrl configured as 'http://localhost:4000/api')
 - [x] T051 [US2] Add optimistic UI update to show new record immediately after clicking Ping
 - [x] T052 [US2] Add error handling for failed POST requests
 - [ ] T053 [US2] Manual test: Click "Ping" button and verify new health check appears in list within 1 second (blocked by Windows ARM64 platform limitation)

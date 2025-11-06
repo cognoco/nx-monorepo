@@ -124,7 +124,7 @@ export default function HealthPage() {
             </h2>
             <p className="text-red-700">{error}</p>
             <p className="mt-4 text-sm text-red-600">
-              Make sure the server is running (default: http://localhost:3001).
+              Make sure the server is running (default: http://localhost:4000).
               API requests are proxied through /api via Next.js rewrites.
             </p>
           </div>

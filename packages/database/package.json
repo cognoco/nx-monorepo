@@ -22,6 +22,7 @@
     "./package.json": "./package.json"
   },
   "devDependencies": {
+    "@nx-monorepo/test-utils": "workspace:*",
     "prisma": "^6.17.1"
   },
   "dependencies": {

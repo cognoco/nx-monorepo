@@ -1232,7 +1232,7 @@ DATABASE_URL="postgresql://postgres.xxx:[password]@aws-0-us-east-1.pooler.supaba
 ```bash
 NEXT_PUBLIC_SUPABASE_URL="https://xxx.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGc..."
-NEXT_PUBLIC_API_URL="http://localhost:3001/api"
+NEXT_PUBLIC_API_URL="http://localhost:4000/api"
 ```
 
 **Consequences:**

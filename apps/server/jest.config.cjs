@@ -1,4 +1,5 @@
 const { readFileSync } = require('fs');
+const { join } = require('path');
 
 // Reading the SWC compilation config for the spec files
 const swcJestConfig = JSON.parse(
@@ -12,6 +13,7 @@ module.exports = {
   displayName: '@nx-monorepo/server',
   preset: '../../jest.preset.js',
   testEnvironment: 'node',
+  setupFiles: [join(__dirname, 'jest.setup.ts')],
   testMatch: ['<rootDir>/src/**/*.(spec|test).[jt]s?(x)'],
   coverageDirectory: '../../coverage/apps/server',
   testEnvironmentOptions: {

@@ -22,6 +22,7 @@
         "cwd": "apps/server"
       },
       "dependsOn": ["spec-write"]
-    }
+    },
+    "format:check": {}
   }
 }

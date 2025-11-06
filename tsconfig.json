@@ -23,6 +23,9 @@
     },
     {
       "path": "./packages/supabase-client"
+    },
+    {
+      "path": "./packages/test-utils"
     }
   ]
 }

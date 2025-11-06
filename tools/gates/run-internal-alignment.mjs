@@ -40,10 +40,19 @@ function parseExceptions(md) {
 }
 
 function getChangedFiles(base = 'main') {
+  // In GitHub Actions PR context, use the base ref environment variable
+  if (process.env.GITHUB_BASE_REF) {
+    base = `origin/${process.env.GITHUB_BASE_REF}`;
+  }
+
   try {
     const out = execSync(`git diff --name-only ${base}...HEAD`, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
     return out.split('\n').filter(Boolean);
-  } catch {
+  } catch (error) {
+    // In CI, base branch might not be available - silently skip
+    if (!process.env.CI) {
+      console.error('Warning: Unable to get changed files via git diff');
+    }
     try {
       const staged = execSync('git diff --cached --name-only', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
       return staged.split('\n').filter(Boolean);

@@ -4,8 +4,16 @@
 /dist
 /build
 /.next
+**/.next
 /out
+**/dist
+**/out-tsc
 **/test-output
+/tmp
+
+# Generated files
+**/gen/**
+graph.html
 
 # Dependencies
 /node_modules

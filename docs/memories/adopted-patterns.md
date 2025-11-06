@@ -3,7 +3,7 @@ title: Adopted Patterns
 purpose: Monorepo-specific standards that override framework defaults
 audience: AI agents, developers
 created: 2025-10-21
-last-updated: 2025-10-28
+last-updated: 2025-11-05
 Created: 2025-10-21T14:39
 Modified: 2025-10-28T20:29
 ---
@@ -873,7 +873,7 @@ paths: { '/health': ... }    # ✅ No /api duplication
    pnpm exec nx run server:spec-write    # Generate artifact
    pnpm exec nx run server:spec-validate # Validate with Spectral
    pnpm exec nx run server:serve         # Start server
-   # Visit http://localhost:3001/api/docs to see Swagger UI
+   # Visit http://localhost:4000/api/docs to see Swagger UI
    ```
 
 ### Dependencies Required
@@ -926,7 +926,7 @@ registry.registerPath({ ... }); // in main.ts
 ❌ **Hardcoding server URLs**:
 ```yaml
 # WRONG - environment-specific
-servers: [{ url: 'http://localhost:3001/api' }]
+servers: [{ url: 'http://localhost:4000/api' }]
 ```
 
 ✅ **Correct - relative URLs**:
@@ -959,7 +959,7 @@ pnpm exec nx run server:spec-validate
 
 # View in Swagger UI
 pnpm exec nx run server:serve
-# Visit http://localhost:3001/api/docs
+# Visit http://localhost:4000/api/docs
 ```
 
 **CI/CD:**
@@ -969,7 +969,7 @@ pnpm exec nx run server:serve
 ```
 
 **Online validation:**
-1. Download spec: `curl http://localhost:3001/api/docs/openapi.json > spec.json`
+1. Download spec: `curl http://localhost:4000/api/docs/openapi.json > spec.json`
 2. Validate at: https://editor.swagger.io/
 3. Or use: https://ratemyopenapi.com/
 
@@ -1198,7 +1198,7 @@ async function getHealth(): Promise<HealthCheckResponse> {
 }
 
 // Or with openapi-fetch (uses relative path + baseUrl)
-// const client = createClient<paths>({ baseUrl: 'http://localhost:3001/api' })
+// const client = createClient<paths>({ baseUrl: 'http://localhost:4000/api' })
 // await client.GET('/health') // Resolves to /api/health automatically
 ```
 
@@ -1232,7 +1232,7 @@ async function getHealth(): Promise<HealthCheckResponse> {
 ```json
 // WRONG - requires server to be running
 {
-  "command": "openapi-typescript http://localhost:3001/api/docs/openapi.json"
+  "command": "openapi-typescript http://localhost:4000/api/docs/openapi.json"
 }
 ```
 
@@ -1860,6 +1860,886 @@ For detailed setup instructions, API documentation, and examples:
 - Next.js testing guide (includes these by default)
 - Testing patterns research (2025-10-28 Context7/Exa validation)
 - AI-driven development best practices (AGENTS.md standard)
+
+---
+
+## Pattern 11: Format Check Target Configuration
+
+**Our Standard**: Explicit `format:check` target in all project.json files to enable consistent formatting validation across the monorepo
+
+### Pattern
+
+**All projects must include a format:check target:**
+
+```json
+{
+  "targets": {
+    "format:check": {}
+  }
+}
+```
+
+The empty object `{}` inherits all configuration from `targetDefaults.format:check` in `nx.json`:
+- Executor: `nx:run-commands`
+- Command: `prettier --check "{projectRoot}/**/*.{ts,tsx,js,jsx,json,css,scss,html}"`
+- Cache: `true`
+- Inputs: `["default", "{workspaceRoot}/.prettierrc", "{workspaceRoot}/.prettierignore"]`
+
+**TargetDefaults Configuration (`nx.json`):**
+
+```json
+{
+  "targetDefaults": {
+    "format:check": {
+      "cache": true,
+      "inputs": [
+        "default",
+        "{workspaceRoot}/.prettierrc",
+        "{workspaceRoot}/.prettierignore"
+      ],
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "prettier --check \"{projectRoot}/**/*.{ts,tsx,js,jsx,json,css,scss,html}\""
+      }
+    }
+  }
+}
+```
+
+### Applies To
+
+All apps and packages (web, server, web-e2e, database, schemas, api-client, supabase-client)
+
+### Rationale
+
+**Why explicit targets are needed:**
+- Unlike `lint`, `test`, and `typecheck`, **no Nx plugin exists for Prettier/formatting**
+- Nx plugins (`@nx/eslint/plugin`, `@nx/jest/plugin`, `@nx/js/typescript`) auto-infer targets from config files
+- Prettier has `@nx/js:setup-prettier` generator (one-time setup) but no plugin to infer targets
+- Without a plugin, projects must explicitly declare targets to use `targetDefaults` configuration
+- Empty target object `{}` is sufficient—all behavior comes from `targetDefaults`
+
+**Benefits:**
+- Enables `nx run-many -t format:check` across all projects
+- Enables `nx affected -t format:check` for CI optimization
+- Centralized configuration in `nx.json` (DRY principle)
+- Consistent formatting verification across monorepo
+- Integrates with Nx caching and task orchestration
+- Per-project caching (unlike `nx format:check --all` workspace command)
+
+**Architectural consistency:**
+- All quality checks (`lint`, `test`, `typecheck`, `format:check`) work the same way
+- Predictable developer experience: `nx run-many -t lint test typecheck format:check`
+- Task graph integration: formatting becomes part of project dependency graphs
+- Future-proof: Pattern scales as monorepo grows
+
+### Relationship to Other Targets
+
+| Target | Configuration Source | Nx Plugin | Requires project.json? |
+|--------|---------------------|-----------|----------------------|
+| `lint` | `eslint.config.mjs` | `@nx/eslint/plugin` | No (inferred) |
+| `test` | `jest.config.ts` | `@nx/jest/plugin` | No (inferred) |
+| `typecheck` | `tsconfig.json` | `@nx/js/typescript` | No (inferred) |
+| `format:check` | `.prettierrc` | **None** | **Yes (explicit)** |
+
+**Why this inconsistency exists:**
+- Nx ecosystem decision: Prettier integration handled via CLI commands, not plugin
+- Built-in `nx format:check` and `nx format:write` work at workspace level
+- Per-project targets require manual configuration
+- **Our choice**: Consistency over convenience—all quality checks should be per-project
+
+### When Adding New Projects
+
+**⚠️ Required action after project generation:**
+
+1. **Create `project.json` if it doesn't exist**
+
+   For applications:
+   ```json
+   {
+     "name": "@nx-monorepo/<project>",
+     "$schema": "../../node_modules/nx/schemas/project-schema.json",
+     "sourceRoot": "apps/<project>/src",
+     "projectType": "application",
+     "targets": {
+       "format:check": {}
+     }
+   }
+   ```
+
+   For libraries:
+   ```json
+   {
+     "name": "@nx-monorepo/<project>",
+     "$schema": "../../node_modules/nx/schemas/project-schema.json",
+     "sourceRoot": "packages/<project>/src",
+     "projectType": "library",
+     "targets": {
+       "format:check": {}
+     }
+   }
+   ```
+
+2. **Add `format:check` target to existing `project.json`**
+
+   If the project already has a `project.json` file:
+   ```json
+   {
+     "targets": {
+       // ... existing targets ...
+       "format:check": {}
+     }
+   }
+   ```
+
+3. **Verify target works**
+
+   ```bash
+   pnpm exec nx run <project>:format:check
+   ```
+
+4. **Verify affected detection**
+
+   ```bash
+   pnpm exec nx affected -t format:check --base=main
+   ```
+
+**Why this pattern scales:**
+- New projects automatically inherit formatting rules from `targetDefaults`
+- One-time setup per project (add target entry)
+- Configuration changes happen centrally in `nx.json`
+- Pattern is documented and easy to teach to AI agents
+
+### Alternative Approach (Not Recommended)
+
+**Workspace-level commands** (`nx format:check --all`):
+- ✅ Simpler (no per-project configuration)
+- ✅ Official Nx recommendation
+- ❌ Inconsistent with other quality checks
+- ❌ Cannot use with `nx run-many -t format:check`
+- ❌ Cannot use with `nx affected -t format:check`
+- ❌ No per-project caching
+- ❌ Not integrated into task graphs
+
+**Our decision**: Gold standard template prioritizes consistency over convenience.
+
+### Troubleshooting
+
+**Issue**: `nx run-many -t format:check` returns "No tasks were run"
+**Fix**: Verify all projects have `"format:check": {}` in their `targets` section
+
+**Issue**: Format check doesn't find generated files to ignore
+**Fix**: Update `.prettierignore` to exclude build artifacts (`**/dist`, `**/out-tsc`, `**/gen`)
+
+**Issue**: Format check runs even though `.prettierignore` updated
+**Fix**: Nx caches results—run `pnpm exec nx reset` to clear cache
+
+**Issue**: New project missing format:check target
+**Fix**: Follow "When Adding New Projects" steps above
+
+### Last Validated
+
+2025-11-03 (Nx 21.6, Prettier 3.x)
+
+**References**:
+- Nx format commands: https://nx.dev/nx-api/nx/documents/format-check
+- Nx targetDefaults: https://nx.dev/reference/nx-json#target-defaults
+- docs/memories/post-generation-checklist.md (format:check checklist)
+- Research validation: 2025-11-03 Context7/Nx MCP investigation
+
+---
+
+## Pattern 12: Windows Jest Hanging - Per-Project Environment Variables
+
+**Our Standard**: When Jest tests hang on Windows, add `NX_DAEMON=false` to the project's test target environment configuration (not globally).
+
+### Pattern
+
+**Problem**: On Windows, Jest tests may hang indefinitely with messages like:
+- "Jest did not exit one second after the test run"
+- Terminal shows "Terminate batch job (Y/N)?"
+
+**Solution**: Add environment variable to the specific project's test target in `project.json`:
+
+```json
+{
+  "name": "@nx-monorepo/web",
+  "targets": {
+    "test": {
+      "options": {
+        "env": {
+          "NX_DAEMON": "false"
+        }
+      }
+    }
+  }
+}
+```
+
+**How it works**:
+- Uses Nx's native `env` option in target configuration
+- Merges with inferred configuration from `@nx/jest/plugin`
+- Automatically applies to all test invocations (manual, npm scripts, hooks)
+- Does not affect other targets (build, serve, lint)
+
+### Applies To
+
+- **Confirmed**: `@nx-monorepo/web` (Next.js app)
+- **Apply as needed**: Any project experiencing Windows Jest hanging
+
+**Do NOT apply preemptively** - Only add when the problem manifests in a specific project.
+
+### Rationale
+
+**Why per-project configuration?**
+1. **Surgical fix** - Only affects projects that exhibit the problem
+2. **Documented pattern** - Other developers know how to fix if it happens elsewhere
+3. **Nx-native approach** - Uses official, documented Nx functionality
+4. **No platform detection needed** - Configuration is declarative and version-controlled
+
+**Why not global targetDefaults?**
+- Would disable daemon for ALL projects on ALL platforms
+- Penalizes projects that don't have the issue
+- Not aligned with "fix where broken" philosophy
+
+**Why not wrapper scripts?**
+- Adds indirection and maintenance burden
+- Less discoverable than configuration in project.json
+- Requires platform detection logic
+
+**Why not .env files?**
+- Requires manual setup by each developer
+- Reactive (discover after problem) rather than proactive
+- Easy to forget when switching machines
+
+**Relationship to pre-commit hooks**:
+- Pre-commit hook already uses `NX_DAEMON=false` globally (see `.husky/pre-commit`)
+- This pattern fixes **manual test runs** (`nx run web:test`)
+- Ensures consistent behavior across all execution contexts
+
+### When Adding New Projects
+
+**If Jest tests hang on Windows:**
+
+1. **Verify the symptom**:
+   ```bash
+   pnpm exec nx run <project>:test
+   # Hangs at "Test Suites: X passed, X total"
+   ```
+
+2. **Add environment variable** to `<project>/project.json`:
+   ```json
+   {
+     "targets": {
+       "test": {
+         "options": {
+           "env": {
+             "NX_DAEMON": "false"
+           }
+         }
+       }
+     }
+   }
+   ```
+
+3. **Verify the fix**:
+   ```bash
+   pnpm exec nx run <project>:test
+   # Should complete without hanging
+   ```
+
+4. **Document** in project README or comments why this is needed
+
+**Do NOT**:
+- ❌ Add to nx.json targetDefaults (affects all projects)
+- ❌ Add preemptively to projects that work fine
+- ❌ Use wrapper scripts or platform detection for this issue
+
+### Troubleshooting
+
+**If adding env doesn't work:**
+1. Check Nx version supports `env` in `nx:run-commands` executor (Nx 15+)
+2. Try manual workaround: `NX_DAEMON=false pnpm exec nx run <project>:test`
+3. Check for other Jest configuration issues (see troubleshooting.md)
+
+**If problem spreads to other projects:**
+- Apply the same pattern to each affected project
+- Document in project-specific README
+- Consider if there's a deeper root cause (Nx version bug, Jest config issue)
+
+### Last Validated
+
+2025-11-03 (Nx 21.6, Jest 30, Windows 11)
+
+**References**:
+- Nx env option: https://nx.dev/nx-api/nx/executors/run-commands#env
+- docs/memories/troubleshooting.md - "Jest Exits Slowly or Hangs (Windows)"
+- AGENTS.md - "Jest & Testing Configuration" section
+- Research validation: 2025-11-03 (Sub-agent analysis of 5 approaches)
+
+---
+
+## Pattern 13: Database Environment Management
+
+**Our Standard**: Use dotenv-cli with environment-specific .env files for Prisma CLI commands
+
+### Pattern
+
+**Environment Files Structure:**
+```
+.env.development.local   # Development database credentials (gitignored)
+.env.test.local          # Test database credentials (gitignored)
+.env.example             # Template for new developers (committed)
+```
+
+**Database Command Scripts** (`package.json`):
+```json
+{
+  "scripts": {
+    "db:push:dev": "dotenv -e .env.development.local -- npx prisma db push --schema=packages/database/prisma/schema.prisma",
+    "db:push:test": "dotenv -e .env.test.local -- npx prisma db push --schema=packages/database/prisma/schema.prisma",
+    "db:migrate:dev": "dotenv -e .env.development.local -- npx prisma migrate dev --schema=packages/database/prisma/schema.prisma",
+    "db:migrate:test": "dotenv -e .env.test.local -- npx prisma migrate dev --schema=packages/database/prisma/schema.prisma",
+    "db:migrate:deploy:dev": "dotenv -e .env.development.local -- npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma",
+    "db:migrate:deploy:test": "dotenv -e .env.test.local -- npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma",
+    "db:studio:dev": "dotenv -e .env.development.local -- npx prisma studio --schema=packages/database/prisma/schema.prisma",
+    "db:studio:test": "dotenv -e .env.test.local -- npx prisma studio --schema=packages/database/prisma/schema.prisma",
+    "db:generate": "dotenv -e .env.development.local -- npx prisma generate --schema=packages/database/prisma/schema.prisma"
+  }
+}
+```
+
+**Application Runtime Loading** (`apps/server/src/main.ts`):
+```typescript
+// Load environment variables FIRST, before any other imports
+import { config } from 'dotenv';
+import { resolve } from 'path';
+import { existsSync } from 'fs';
+
+const env = process.env.NODE_ENV || 'development';
+const envFile = `.env.${env}.local`;
+const envPath = resolve(process.cwd(), envFile);
+
+if (!existsSync(envPath)) {
+  throw new Error(
+    `Environment file not found: ${envFile}\n` +
+      `Expected location: ${envPath}\n` +
+      `See: docs/environment-setup.md`
+  );
+}
+
+config({ path: envPath });
+console.log(`✅ Loaded environment variables from: ${envFile}`);
+
+// Now import other modules that need env vars
+import { createApp } from './app.js';
+```
+
+**Jest Test Setup** (`jest.setup.js`):
+```javascript
+const { config } = require('dotenv');
+const { resolve } = require('path');
+const { existsSync } = require('fs');
+
+try {
+  const env = process.env.NODE_ENV || 'development';
+  const envFile = `.env.${env}.local`;
+  const envPath = resolve(process.cwd(), envFile);
+
+  if (!existsSync(envPath)) {
+    throw new Error(
+      `Environment file not found: ${envFile}\n` +
+        `Expected location: ${envPath}\n` +
+        `See: docs/environment-setup.md`
+    );
+  }
+
+  config({ path: envPath });
+  // Silent mode - no console output during tests
+} catch (error) {
+  console.error('❌ Failed to load environment variables for tests:');
+  console.error(error.message);
+  console.error('\nTests cannot run without environment configuration.');
+  console.error('See: docs/environment-setup.md\n');
+  process.exit(1);
+}
+```
+
+### Applies To
+
+All Prisma-based database packages and applications that need multi-environment database support
+
+### Rationale
+
+**Why dotenv-cli:**
+- ✅ **Officially recommended** by Prisma documentation for multi-environment setups
+- ✅ **Industry standard** pattern used by Next.js, Nx, and Prisma communities
+- ✅ **Explicit file selection**: Prisma CLI loads `.env` by default and ignores NODE_ENV; dotenv-cli explicitly specifies which file to load
+- ✅ **Minimal complexity**: Simple CLI wrapper, no custom scripts or configuration needed
+- ✅ **Excellent security posture**: Credentials remain in gitignored files, never in code or config
+
+**Problem it solves:**
+- Prisma CLI has its own .env loading mechanism separate from Node.js/Nx
+- Prisma CLI loads `.env` from root directory by default
+- Prisma CLI does NOT respect NODE_ENV or load environment-specific files automatically
+- Without dotenv-cli, developers must manually manage which .env file is active (error-prone)
+
+**Alternatives considered and rejected:**
+
+1. **Nx-native environment configuration** (rejected):
+   - ❌ Would require credentials in `project.json` or `nx.json` (security risk)
+   - ❌ Not compatible with Prisma's .env file expectations
+   - ❌ Does not work with Prisma CLI commands
+
+2. **Shell scripts with inline variables** (rejected):
+   - ❌ Major security risk (credentials visible in process list)
+   - ❌ Platform-specific (different syntax for Windows/Linux)
+   - ❌ Not officially documented by Prisma
+
+3. **Symbolic link strategy** (rejected):
+   - ❌ Stateful (must remember to switch links)
+   - ❌ Error-prone (easy to run against wrong database)
+   - ❌ Manual process (no automation)
+
+4. **Keep .env as development default** (rejected):
+   - ❌ Inconsistent pattern (dev implicit, test explicit)
+   - ❌ Still requires dotenv-cli for test environment
+   - ❌ Less explicit than environment-specific scripts
+
+5. **dotenvx (modern alternative)** (considered but not chosen):
+   - ✅ Modern, feature-rich alternative to dotenv-cli
+   - ✅ Supports encryption, multiple environments
+   - ❌ Less documentation, newer tool (less battle-tested)
+   - ❌ Not specifically mentioned in Prisma docs
+   - **Decision**: Chose dotenv-cli for alignment with official Prisma documentation
+
+**2-environment architecture:**
+- Development: Existing Supabase project (`pjbnwtsufqpgsdlxydbo` in ZIX-DEV org)
+- Test: New Supabase project (`uvhnqtzufwvaqvbdgcnn` in ZIX-DEV org)
+- Production: Deferred until needed (Supabase free tier limit: 2 projects per user)
+
+**Runtime vs. CLI loading:**
+- **Application runtime** (Express, Jest): Inline dotenv loading in entry points
+- **Prisma CLI**: dotenv-cli wrapper in npm scripts
+- **Why both?**: Different execution contexts require different loading mechanisms
+
+### When Working with Database Commands
+
+**Always use npm scripts, never raw Prisma commands:**
+
+```bash
+# ✅ Correct - uses environment-specific credentials
+pnpm run db:push:dev          # Push schema to development
+pnpm run db:push:test         # Push schema to test
+pnpm run db:migrate:dev       # Create migration in development
+pnpm run db:migrate:deploy:dev # Apply migrations to development
+pnpm run db:studio:dev        # Open Prisma Studio for development
+
+# ❌ Wrong - loads default .env (if it exists) or fails
+npx prisma db push
+npx prisma migrate dev
+```
+
+**Why always use scripts:**
+- Ensures correct environment credentials are loaded
+- Prevents accidental operations on wrong database
+- Self-documenting (script names clearly show which environment)
+- Consistent team workflow
+
+### Dependencies Required
+
+**Workspace root** (`package.json`):
+```json
+{
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^11.0.0"
+  }
+}
+```
+
+**Why dotenv in dependencies:**
+- Used in application runtime code (`apps/server/src/main.ts`)
+- Needed in production deployments
+
+**Why dotenv-cli in devDependencies:**
+- Only used during development for Prisma CLI commands
+- Not needed in production (environment variables provided by platform)
+
+### Anti-Patterns to Avoid
+
+❌ **Running Prisma commands without dotenv-cli**:
+```bash
+# WRONG - may load wrong .env or fail
+npx prisma db push
+```
+
+✅ **Correct - use npm scripts**:
+```bash
+# RIGHT - loads correct environment
+pnpm run db:push:dev
+```
+
+❌ **Creating .env file alongside .env.*.local files**:
+```bash
+# WRONG - causes confusion about which file is used
+touch .env
+```
+
+✅ **Correct - only environment-specific files**:
+```bash
+# RIGHT - explicit environment selection
+ls .env.*.local
+# .env.development.local  .env.test.local
+```
+
+❌ **Committing environment files with credentials**:
+```bash
+# WRONG - credentials in git
+git add .env.development.local
+```
+
+✅ **Correct - only commit example file**:
+```bash
+# RIGHT - template without credentials
+git add .env.example
+```
+
+❌ **Using NODE_ENV without dotenv-cli for Prisma**:
+```bash
+# WRONG - Prisma CLI ignores NODE_ENV
+NODE_ENV=test npx prisma db push
+```
+
+✅ **Correct - explicit file with dotenv-cli**:
+```bash
+# RIGHT - dotenv-cli explicitly loads file
+pnpm run db:push:test
+```
+
+### Troubleshooting
+
+**Issue**: Prisma command fails with "Environment variable not found: DATABASE_URL"
+**Fix**: Verify `.env.*.local` file exists and contains DATABASE_URL. Use npm scripts, not raw Prisma commands.
+
+**Issue**: Prisma connects to wrong database
+**Fix**: Delete any `.env` or `.env.local` files in root directory. Only keep `.env.*.local` files.
+
+**Issue**: Application starts but can't connect to database
+**Fix**: Verify inline dotenv loading happens BEFORE any imports that use Prisma client.
+
+**Issue**: Tests fail with database connection errors
+**Fix**: Verify `jest.setup.js` is loaded via `setupFiles` in `jest.preset.js`.
+
+### Last Validated
+
+2025-11-03 (Prisma 6.17.1, dotenv 16.4.5, dotenv-cli 11.0.0, Supabase PostgreSQL 15)
+
+**References**:
+- [Prisma Multi-Environment Guide](https://www.prisma.io/docs/orm/more/development-environment/environment-variables/using-multiple-env-files)
+- docs/environment-setup.md (comprehensive environment configuration guide)
+- docs/supabase-projects.md (Supabase project credentials)
+- Research conducted: 2025-11-03 with 4 parallel research agents (Prisma patterns, dotenv-cli, Nx integration, Next.js community practices)
+
+---
+
+## Pattern 14: Migration Management and Rollback
+
+**Our Standard**: Use `prisma migrate deploy` for production-safe migrations; manual rollback process documented
+
+### Pattern
+
+**Migration Application** (Forward):
+```bash
+# Development database
+pnpm run db:migrate:deploy:dev
+
+# Test database
+pnpm run db:migrate:deploy:test
+
+# Production database (future)
+pnpm run db:migrate:deploy:prod
+```
+
+**Migration Rollback** (Manual Process):
+
+Prisma does not have a built-in rollback command. To revert a migration:
+
+1. **Identify the migration to rollback**:
+   ```bash
+   # List all migrations
+   ls packages/database/prisma/migrations/
+   ```
+
+2. **Create a new migration that reverses the changes**:
+   ```bash
+   # For development (creates new migration)
+   pnpm run db:migrate:dev
+
+   # Manually edit the generated migration.sql to reverse the schema changes
+   # Example: If migration added a table, the rollback drops that table
+   ```
+
+3. **Example rollback migration**:
+   ```sql
+   -- Rollback for: 20251027072808_create_health_check
+   -- This migration would drop the table created by that migration
+   DROP TABLE IF EXISTS "health_checks";
+   ```
+
+4. **Apply the rollback migration**:
+   ```bash
+   pnpm run db:migrate:deploy:dev    # Apply to development
+   pnpm run db:migrate:deploy:test   # Apply to test
+   ```
+
+**Best Practices**:
+
+- **Never rollback in production** unless absolutely necessary - prefer forward-only migrations
+- **Test rollback locally first** - Always test on development/test databases before production
+- **Data loss warning** - Rollbacks that drop columns/tables will permanently delete data
+- **Migration naming** - Name rollback migrations clearly: `20251104_rollback_health_check`
+- **Version control** - Commit rollback migrations to git like any other migration
+- **Database backups** - Always backup production database before applying any migration or rollback
+
+**Emergency Rollback** (Production):
+
+If a production migration causes critical issues:
+
+1. **Backup the database immediately**:
+   ```bash
+   # Via Supabase dashboard: Database > Backups > Create backup
+   ```
+
+2. **Create and test rollback migration locally**:
+   ```bash
+   # On local dev database
+   pnpm run db:migrate:dev  # Create rollback migration
+   # Edit migration.sql to reverse changes
+   pnpm run db:migrate:deploy:dev  # Test locally
+   ```
+
+3. **Apply to test database**:
+   ```bash
+   pnpm run db:migrate:deploy:test  # Verify on test
+   ```
+
+4. **Apply to production** (only after local + test verification):
+   ```bash
+   pnpm run db:migrate:deploy:prod
+   ```
+
+### Applies To
+
+All environments (development, test, production) and all Prisma-managed databases
+
+### Rationale
+
+**Why `migrate deploy` instead of `migrate dev`:**
+- `migrate deploy` is production-safe (non-interactive, fails on conflicts)
+- `migrate dev` is interactive and can make assumptions (not safe for CI/CD)
+- Aligns with Prisma's recommended deployment workflow
+
+**Why manual rollback process:**
+- Prisma philosophy: forward-only migrations are safer
+- Rollbacks risk data loss and schema inconsistencies
+- Manual process forces deliberate review of rollback safety
+- Industry standard: Django, Rails, Laravel all use manual rollbacks
+
+**Why document emergency procedures:**
+- Production incidents require clear, tested procedures
+- Reduces panic-driven mistakes during outages
+- Ensures rollbacks are tested before production application
+
+### When Adding New Migrations
+
+**⚠️ Common migration pitfalls:**
+- Forgetting to test rollback procedures locally
+- Not considering data migration during rollback
+- Applying migrations directly to production without testing
+- Not backing up production database before migrations
+
+**Required workflow:**
+1. Create migration on development database
+2. Test forward migration on dev/test
+3. Create and test rollback migration on dev/test
+4. Verify data integrity after rollback
+5. Only then apply to production (if applicable)
+
+### Last Validated
+
+2025-11-04 (Prisma 6.17.1, Supabase PostgreSQL 15)
+
+**References**:
+- [Prisma Migration Deployment Guide](https://www.prisma.io/docs/orm/prisma-migrate/workflows/production-troubleshooting)
+- [Prisma Migrate Deploy Documentation](https://www.prisma.io/docs/orm/reference/prisma-cli-reference#migrate-deploy)
+- docs/environment-setup.md - Environment-specific migration commands
+- Pattern 13 (this document) - Database environment management
+
+---
+
+## Pattern 15: Per-Project Jest Setup Files (Principle of Least Privilege)
+
+**Our Standard**: Projects load environment variables only when needed via per-project `setupFiles` configuration
+
+### Pattern
+
+**Test utilities package (`@nx-monorepo/test-utils`):**
+```typescript
+// packages/test-utils/src/lib/load-database-env.ts
+import { config } from 'dotenv';
+import { resolve } from 'path';
+import { existsSync } from 'fs';
+
+export function loadDatabaseEnv(workspaceRoot: string): void {
+  const env = process.env.NODE_ENV || 'development';
+  const envFile = `.env.${env}.local`;
+  const envPath = resolve(workspaceRoot, envFile);
+
+  if (!existsSync(envPath)) {
+    throw new Error(`Environment file not found: ${envFile}`);
+  }
+
+  config({ path: envPath });
+}
+```
+
+**Per-project setup file (database package example):**
+```typescript
+// packages/database/jest.setup.ts
+import { loadDatabaseEnv } from '@nx-monorepo/test-utils';
+import { resolve } from 'path';
+
+// __dirname = packages/database, so ../.. = workspace root
+loadDatabaseEnv(resolve(__dirname, '../..'));
+```
+
+**Per-project Jest configuration:**
+```javascript
+// packages/database/jest.config.cjs
+const { join } = require('path');
+
+module.exports = {
+  displayName: '@nx-monorepo/database',
+  preset: '../../jest.preset.js',
+  setupFiles: [join(__dirname, 'jest.setup.ts')],  // ← Add this line only
+  // ... preserve ALL other existing configuration
+};
+```
+
+**Workspace-level preset (clean):**
+```javascript
+// jest.preset.js
+const nxPreset = require('@nx/jest/preset').default;
+
+module.exports = {
+  ...nxPreset,
+  // NO setupFiles here - projects configure their own
+};
+```
+
+### Applies To
+
+**Projects that NEED database credentials:**
+- `packages/database` - Direct Prisma access
+- `apps/server` - Uses database package for integration tests
+
+**Projects that should NOT have credentials:**
+- `packages/schemas` - Pure validation logic
+- `packages/api-client` - REST client (mocked in tests)
+- `packages/supabase-client` - Client wrapper (no direct DB access)
+- `apps/web` - Frontend (uses API client)
+- Future mobile app - Frontend (uses API client)
+
+### Rationale
+
+**Security (Principle of Least Privilege):**
+- Loading `DATABASE_URL` for all 7+ projects violates PoLP
+- Frontend packages should never have direct database credentials
+- Limits blast radius if credentials leak from test logs/artifacts
+
+**Architectural clarity:**
+- Makes dependencies explicit (database package needs credentials, schemas don't)
+- Prevents accidental direct database access from non-database packages
+- Enforces proper architectural boundaries (use API client, not direct DB)
+
+**Rejected alternatives:**
+1. **Workspace-level setupFiles (original approach)** - Violates PoLP, gives credentials to all projects
+2. **Conditional loading in workspace setup** - Still exposes credentials, just doesn't fail; violates PoLP
+3. **Duplicate code in each project** - Code duplication, harder to maintain
+
+**Why shared utility package:**
+- DRY principle - single source of truth for environment loading logic
+- Consistent error messages across projects
+- Preserves `__dirname` pattern (prevents process.cwd() bugs)
+- Easy to extend if more setup utilities needed
+
+### When Adding New Projects
+
+**⚠️ Default behavior after nx g:**
+- New projects inherit workspace preset
+- Workspace preset does NOT load environment variables (clean state)
+- Projects must explicitly opt-in to loading credentials
+
+**For projects that need database credentials:**
+
+1. **Add test-utils dependency:**
+```bash
+# In project package.json
+{
+  "devDependencies": {
+    "@nx-monorepo/test-utils": "workspace:*"
+  }
+}
+```
+
+2. **Create per-project setup file:**
+```typescript
+// <project>/jest.setup.ts
+import { loadDatabaseEnv } from '@nx-monorepo/test-utils';
+import { resolve } from 'path';
+
+loadDatabaseEnv(resolve(__dirname, '../..'));
+```
+
+3. **Update Jest configuration:**
+```javascript
+// <project>/jest.config.cjs (or .ts)
+const { join } = require('path');
+
+module.exports = {
+  // ... existing config
+  setupFiles: [join(__dirname, 'jest.setup.ts')],  // ← Add this line
+  // ... preserve ALL other settings (transform, testEnvironment, etc.)
+};
+```
+
+4. **Run pnpm install and nx sync:**
+```bash
+pnpm install
+pnpm exec nx sync
+```
+
+5. **Verify tests pass:**
+```bash
+pnpm exec nx run <project>:test
+```
+
+**For projects that DON'T need database credentials:**
+- No action required
+- Tests run without environment variables (correct behavior)
+
+### Last Validated
+
+2025-11-05 (Nx 21.6, Jest 30, Node 22)
+
+**References:**
+- GitHub Issue #22 - Original security concern
+- Pattern 13 (this document) - Database environment management
+- `docs/memories/tech-findings-log.md` - "Per-Project Jest Setup Files" entry
+- `docs/memories/testing-reference.md` - Jest configuration guidelines
 
 ---
 

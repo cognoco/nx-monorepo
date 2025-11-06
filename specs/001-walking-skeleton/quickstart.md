@@ -120,11 +120,11 @@ SUPABASE_ANON_KEY="[your-anon-key]"
 SUPABASE_SERVICE_ROLE_KEY="[your-service-role-key]"
 
 # Server configuration
-PORT=3001
-API_BASE_URL="http://localhost:3001"
+PORT=4000
+API_BASE_URL="http://localhost:4000"
 
 # Web configuration
-NEXT_PUBLIC_API_URL="http://localhost:3001"
+NEXT_PUBLIC_API_URL="http://localhost:4000"
 ```
 
 **Important**:
@@ -212,13 +212,13 @@ pnpm exec nx run server:serve
 
 **Expected Output**:
 ```
-Server running on http://localhost:3001
-OpenAPI spec available at http://localhost:3001/api/docs
+Server running on http://localhost:4000
+OpenAPI spec available at http://localhost:4000/api/docs
 ```
 
 **Verify Server**:
 ```bash
-curl http://localhost:3001/api/health
+curl http://localhost:4000/api/health
 ```
 
 Should return: `{"healthChecks":[]}`
@@ -331,7 +331,7 @@ pnpm exec nx run web-e2e:e2e
 1. Open `apps/web/src/app/health/page.tsx` in VS Code
 2. Configure the client with baseUrl including the API prefix:
    ```ts
-   const apiClient = createClient<paths>({ baseUrl: 'http://localhost:3001/api' });
+   const apiClient = createClient<paths>({ baseUrl: 'http://localhost:4000/api' });
    ```
 3. Find the API client call: `apiClient.GET('/health')`
 3. Type `apiClient.` and verify autocomplete shows:
@@ -369,7 +369,7 @@ After completing all steps, verify these outcomes:
 - [ ] Repository clones and installs without errors
 - [ ] Database migrations apply successfully to Supabase
 - [ ] All projects build successfully (`pnpm exec nx run-many -t build`)
-- [ ] Server starts and responds at `http://localhost:3001`
+- [ ] Server starts and responds at `http://localhost:4000`
 - [ ] Web app starts and renders at `http://localhost:3000`
 - [ ] `/health` page displays empty list initially
 - [ ] Clicking "Ping" creates new records that appear immediately
