@@ -235,6 +235,17 @@ Before using Grep, Glob, Read, or WebSearch yourself, ask: "Could a sub-agent do
 - **`post-generation-checklist.md`**: Mandatory fixes after Nx generators
 - **`tech-findings-log.md`**: Technical decisions, constraints, troubleshooting findings
 - **`README.md`**: Comprehensive memory system documentation
+- **`memory-system-architecture.md`**: Dual-system rules (ByteRover mirror, manifests, backlog processing)
+- **`memory-sync-backlog.md`**: Append-only log for failed ByteRover uploads
+
+**Retrieval order**: Query ByteRover (`nx-monorepo` space) first when MCP access is available. Only treat results as authoritative when confidence ≥ 0.4. If confidence < 0.4 or the service is unreachable, open the local core summary and drill into modules using the relevant manifest.
+
+**Write workflow expectations**:
+- Update or create the Markdown chunk, then add/update the manifest entry (`id`, `title`, `file`, `tags`).
+- Set `checksum: null`, `sync_status: pending`, and `byterover_id: null` before attempting sync.
+- Run the ingestion pipeline (`pnpm run memory:sync -- --chunk <chunk_id>` when available).
+- On failure (network, auth, no MCP), append a row to `docs/memories/memory-sync-backlog.md` with chunk id, reason, timestamp (UTC), and agent id; leave `sync_status: pending`.
+- After a successful sync, record the new `checksum`, `byterover_id`, and `last_synced_at` in the manifest.
 
 ### Critical Warning
 
@@ -282,12 +293,14 @@ Modified: 2025-10-21T14:39  # ❌ NEVER touch - auto-managed
 
 This is a **gold standard Nx monorepo template** designed as a production-ready foundation for multi-platform applications. The project uses a "walking skeleton" approach to validate infrastructure and tooling before feature development.
 
-**Current State**: Phase 1 Stage 2 complete - Full infrastructure validated:
-- ✅ Next.js web application with Playwright E2E tests
+**Current State**: Phase 1 Stage 5 complete - Walking skeleton fully implemented:
+- ✅ Next.js web application with Playwright E2E infrastructure
 - ✅ Express server application with REST+OpenAPI
 - ✅ Four shared packages: database (Prisma), schemas (Zod), api-client (REST+OpenAPI), supabase-client
-- ✅ Complete QA infrastructure: Jest, ESLint, Prettier, CI/CD
-- ⏳ In progress: QA infrastructure (Husky, lint-staged), Supabase configuration
+- ✅ Complete QA infrastructure: Jest, ESLint, Prettier, Husky, lint-staged, CI/CD
+- ✅ Supabase + Prisma configured and validated
+- ✅ Walking skeleton: Health check feature working end-to-end (web → API → server → database)
+- ⏳ Next: Stage 6 - Comprehensive E2E tests and documentation
 
 **Architecture Goal**: Production-ready monorepo template demonstrating best practices for:
 - Cross-platform type safety (web, server, future mobile)
@@ -597,10 +610,11 @@ To enable distributed task execution in CI, uncomment the `nx start-ci-run` line
 0. ✅ Current State Audit - Verify existing web app works
 1. ✅ Generate Server Application
 2. ✅ Generate Shared Packages - Create database, schemas, api-client, supabase-client
-3. ⏳ [In progress] QA Infrastructure - Set up Husky, lint-staged, pre-commit hooks
-4. ⏳ Configure Infrastructure - Set up Supabase + Prisma
-5. ⏳ Implement Walking Skeleton - Minimal health check feature end-to-end
-6. ⏳ Complete Testing & External Services - E2E tests, Sentry, final validation
+3. ✅ QA Infrastructure - Set up Husky, lint-staged, pre-commit hooks, coverage reporting
+4. ✅ Configure Infrastructure - Set up Supabase + Prisma, REST+OpenAPI implementation
+5. ✅ Implement Walking Skeleton - Health check feature end-to-end (web → API → server → database)
+6. ⏳ [Next] E2E Testing - Comprehensive tests for walking skeleton, raise coverage to 80%, documentation
+7. ⏳ [Optional] External Services - Sentry, Nx Cloud optimization, TestSprite evaluation
 
 **Success Criteria**: A new developer can clone, install, build, and run the full stack with a working health check feature flowing through all layers.
 
@@ -707,3 +721,24 @@ If the user wants help with fixing an error in their CI pipeline, use the follow
 
 
 <!-- nx configuration end-->
+
+[byterover-mcp]
+
+[byterover-mcp]
+
+You are given two tools from Byterover MCP server, including
+## 1. `byterover-store-knowledge`
+You `MUST` always use this tool when:
+
++ Learning new patterns, APIs, or architectural decisions from the codebase
++ Encountering error solutions or debugging techniques
++ Finding reusable code patterns or utility functions
++ Completing any significant task or plan implementation
+
+## 2. `byterover-retrieve-knowledge`
+You `MUST` always use this tool when:
+
++ Starting any new task or implementation to gather relevant context
++ Before making architectural decisions to understand existing patterns
++ When debugging issues to check for previous solutions
++ Working with unfamiliar parts of the codebase
