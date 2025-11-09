@@ -6,9 +6,9 @@ This document provides comprehensive testing configuration patterns for the nx-m
 
 ### Maintenance Checklist
 1. When adding or modifying a section, update `docs/memories/testing-reference/manifest.yaml` with the chunk `id`, `title`, `file`, and `tags`.
-2. Reset `checksum` to `null`, mark `sync_status: pending`, and clear `byterover_id` prior to syncing.
-3. Run the ingestion pipeline (`pnpm run memory:sync -- --chunk <chunk_id>` once available) to mirror the update to ByteRover.
-4. Record any sync failure in `docs/memories/memory-sync-backlog.md` (chunk id, reason, timestamp UTC, agent id) and leave the manifest entry pending until resolved.
-5. After a successful sync, update the manifest with the new `checksum`, `byterover_id`, and `last_synced_at` values.
+2. Note the governing `docs/` artefact (document + section) and explain why the update supports it.
+2. Reset `checksum: null`, set `validation_status: needs_review`, and update `last_updated_by` / `last_updated_at`.
+3. Run the Cogno sync pipeline (`pnpm run memory:sync -- --chunk <chunk_id>` once available) to regenerate checksums and refresh `memory-index.json`.
+4. After the content is validated, switch `validation_status` to `valid` (or `draft` if additional work remains).
 
 ---

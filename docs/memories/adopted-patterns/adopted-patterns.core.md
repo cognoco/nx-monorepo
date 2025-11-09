@@ -9,6 +9,7 @@
 - Always align new projects with the documented patterns; if a generator disagrees, fix it immediately.
 - Prefer co-located tests, `moduleResolution: bundler` for app code, and path-agnostic Express routers.
 - Prisma configuration (schema, client lifecycle, migrations, env management) must follow the shared conventions to avoid drift.
+- Each new pattern must cite the governing `docs/` artefact (document + section) and note why the pattern is consistent with it.
 
 ## Module Index
 - [Pattern 1: Test File Location](module-01-pattern-1-test-file-location.md)
@@ -33,4 +34,10 @@
 ## Usage Notes
 - Load the relevant module(s) only; the core file should stay within the default context window.
 - When documenting new patterns, copy the template module, update metadata in the manifest, and refresh the workspace index.
+- Keep this core summary scannable—use it for overview notes and links, not exhaustive guidance.
+
+## Module vs. Core Authoring Guidance
+- Add brief (<50 line) clarifications or high-level principles directly here when immediate visibility matters.
+- Create a new `module-XX-topic.md` when the pattern needs detailed steps, code samples, or exceeds roughly 50 lines.
+- Split patterns into numbered variants (e.g. Pattern 5.1/5.2) when an entry grows beyond ~100 lines or covers independent scenarios; give each its own module and manifest entry.
 

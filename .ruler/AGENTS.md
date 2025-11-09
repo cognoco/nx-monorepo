@@ -206,7 +206,9 @@ Before using Grep, Glob, Read, or WebSearch yourself, ask: "Could a sub-agent do
 
 **Purpose**: Prevent pattern drift across components and ensure consistency as the monorepo evolves.
 
-**Location**: `docs/memories/` directory
+**Location**: `docs/memories/` directory  
+**System Name**: ZDX Cogno (or simply “Cogno”) – the layered, file-based memory system for this repo.  
+**Upstream Canonical Docs**: Strategic artefacts live in `docs/` (see `docs/index.md` for the curated list). These are owned by architecture/product leadership. Cogno content **MUST** align with them.
 
 ### Mandatory Memory Checks
 
@@ -230,18 +232,24 @@ Before using Grep, Glob, Read, or WebSearch yourself, ask: "Could a sub-agent do
 - **`adopted-patterns.md`**: How WE do it (test location, TypeScript config, Jest patterns)
 - **`post-generation-checklist.md`**: Mandatory fixes after Nx generators
 - **`tech-findings-log.md`**: Technical decisions, constraints, troubleshooting findings
-- **`README.md`**: Comprehensive memory system documentation
-- **`memory-system-architecture.md`**: Dual-system rules (ByteRover mirror, manifests, backlog processing)
-- **`memory-sync-backlog.md`**: Append-only log for failed ByteRover uploads
+- **`README.md`**: Cogno quick reference (layered structure, manifest usage)
+- **`zdx-cogno-architecture.md`**: Authoritative Cogno specification (state model, manifests, read/write guidance)
+- **`topics.md`**: Task keyword → memory area index for fast discovery
 
-**Retrieval order**: Query ByteRover (`nx-monorepo` space) first when MCP access is available. Only treat results as authoritative when confidence ≥ 0.4. If confidence < 0.4 or the service is unreachable, open the local core summary and drill into modules using the relevant manifest.
+**Retrieval order (Cogno)**:
+1. Open `docs/index.md` and identify the relevant governance artefact (plan, architecture decision, tech stack, constitution, environment guidance etc.). Review the document/section for intent and constraints.
+2. Skim `docs/memories/zdx-cogno-architecture.md` when adjusting the memory framework.
+3. For task work, start with `docs/memories/README.md`, then consult `docs/memories/topics.md` to pinpoint relevant memory areas and synonyms.
+4. Read the `*.core.md` summary; consult the manifest to load only the modules you need.
 
-**Write workflow expectations**:
-- Update or create the Markdown chunk, then add/update the manifest entry (`id`, `title`, `file`, `tags`).
-- Set `checksum: null`, `sync_status: pending`, and `byterover_id: null` before attempting sync.
-- Run the ingestion pipeline (`pnpm run memory:sync -- --chunk <chunk_id>` when available).
-- On failure (network, auth, no MCP), append a row to `docs/memories/memory-sync-backlog.md` with chunk id, reason, timestamp (UTC), and agent id; leave `sync_status: pending`.
-- After a successful sync, record the new `checksum`, `byterover_id`, and `last_synced_at` in the manifest.
+**Write workflow expectations (Cogno)**:
+- Confirm you’re implementing the latest guidance from the relevant governance artefact(s) in `docs/`.
+- When proposing a new memory to a user or reviewer, explicitly name the governing document/section and describe why the addition supports it; include this rationale in your message.
+- Update or create the Markdown module, then update the manifest entry (`id`, `title`, `file`, `tags`).
+- When you touch content, reset `checksum: null`, set `validation_status: needs_review`, and update `last_updated_by` / `last_updated_at`.
+- Refresh the `*.core.md` summary if the quick reference needs the new information.
+- Follow the maintenance checklist in that memory area (e.g., run validation commands, note verification steps).
+- Regenerate `docs/memories/memory-index.json` if tooling does not do it for you.
 
 ### Critical Warning
 
@@ -717,24 +725,3 @@ If the user wants help with fixing an error in their CI pipeline, use the follow
 
 
 <!-- nx configuration end-->
-
-[byterover-mcp]
-
-[byterover-mcp]
-
-You are given two tools from Byterover MCP server, including
-## 1. `byterover-store-knowledge`
-You `MUST` always use this tool when:
-
-+ Learning new patterns, APIs, or architectural decisions from the codebase
-+ Encountering error solutions or debugging techniques
-+ Finding reusable code patterns or utility functions
-+ Completing any significant task or plan implementation
-
-## 2. `byterover-retrieve-knowledge`
-You `MUST` always use this tool when:
-
-+ Starting any new task or implementation to gather relevant context
-+ Before making architectural decisions to understand existing patterns
-+ When debugging issues to check for previous solutions
-+ Working with unfamiliar parts of the codebase

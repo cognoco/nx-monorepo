@@ -47,8 +47,8 @@
     "manifest": null,
     "chunks": []
   },
-  "memory-system-architecture": {
-    "core": "docs/memories/memory-system-architecture.md",
+  "zdx-cogno-architecture": {
+    "core": "docs/memories/zdx-cogno-architecture.md",
     "manifest": null,
     "chunks": []
   },

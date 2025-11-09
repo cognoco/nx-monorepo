@@ -21,9 +21,9 @@ When should you add a new checklist?
 
 **Post-update checklist:**
 1. Create or update the manifest entry with the correct chunk `id`, `title`, `file`, and `tags`.
-2. Reset `checksum` to `null`, set `sync_status: pending`, and clear `byterover_id`.
-3. Execute the ingestion pipeline (`pnpm run memory:sync -- --chunk <chunk_id>`, once available) to push updates to ByteRover.
-4. On failure, record the attempt in `docs/memories/memory-sync-backlog.md` with chunk id, reason, timestamp (UTC, ISO 8601), and agent id.
-5. After a successful sync, update the manifest with the generated `checksum`, `byterover_id`, and `last_synced_at`.
+2. Document the governing `docs/` artefact (document + section) and capture a short rationale for alignment.
+2. Reset `checksum: null`, set `validation_status: needs_review`, and update `last_updated_by` / `last_updated_at`.
+3. Run the Cogno sync pipeline (`pnpm run memory:sync -- --chunk <chunk_id>` once available) to regenerate checksums and refresh `memory-index.json`.
+4. After peer validation, set `validation_status` to `valid` (or `draft` if additional updates are planned).
 
 ---

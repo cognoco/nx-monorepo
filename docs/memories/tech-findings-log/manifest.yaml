@@ -10,7 +10,6 @@ chunks:
     tags: [template, documentation]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -20,7 +19,6 @@ chunks:
     tags: [example, documentation]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -30,7 +28,6 @@ chunks:
     tags: [overview, governance]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -40,7 +37,6 @@ chunks:
     tags: [testing, jest, workspace]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -50,7 +46,6 @@ chunks:
     tags: [platform, prisma, windows]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -60,7 +55,6 @@ chunks:
     tags: [build, nextjs, module-resolution]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -70,7 +64,6 @@ chunks:
     tags: [git, windows, tooling]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -80,7 +73,6 @@ chunks:
     tags: [references, documentation]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -90,7 +82,6 @@ chunks:
     tags: [testing, jest, windows]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -100,7 +91,6 @@ chunks:
     tags: [typescript, nx, workspaces]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -110,7 +100,6 @@ chunks:
     tags: [database, supabase, configuration]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -120,7 +109,6 @@ chunks:
     tags: [nx, configuration]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -130,7 +118,6 @@ chunks:
     tags: [web, configuration, api]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -140,7 +127,6 @@ chunks:
     tags: [server, express, cors]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -150,7 +136,6 @@ chunks:
     tags: [database, supabase, connectivity]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -160,7 +145,6 @@ chunks:
     tags: [database, ipv6, supabase]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -170,7 +154,6 @@ chunks:
     tags: [phase-5, migrations, process]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -180,7 +163,6 @@ chunks:
     tags: [environment, validation, tooling]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -190,7 +172,6 @@ chunks:
     tags: [placeholder]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null

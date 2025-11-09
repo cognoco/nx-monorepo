@@ -8,7 +8,8 @@
 ## Critical Rules
 - Search the log before suggesting deviations from adopted patterns or introducing new tooling.
 - When you discover a repeatable issue or workaround, document it via the template; include context, alternatives, and warning signs.
-- Tag your additions appropriately so ByteRover search returns precise snippets.
+- Tag your additions appropriately so Cogno manifests and future tooling surface precise snippets.
+- Every new entry must cite the governing `docs/` artefact (document + section) and include a short justification for alignment.
 
 ## Module Index
 - [Entry Template](module-01-entry-template.md)
@@ -32,6 +33,12 @@
 - [Future Entries Placeholder](module-19-future-entries.md)
 
 ## Usage Notes
-- Use tags from the manifest when searching ByteRover to narrow results by area (e.g., `database`, `testing`).
+- Use tags from the manifest (e.g., `database`, `testing`) when filtering within Cogno or downstream tooling.
 - Record outcomes of experiments and rejected alternatives to prevent repeated investigations.
+- Keep this core summary lean—add high-level cataloguing notes here, and move deep dives into dedicated modules.
+
+## Module vs. Core Authoring Guidance
+- Add short (<50 line) clarifications or cross-reference notes here; place full findings in `module-XX-*.md`.
+- Create a new module when documenting troubleshooting timelines, reproducible steps, or any narrative that exceeds ~50 lines.
+- Split or supersede modules when a finding grows beyond ~100 lines or diverges into multiple independent scenarios; ensure manifests capture each new entry.
 

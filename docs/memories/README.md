@@ -9,17 +9,36 @@ last-updated: 2025-11-06
 # Memory System Documentation
 
 ## TL;DR
-- `docs/memories/` holds the canonical, file-based long-term memory for this repository. These Markdown files remain the **master source of truth**.
-- ByteRover mirrors curated chunks from these files. Agents with MCP access query ByteRover first, but must fall back to local files on low-confidence results or service outages.
-- The memory system now uses a **layered structure**: lightweight core summaries for quick scanning, and focused module files where depth is helpful (see individual memory directories).
-- All read/write rules, manifests, and sync mechanics are defined in `docs/memories/memory-system-architecture.md`. Always consult that document before changing the system.
+- ZDX Cogno (short: **Cogno**) is the operational memory system that lives in `docs/memories/`. It translates the canonical governance artefacts in `docs/` into actionable guidance. Architecture/Product own the governance layer; Engineering owns Cogno.
+- Cogno is layered: each memory area ships with a concise `*.core.md` summary, optional deep-dive modules, and a `manifest.yaml` listing those modules.
+- `docs/memories/zdx-cogno-architecture.md` is the canonical specification for Cogno; this README is the quick reference.
+- `.ruler/AGENTS.md` mirrors this information for agents. Whenever you change Cogno, keep the cascade aligned (governance doc → architecture spec → this README → agent rules).
 
 ## Quick Links
-- `docs/memories/memory-system-architecture.md` – canonical architecture spec (state model, read precedence, write flow, sync triggers, telemetry).
-- `docs/memories/memory-sync-backlog.md` – operational log for failed ByteRover sync attempts.
-- `docs/memories/memory-index.json` – generated lookup table for chunk manifests (do not edit manually).
-- `_wip/dual-memory-byr-plan.md` – staged implementation plan for the dual system.
+- `docs/index.md` – Canonical governance index (start here to find the right upstream artefact).
+- `docs/` governance artefacts – project brief, PRD, architecture, tech stack, ADRs (canonical strategy/constraints).
+- `docs/memories/zdx-cogno-architecture.md` – canonical architecture spec for Cogno.
+- `docs/memories/memory-index.json` – generated lookup table for manifest metadata (do not edit manually).
+- `docs/memories/topics.md` – topical index mapping common task keywords to memory areas and synonyms.
+- `.ruler/AGENTS.md` – source of agent rules that reference Cogno (generated copies live at `AGENTS.md` and `CLAUDE.md`).
 - `docs/constitution.md` – symlink to the governance constitution (must be read before modifying code).
+
+## Feature Implementation Intake Checklist
+
+Follow this lightweight intake before starting substantial implementation or memory updates:
+
+1. `docs/index.md` → open the relevant canonical artefact(s) and note the governing section(s).
+2. Cogno steering → skim this README, check `docs/memories/topics.md` for relevant areas, then open the pertinent `*.core.md` summary.
+3. Planning hygiene → run Sequential Thinking MCP to outline your approach.
+4. Assumption check → run Vibe-Check MCP to surface risks or hidden dependencies.
+5. Traceability → capture the canonical reference and alignment rationale (you’ll need it when updating manifests or proposing changes).
+
+## Upstream Governance (Canonical Layer)
+
+- Strategic documentation lives in the root `docs/` directory (e.g. `project-brief.md`, `prd.md`, `architecture.md`, `architecture-decisions.md`, `tech-stack.md`). Architects and product managers are accountable for keeping these current.
+- Cogno derives its guidance from these artefacts. When governance docs change, Cogno stewards must update the relevant modules to stay aligned.
+- Use `docs/index.md` to locate the appropriate governance document, then read it fully before editing Cogno. Cite it in the module’s references or checklist.
+- When proposing a new memory, explicitly explain how it supports the referenced canonical document (include doc name + rationale).
 
 ---
 
@@ -31,12 +50,12 @@ This directory contains the monorepo's **institutional knowledge** – the patte
 
 ---
 
-## Dual Memory Architecture
+## Cogno Steering Snapshot
 
-- **File-Based Master**: Markdown modules (plus YAML manifests where applicable) are canonical. All updates originate here.
-- **ByteRover Mirror**: After writing to disk, agents attempt a synchronous upload to the ByteRover space named `nx-monorepo`. On success, manifests record the remote identifier. On failure, entries are logged to the sync backlog and marked `pending`.
-- **Retrieval Flow**: Query ByteRover first (confidence ≥ 0.4). If unavailable or confidence is low, load the relevant local core summary and drill into module files listed in the manifest.
-- **Sync Telemetry**: Detailed state model, sync triggers, conflict policies, and metrics expectations live in `memory-system-architecture.md`.
+- **Cascade**: Governance docs (`docs/`) → `zdx-cogno-architecture.md` → `README.md` → `.ruler/AGENTS.md`.
+- **Structure**: Each memory area provides a `*.core.md` summary, optional modules, and a manifest. Modules stay small and topical.
+- **Manifests**: Track `id`, `title`, `file`, `tags`, optional `checksum`, `validation_status`, `last_updated_by`, `last_updated_at`. No remote sync fields.
+- **Future integrations**: Any external tooling must ingest from Cogno; nothing else is authoritative.
 
 ---
 
@@ -62,7 +81,7 @@ This directory contains the monorepo's **institutional knowledge** – the patte
 
 ### The Solution: Memory System
 
-This directory captures **transferable knowledge** that applies across multiple components, ensuring consistency and preventing rework. ByteRover indexing makes this knowledge faster to retrieve without compromising the canonical files.
+This directory captures **transferable knowledge** that applies across multiple components, ensuring consistency and preventing rework. Cogno’s manifests and index make this knowledge fast to discover without leaving the repo.
 
 ---
 
@@ -141,9 +160,9 @@ This directory captures **transferable knowledge** that applies across multiple 
 
 ---
 
-### Reference Documentation (`testing-reference.md`, `troubleshooting.md`, …)
+### Reference Documentation (`testing-reference`, `troubleshooting`, …)
 
-These files remain layered: each has a concise `*.core.md` summary plus focused modules stored in dedicated directories. Consult their manifests for chunk IDs used during ByteRover uploads. Use them when you need detailed specifications, configuration patterns, or troubleshooting solutions.
+These directories follow the layered pattern: a `*.core.md` summary plus focused modules stored in dedicated directories. Use the manifest to locate the modules you need—no remote sync required. Maintenance checklists inside each area describe the authoring expectations.
 
 ---
 
@@ -222,7 +241,7 @@ Guidance for agents:
 
 ## Memory System Principles
 
-These principles continue to govern what belongs in memory. See `memory-system-architecture.md` for lifecycle mechanics, manifests, and sync triggers.
+These principles continue to govern what belongs in memory. See `zdx-cogno-architecture.md` for lifecycle mechanics, manifests, and sync triggers.
 
 ### 1. Cross-Component Knowledge
 Memory captures **transferable patterns** that apply to **multiple similar contexts**.
@@ -280,9 +299,8 @@ Memory captures **solutions to prevent future problems**.
 
 ## Operational Artifacts
 
-- **Memory System Architecture** – authoritative reference for read/write precedence, manifest schema, sync backlog processing, and telemetry expectations.
-- **Sync Backlog (`docs/memories/memory-sync-backlog.md`)** – append-only log capturing failed ByteRover syncs. Maintenance tasks replay backlog entries and clear them on success.
-- **Memory Index (`docs/memories/memory-index.json`)** – generated map from manifest data to support tooling. Never hand edit this file; regeneration scripts will update it.
+- **Memory System Architecture** – authoritative reference for Cogno’s state model and workflow.
+- **Memory Index (`docs/memories/memory-index.json`)** – generated map from manifest data to support tooling. Never hand edit this file.
 
 ---
 
@@ -400,6 +418,6 @@ When you discover new patterns, constraints, or solutions:
 ---
 
 **Last Updated**: 2025-11-06
-**Status**: Phase 1 Complete – ByteRover pilot in progress
+**Status**: Phase 1 Complete – Cogno file-based system operational
 **Maintainer**: Development Team
 

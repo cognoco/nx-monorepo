@@ -28,4 +28,10 @@
 ## Usage Notes
 - Load only the module matching the generator/action performed; combine modules if multiple generators were used.
 - Record completion in run logs and update manifest metadata when new generators or fixes are added.
+- Keep this core file focused on navigation—reserve detailed fix procedures for modules.
+
+## Module vs. Core Authoring Guidance
+- Capture quick reminders or global checklist notes here when they stay under ~50 lines.
+- Create/extend a `module-XX-*.md` when documenting step-by-step fixes, commands, or generator-specific quirks that exceed ~50 lines.
+- Split modules when a single checklist grows past ~100 lines or when different generators require independent workflows; ensure each has its own manifest entry.
 

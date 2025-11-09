@@ -9,6 +9,7 @@
 - Confirm whether the issue is covered here before starting fresh investigations; reuse known fixes.
 - Document new incidents via the manifest if they’re not already captured.
 - When applying fixes, update run logs with the module ID for traceability.
+- New troubleshooting guidance must cite the governing `docs/` artefact (document + section) and briefly justify the alignment.
 
 ## Module Index
 - [Overview](module-01-overview.md)

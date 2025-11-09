@@ -29,10 +29,10 @@
 **References:**
 - [Link to ADRs, docs, issues]
 
-### Manifest & Sync Checklist
-1. Add/update the chunk entry in `docs/memories/tech-findings-log/manifest.yaml` (`id`, `title`, `file`, `tags`).
-2. Set `checksum: null`, `sync_status: pending`, and `byterover_id: null` before running the ingestion script.
-3. Run the ByteRover ingestion pipeline (`pnpm run memory:sync -- --chunk <chunk_id>` once implemented).
-4. If upload fails, append a row to `docs/memories/memory-sync-backlog.md` noting chunk id, failure reason, timestamp (UTC), and agent id.
-5. After a successful sync, record the new `checksum`, `byterover_id`, and `last_synced_at` in the manifest.
+### Manifest & Validation Checklist
+1. Add or update the chunk entry in `docs/memories/tech-findings-log/manifest.yaml` (`id`, `title`, `file`, `tags`).
+2. Capture the governing `docs/` artefact (document + section) and summarize the alignment rationale.
+2. Reset `checksum: null`, set `validation_status: needs_review`, and update `last_updated_by` / `last_updated_at`.
+3. Run the Cogno sync pipeline (`pnpm run memory:sync -- --chunk <chunk_id>` once available) to regenerate checksums and refresh `memory-index.json`.
+4. After the finding is validated, change `validation_status` to `valid` (or `draft` if still under investigation).
 ```

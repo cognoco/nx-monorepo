@@ -10,7 +10,6 @@ chunks:
     tags: [testing, overview]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -20,7 +19,6 @@ chunks:
     tags: [testing, index]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -30,7 +28,6 @@ chunks:
     tags: [testing, structure]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -40,7 +37,6 @@ chunks:
     tags: [testing, jest, unit]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -50,7 +46,6 @@ chunks:
     tags: [testing, integration]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -60,7 +55,6 @@ chunks:
     tags: [testing, e2e, playwright]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -70,7 +64,6 @@ chunks:
     tags: [testing, jest, configuration]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -80,7 +73,6 @@ chunks:
     tags: [testing, coverage]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
@@ -90,7 +82,6 @@ chunks:
     tags: [testing, references]
     checksum: null
     sync_status: pending
-    byterover_id: null
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null

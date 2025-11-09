@@ -9,6 +9,7 @@
 - Maintain co-located `src/**` test placement and naming conventions (`.spec`/`.test`).
 - UI projects must include jest-dom, user-event, and MSW per the adopted patterns.
 - Playwright suites live in `apps/web-e2e` and must abide by the provided fixtures and CI expectations.
+- Any new testing guidance must cite the governing `docs/` artefact (document + section) and explain how the update supports that guidance.
 
 ## Module Index
 - [Overview](module-01-overview.md)

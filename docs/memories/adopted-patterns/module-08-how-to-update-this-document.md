@@ -21,10 +21,10 @@ When should you add a new pattern?
 4. Update `last-updated` date in frontmatter
 
 **Post-update checklist:**
-1. Add or update the chunk entry in `manifest.yaml` with correct `id`, `title`, `file`, and `tags`.
-2. Set `checksum: null`, `sync_status: pending`, and `byterover_id: null` immediately after editing.
-3. Run the ingestion pipeline (`pnpm run memory:sync -- --chunk <chunk_id>` once implemented) to compute checksums and push to ByteRover.
-4. If the upload fails or MCP access is unavailable, append a row to `docs/memories/memory-sync-backlog.md` (chunk id, reason, timestamp UTC, agent id).
-5. After a successful sync, record the new `checksum`, `byterover_id`, and `last_synced_at` in the manifest.
+1. Add or update the chunk entry in `manifest.yaml` with the correct `id`, `title`, `file`, and `tags`.
+2. Record the governing `docs/` artefact (document + section) and summarize why the update aligns with it.
+2. Reset `checksum: null`, set `validation_status: needs_review`, and update `last_updated_by` / `last_updated_at`.
+3. Run the Cogno sync pipeline (`pnpm run memory:sync -- --chunk <chunk_id>` once available) to regenerate checksums and refresh `memory-index.json`.
+4. After peer validation, switch `validation_status` to `valid` (or `draft` if additional work is needed).
 
 ---
