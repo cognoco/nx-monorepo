@@ -3,7 +3,11 @@ title: Memory System Documentation
 purpose: Comprehensive guide to the monorepo's institutional knowledge system and its dual memory architecture
 audience: AI agents, developers, architects
 created: 2025-10-21
-last-updated: 2025-11-06
+last-updated: 2025-01-10
+cascade-source: docs/memories/zdx-cogno-architecture.md
+cascade-version: 2025-01-10
+propagated-from: zdx-cogno-architecture.md
+propagated-to: [".ruler/AGENTS.md"]
 ---
 
 # Memory System Documentation
@@ -56,6 +60,29 @@ This directory contains the monorepo's **institutional knowledge** – the patte
 - **Structure**: Each memory area provides a `*.core.md` summary, optional modules, and a manifest. Modules stay small and topical.
 - **Manifests**: Track `id`, `title`, `file`, `tags`, optional `checksum`, `validation_status`, `last_updated_by`, `last_updated_at`. No remote sync fields.
 - **Future integrations**: Any external tooling must ingest from Cogno; nothing else is authoritative.
+
+### Cascade Flow Diagram
+
+```mermaid
+graph TD
+    A[Governance Docs<br/>docs/*.md<br/><i>Strategy & Constraints</i>] --> B[Cogno Architecture Spec<br/>zdx-cogno-architecture.md<br/><i>System Design</i>]
+    B --> C[Cogno README + Modules<br/>docs/memories/**<br/><i>Operational Guidance</i>]
+    C --> D[AGENTS.md<br/>.ruler/AGENTS.md<br/><i>Agent Execution Rules</i>]
+    D --> E[Agent Execution]
+    E --> F[Tool Caches<br/>.serena/, etc.<br/><i>Navigation Data</i>]
+    C -.reads on-demand.-> E
+
+    style A fill:#e1f5ff
+    style B fill:#ffe1e1
+    style C fill:#fff4e1
+    style D fill:#e1ffe1
+    style F fill:#f0f0f0
+```
+
+**What this shows:**
+- **Solid arrows**: Cascade propagation (updates flow top-down)
+- **Dotted line**: On-demand reading (agents read Cogno during execution)
+- **Colors**: Each layer has distinct purpose and audience
 
 ---
 
@@ -324,6 +351,24 @@ Memory captures **solutions to prevent future problems**.
 2. Document any NEW patterns discovered.
 3. Update checklists if generators behave differently.
 
+### Cascade Maintenance
+
+**When governance docs change** (`docs/architecture-decisions.md`, `docs/tech-stack.md`, etc.):
+1. Identify which Cogno modules are affected
+2. Update `zdx-cogno-architecture.md` first (if system design changes)
+3. Update affected `*.core.md` files and modules
+4. Update `README.md` (if quick-reference changes)
+5. Update `.ruler/AGENTS.md` with minimal execution rules (≤50 lines per cycle)
+6. Update `cascade-version` frontmatter fields to match
+
+**Cascade health checks**:
+- Frontmatter `cascade-version` dates synchronized across files
+- Links between documents remain valid
+- No duplication (each concept documented once at appropriate layer)
+- AGENTS.md remains concise (loaded every chat session)
+
+**Tools**: Use `.claude/commands/zdx/memory-checkpoint.md` to validate alignment after updates.
+
 ### Quality Standards
 
 **Good memory entry**:
@@ -357,6 +402,22 @@ External tools require context switching. Memory files live in the repo, are ver
 
 ### What if a pattern changes?
 Update the relevant memory file, document the change, update "Last Validated" date, and notify the team. Memory evolves with the project.
+
+### How does Cogno relate to code navigation tools like Serena?
+
+**Different layers, complementary purposes.**
+
+- **Cogno**: Governance layer (patterns, decisions, standards) - "WHAT and WHY"
+- **Serena/etc**: Navigation layer (symbols, structure, locations) - "WHERE and HOW"
+
+Think of Cogno as the architectural blueprint and building codes, while tools like Serena are the site maps and GPS. You need both.
+
+**When working with both:**
+1. Consult Cogno for standards and patterns (before implementing)
+2. Use navigation tools to explore and implement efficiently
+3. Validate implementation against Cogno (before committing)
+
+Cogno remains tool-agnostic by focusing on governance, not navigation.
 
 ### How do I know which file to update?
 Use the decision tree:

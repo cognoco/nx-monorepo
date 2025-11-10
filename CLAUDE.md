@@ -2,6 +2,14 @@
 
 <!-- Source: .ruler/AGENTS.md -->
 
+---
+cascade-source: docs/memories/README.md
+cascade-version: 2025-01-10
+propagated-from: README.md → zdx-cogno-architecture.md
+---
+
+<!-- Cascade: docs/memories/zdx-cogno-architecture.md → README.md → THIS FILE -->
+
 # AI AGENT RULES
 
 This file provides guidance to all AI agents when working with code in this repository.
@@ -133,6 +141,25 @@ The following servers are commonly applicable. This list is **not exhaustive** -
 - **What**: Nx-specific workspace analysis and documentation
 - **Why**: Direct access to workspace graph and project metadata
 
+**Serena MCP** - Code Navigation & Symbol Exploration
+- **When**: Finding symbol definitions, understanding code structure, navigating unfamiliar code
+- **What**: Semantic code navigation with symbolic tools (`find_symbol`, `get_symbols_overview`, `find_referencing_symbols`)
+- **Why**: Efficient exploration without reading entire files; preserves context for implementation work
+- **Relationship to Cogno**:
+  - **Cogno (`docs/memories/`)** = Governance layer (patterns, standards, "WHAT and WHY")
+  - **Serena (`.serena/`)** = Navigation layer (symbols, structure, "WHERE and HOW")
+  - **Workflow**: Check Cogno for standards → Use Serena to navigate → Validate against Cogno
+  - **Priority**: Cogno governance takes precedence over Serena cache
+  - **Critical**: Use symbolic tools (`get_symbols_overview`, `find_symbol`) before reading full files
+  - **Never**: Modify Cogno memories using Serena's `write_memory` tool
+- **Maintenance**:
+  | When | Action |
+  |------|--------|
+  | Daily use | Use navigation tools (`find_symbol`, etc.) |
+  | Major refactor | Consider `serena project index` |
+  | Cogno updates | None (reads on-demand) |
+  | Setup/troubleshooting | See `docs/tooling/serena-workflow.md` |
+
 ### MCP Server Unavailability Protocol
 
 **If you attempt to use ANY MCP server and receive an error:**
@@ -255,6 +282,14 @@ Before using Grep, Glob, Read, or WebSearch yourself, ask: "Could a sub-agent do
 - Follow the maintenance checklist in that memory area (e.g., run validation commands, note verification steps).
 - Regenerate `docs/memories/memory-index.json` if tooling does not do it for you.
 
+### Cascade Awareness
+
+Cogno documentation flows through a cascade: **governance docs → architecture spec → README → AGENTS.md**.
+
+When Cogno updates, this file reflects those changes. See diagram and full workflow: `docs/memories/README.md`.
+
+**Validation tool**: Use `.claude/commands/zdx/memory-checkpoint.md` after completing tasks to check documentation alignment.
+
 ### Critical Warning
 
 **⚠️ Failure to follow memory system = Pattern drift across monorepo**
@@ -265,6 +300,26 @@ Example consequences:
 - Same problem solved differently in different components (wasted time)
 
 **For comprehensive memory system documentation**: Read `docs/memories/README.md`
+
+### Tool-Specific Operational Caches
+
+**Cogno is governance, not navigation tooling.**
+
+Some AI tools (like Serena MCP) maintain separate operational caches for code navigation and symbol exploration. These complement Cogno and serve different purposes:
+
+**Cogno (`docs/memories/`):**
+- Governance layer: patterns, decisions, standards
+- Human-maintained with AI assistance
+- Source of truth for WHAT and WHY
+- Long-lived, carefully curated
+
+**Tool caches (e.g., `.serena/`):**
+- Operational layer: symbol locations, code structure
+- AI-maintained from code exploration
+- Navigation aid for WHERE and HOW
+- Regenerated as needed
+
+**Priority**: Cogno governance takes precedence over tool caches.
 
 ### Documentation File Editing Rules
 
@@ -533,6 +588,23 @@ When you need to share code between projects:
 4. **Update dependents**: Import from `@nx-monorepo/my-new-lib`
 5. **Verify build**: Run `pnpm exec nx run my-new-lib:build` to ensure it compiles
 6. **Check graph**: Run `pnpm exec nx graph` to verify dependency structure
+
+### Common Workflow Checklists
+
+**Before Architecture Changes:**
+- Read `docs/architecture-decisions.md` for strategic context
+- Check `docs/memories/tech-findings-log.md` for technical constraints
+- Run `vibe_check` MCP to surface assumptions
+
+**When Troubleshooting:**
+- Check `docs/memories/troubleshooting.md` for common solutions
+- Check `docs/memories/testing-reference.md` if test-related
+- Search memory files for similar symptoms
+
+**After Major Refactor:**
+- Update affected Cogno memory files if patterns changed
+- Consider Serena re-index if structure changed significantly
+- Run: `pnpm run validate:governance`
 
 ## Testing & Quality
 

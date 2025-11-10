@@ -1,3 +1,14 @@
+---
+title: Cogno Architecture Specification
+purpose: Define how ZDX Cogno (the file-based memory system) is structured and maintained
+audience: Architects, Cogno stewards
+created: 2025-01-10
+last-updated: 2025-01-10
+cascade-state: updated
+cascade-version: 2025-01-10
+propagated-to: ["docs/memories/README.md"]
+---
+
 ## Cogno Architecture Specification
 
 ### Purpose
@@ -91,6 +102,82 @@ If we introduce a secondary storage layer later:
 - Do not reintroduce remote-oriented fields into manifests or steering docs without architectural sign-off.
 
 ### Cascade & Communication
-- Governance artefacts (`docs/*.md`) establish project intent and constraints. Cogno translates them into operational guidance.
-- Updates to this spec must be reflected in `docs/memories/README.md` (steering doc) and summarized in `.ruler/AGENTS.md` so every agent follows the same rules.
-- Mention “ZDX Cogno” (or “Cogno”) when referencing the system to keep terminology consistent.
+
+**Cascade Model:**
+
+Cogno operates within a multi-layer documentation cascade. Each layer serves a distinct purpose and audience:
+
+```mermaid
+graph TD
+    A[Governance Docs<br/>docs/*.md<br/><i>Strategy & Constraints</i>] --> B[Cogno Architecture Spec<br/>zdx-cogno-architecture.md<br/><i>System Design</i>]
+    B --> C[Cogno README + Modules<br/>docs/memories/**<br/><i>Operational Guidance</i>]
+    C --> D[AGENTS.md<br/>.ruler/AGENTS.md<br/><i>Agent Execution Rules</i>]
+    D --> E[Agent Execution]
+    E --> F[Tool Caches<br/>.serena/, etc.<br/><i>Navigation Data</i>]
+    C -.reads on-demand.-> E
+
+    style A fill:#e1f5ff
+    style B fill:#ffe1e1
+    style C fill:#fff4e1
+    style D fill:#e1ffe1
+    style F fill:#f0f0f0
+```
+
+**Layer Responsibilities:**
+
+1. **Governance docs** (`docs/*.md`): Strategic decisions, architectural constraints, product requirements (owned by architecture/product leadership)
+2. **Cogno Architecture Spec** (this document): System design, state model, canonical workflows (owned by Cogno stewards)
+3. **Cogno README + Modules**: Day-to-day operational guidance, patterns, checklists (owned by development leads)
+4. **AGENTS.md**: Concise execution rules for AI agents (derived from layers above)
+5. **Tool Caches**: Operational data for navigation tools like Serena (derived from Cogno, not authoritative)
+
+**Cascade Propagation Process:**
+
+When governance changes, updates must flow through the cascade:
+
+1. **Identify impact**: Which Cogno modules are affected by the governance change?
+2. **Update architecture spec** (if structural changes needed): Update this document first
+3. **Update README** (if quick-reference changes needed): Reflect changes in steering doc
+4. **Update memory modules**: Update affected `*.core.md` files and modules
+5. **Update AGENTS.md**: Add minimal execution rules (≤50 lines per update cycle)
+6. **Track propagation**: Update `propagated-to` fields in frontmatter
+
+**Cascade Maintenance Triggers:**
+
+Cascade updates are required when:
+- Governance documents change (`docs/architecture-decisions.md`, `docs/tech-stack.md`, etc.)
+- New patterns discovered during implementation that contradict current guidance
+- Memory modules reach consensus on standardization (adopted-patterns.md updates)
+- Architectural constraints identified through troubleshooting (tech-findings-log.md updates)
+- Tools like `.claude/commands/zdx/memory-checkpoint.md` flag drift between code and documented patterns
+
+**Cascade Validation:**
+
+Use these checks to ensure cascade health:
+- Frontmatter tracking: Check `cascade-version` dates are synchronized
+- Reference integrity: Links between documents remain valid
+- Terminology consistency: "ZDX Cogno" (or "Cogno") used uniformly
+- AGENTS.md conciseness: File growth monitored (loaded every chat session)
+- No duplication: Each concept documented once at appropriate layer
+
+### Relationship to Tool-Specific Operational Caches
+
+Cogno is a **governance and knowledge management system**, not a code indexing or navigation tool.
+
+Some AI development tools (e.g., Serena MCP) maintain their own operational caches for symbol-level indexing, code navigation, and structural exploration.
+
+**Coexistence principles:**
+
+1. **Separate namespaces**: Tool caches live outside `docs/memories/` (e.g., `.serena/`)
+2. **Different purposes**: Cogno = governance/standards, Tool caches = navigation/exploration
+3. **Cogno as input**: Tools read and internalize Cogno during setup
+4. **One-way sync**: Tools read Cogno, but never write to Cogno programmatically
+5. **Priority**: Cogno governance overrides tool cache information
+
+**Example: Serena MCP**
+- Reads `docs/memories/` during onboarding to understand patterns
+- Creates `.serena/memories/` for operational code navigation
+- Uses Cogno as source of truth for standards
+- Uses its own cache for efficient symbol exploration
+
+This separation keeps Cogno tool-agnostic while allowing specialized tools to augment AI capabilities.

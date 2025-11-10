@@ -1,5 +1,18 @@
 # Memory Checkpoint
 
+> **Note**: This command applies to Cogno memories in `docs/memories/`. Tool-specific operational caches (like `.serena/memories/`) are maintained separately by their respective tools.
+
+## ⚡ TL;DR - Quick Exit
+
+**Most tasks require NO documentation.** Jump straight to Step 3 (Decision Flowchart) to check if your work needs documenting. Common exits:
+- ✅ One-time fix → **STOP** (no documentation)
+- ✅ Following existing patterns → **STOP** (no documentation)
+- ✅ Framework basics → **STOP** (link to official docs instead)
+
+**Only document when**: discovering new patterns, technical constraints, or generator issues that will recur.
+
+---
+
 You have just completed a task. Now reflect on whether anything from this work should be documented in the memory system to prevent future rework or pattern drift.
 
 ## Step 1: Review What You Just Did
@@ -32,28 +45,69 @@ Briefly summarize the work you just completed:
 
 **Purpose**: Avoid duplicating existing documentation. Memory system captures GAPS, not general practices.
 
+## Step 2.5: Cascade Validation (If Documenting Governance Changes)
+
+**When to use this step**: If your work involved governance documents (`docs/architecture-decisions.md`, `docs/tech-stack.md`, etc.)
+
+**Cascade check:**
+1. Did governance documents change?
+   - **No** → Skip to Step 3
+   - **Yes** → Continue cascade validation
+
+2. Which Cogno modules are affected?
+   - Identify memory areas impacted by governance change
+   - Check `docs/memories/topics.md` for related areas
+
+3. Cascade propagation needed?
+   - Architecture spec: Does `zdx-cogno-architecture.md` need updating?
+   - README: Does quick-reference in `README.md` need updating?
+   - AGENTS.md: Do execution rules in `.ruler/AGENTS.md` need updating?
+
+4. Update frontmatter tracking:
+   - Set `cascade-version` to current date
+   - Update `propagated-to` / `propagated-from` fields
+   - Maintain cascade synchronization
+
+**Reference**: See `docs/memories/README.md` - "Cascade Maintenance" section for full workflow.
+
 ## Step 3: Should I Document This? (Decision Flowchart)
 
 Work through these checkpoints in order:
 
-1. Already covered in `.ruler/AGENTS.md`, official framework docs, or `docs/` governance?
-   - **Yes** → Stop (nothing to add).  
-   - **No** → Continue.
-2. One-time fix or unlikely to recur in similar work?
-   - **Yes** → Stop.  
-   - **No** → Continue.
-3. Discovered a technical constraint/limitation or version incompatibility through troubleshooting?
-   - **Yes** → Document in `tech-findings-log`.
-4. Generator output conflicted with our adopted patterns or required mandatory fixes?
-   - **Yes** → Document in `post-generation-checklist`.
-5. Established or confirmed a standard that should apply across similar components?
-   - **Yes** → Document in `adopted-patterns`.
-6. None of the above?
-   - → Stop (no documentation needed).
+### ❓ Checkpoint 1: Already Documented?
+Already covered in `.ruler/AGENTS.md`, official framework docs, or `docs/` governance?
+- ✅ **Yes** → 🛑 **STOP** (nothing to add)
+- ❌ **No** → Continue to Checkpoint 2
 
-For every “Yes” outcome:
-- Identify the governing document/section via `docs/index.md`.
-- Capture the canonical reference and alignment rationale when updating manifests or proposing the change.
+### ❓ Checkpoint 2: One-Time or Recurring?
+One-time fix or unlikely to recur in similar work?
+- ✅ **Yes** → 🛑 **STOP** (no documentation needed)
+- ❌ **No** → Continue to Checkpoint 3
+
+### ❓ Checkpoint 3: Technical Constraint?
+Discovered a technical constraint/limitation or version incompatibility through troubleshooting?
+- ✅ **Yes** → 📝 Document in `tech-findings-log.md` (see Step 4)
+- ❌ **No** → Continue to Checkpoint 4
+
+### ❓ Checkpoint 4: Generator Issue?
+Generator output conflicted with our adopted patterns or required mandatory fixes?
+- ✅ **Yes** → 📝 Document in `post-generation-checklist.md` (see Step 4)
+- ❌ **No** → Continue to Checkpoint 5
+
+### ❓ Checkpoint 5: New Standard?
+Established or confirmed a standard that should apply across similar components?
+- ✅ **Yes** → 📝 Document in `adopted-patterns.md` (see Step 4)
+- ❌ **No** → Continue to Checkpoint 6
+
+### ❓ Checkpoint 6: None of the Above?
+- → 🛑 **STOP** (no documentation needed)
+
+---
+
+**For every "Yes" outcome (Checkpoints 3-5):**
+- Identify the governing document/section via `docs/index.md`
+- Capture the canonical reference and alignment rationale when updating manifests or proposing the change
+- Check cascade implications (see Step 2.5 below)
 
 ## Step 4: Update Memory Files (If Applicable)
 
