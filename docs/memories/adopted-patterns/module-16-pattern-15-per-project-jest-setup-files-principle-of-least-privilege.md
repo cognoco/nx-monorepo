@@ -25,7 +25,7 @@ export function loadDatabaseEnv(workspaceRoot: string): void {
     const envPath = resolve(workspaceRoot, envFile);
 
     if (!existsSync(envPath)) {
-      throw new Error(`Environment file not found: ${envFile}\nSee: docs/environment-setup.md`);
+      throw new Error(`Environment file not found: ${envFile}\nSee: docs/project-config/supabase.md`);
     }
 
     config({ path: envPath });

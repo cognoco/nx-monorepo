@@ -13,12 +13,12 @@ function validateEnv(): { url: string; anon: string } {
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url) {
     throw new Error(
-      'NEXT_PUBLIC_SUPABASE_URL is not defined. Add it to .env.local (see docs/environment-setup.md).'
+      'NEXT_PUBLIC_SUPABASE_URL is not defined. Add it to .env.local (see docs/project-config/supabase.md).'
     );
   }
   if (!anon) {
     throw new Error(
-      'NEXT_PUBLIC_SUPABASE_ANON_KEY is not defined. Add it to .env.local (see docs/environment-setup.md).'
+      'NEXT_PUBLIC_SUPABASE_ANON_KEY is not defined. Add it to .env.local (see docs/project-config/supabase.md).'
     );
   }
   if (!url.startsWith('https://') || !url.includes('.supabase.co')) {

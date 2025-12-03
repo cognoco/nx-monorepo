@@ -17,7 +17,7 @@
  *                        project runs tests.
  *
  * @throws {Error} If environment file doesn't exist
- * @see docs/environment-setup.md for environment configuration
+ * @see docs/project-config/supabase.md for environment configuration
  * @see docs/memories/testing-reference.md for testing guidelines
  */
 
@@ -44,7 +44,7 @@ export function loadDatabaseEnv(workspaceRoot: string): void {
       throw new Error(
         `Environment file not found: ${envFile}\n` +
           `Expected location: ${envPath}\n` +
-          `See: docs/environment-setup.md`
+          `See: docs/project-config/supabase.md`
       );
     }
 
@@ -56,7 +56,7 @@ export function loadDatabaseEnv(workspaceRoot: string): void {
       console.error(error.message);
     }
     console.error('\nTests cannot run without environment configuration.');
-    console.error('See: docs/environment-setup.md\n');
+    console.error('See: docs/project-config/supabase.md\n');
     process.exit(1);
   }
 }

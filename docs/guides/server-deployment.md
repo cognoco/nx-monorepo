@@ -136,7 +136,7 @@ CORS_ORIGIN="https://your-domain.com,https://app.your-domain.com"
 - `DIRECT_URL`: Direct connection for migrations (required by Prisma)
 - `CORS_ORIGIN`: Allowed origins for cross-origin requests
 
-For complete environment setup, see: `docs/environment-setup.md`
+For complete environment setup, see: `docs/project-config/supabase.md`
 
 ---
 
@@ -521,7 +521,7 @@ For a **single-app deployment**, bundled mode is simpler. For a **growing monore
 
 ## Related Documentation
 
-- **Environment Setup**: `docs/environment-setup.md` - Complete guide to environment variables
+- **Environment Setup**: `docs/project-config/supabase.md` - Complete guide to environment variables
 - **Database Setup**: `packages/database/README.md` - Prisma schema and migrations
 - **API Documentation**: Server at `/api/docs` when running - OpenAPI/Swagger UI
 - **Architecture Decisions**: `docs/architecture-decisions.md` - Why Express + REST + OpenAPI

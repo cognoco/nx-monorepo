@@ -398,7 +398,10 @@ function main() {
     log('❌ Environment validation failed!', 'red');
     log('', 'reset');
     log('Common fixes:', 'yellow');
-    log('  1. Run the AI setup prompt from docs/environment-setup.md', 'reset');
+    log(
+      '  1. Run the AI setup prompt from docs/project-config/supabase.md',
+      'reset'
+    );
     log('  2. Check for typos in .env files', 'reset');
     log('  3. Ensure no placeholder values (e.g., [PROJECT-REF])', 'reset');
     log('  4. Verify each environment has unique credentials', 'reset');

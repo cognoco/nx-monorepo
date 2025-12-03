@@ -128,7 +128,7 @@ All environments (development, test, production) and all Prisma-managed database
 **References**:
 - [Prisma Migration Deployment Guide](https://www.prisma.io/docs/orm/prisma-migrate/workflows/production-troubleshooting)
 - [Prisma Migrate Deploy Documentation](https://www.prisma.io/docs/orm/reference/prisma-cli-reference#migrate-deploy)
-- docs/environment-setup.md - Environment-specific migration commands
+- docs/project-config/supabase.md - Environment-specific migration commands
 - Pattern 13 (this document) - Database environment management
 
 ---

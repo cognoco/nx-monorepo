@@ -19,13 +19,23 @@ propagated-to: [".ruler/AGENTS.md"]
 - `.ruler/AGENTS.md` mirrors this information for agents. Whenever you change Cogno, keep the cascade aligned (governance doc → architecture spec → this README → agent rules).
 
 ## Quick Links
-- `docs/index.md` – Canonical governance index (start here to find the right upstream artefact).
-- `docs/` governance artefacts – project brief, PRD, architecture, tech stack, ADRs (canonical strategy/constraints).
-- `docs/memories/zdx-cogno-architecture.md` – canonical architecture spec for Cogno.
-- `docs/memories/memory-index.json` – generated lookup table for manifest metadata (do not edit manually).
-- `docs/memories/topics.md` – topical index mapping common task keywords to memory areas and synonyms.
-- `.ruler/AGENTS.md` – source of agent rules that reference Cogno (generated copies live at `AGENTS.md` and `CLAUDE.md`).
-- `docs/constitution.md` – symlink to the governance constitution (must be read before modifying code).
+
+### Tier 1: Governance (Strategic)
+- `docs/index.md` – Canonical documentation index (start here to find the right upstream artefact)
+- `docs/PRD.md` – WHAT and WHY (product requirements anchor)
+- `docs/constitution.md` – Non-negotiable principles
+- `docs/P1-plan.md` – Implementation roadmap and stages
+
+### Tier 2: Architecture (Tactical)
+- `docs/architecture.md` – HOW system is built (decision summary, patterns, structure)
+- `docs/architecture-decisions.md` – WHY decisions were made (detailed ADRs)
+- `docs/tech-stack.md` – WHICH versions to use (pinning strategy)
+
+### Tier 3: Operational (This System)
+- `docs/memories/zdx-cogno-architecture.md` – Canonical architecture spec for Cogno
+- `docs/memories/memory-index.json` – Generated lookup table for manifest metadata (do not edit manually)
+- `docs/memories/topics.md` – Topical index mapping common task keywords to memory areas
+- `.ruler/AGENTS.md` – Source of agent rules that reference Cogno (→ `CLAUDE.md`)
 
 ## Feature Implementation Intake Checklist
 
@@ -39,9 +49,13 @@ Follow this lightweight intake before starting substantial implementation or mem
 
 ## Upstream Governance (Canonical Layer)
 
-- Strategic documentation lives in the root `docs/` directory (e.g. `project-brief.md`, `prd.md`, `architecture.md`, `architecture-decisions.md`, `tech-stack.md`). Architects and product managers are accountable for keeping these current.
-- Cogno derives its guidance from these artefacts. When governance docs change, Cogno stewards must update the relevant modules to stay aligned.
-- Use `docs/index.md` to locate the appropriate governance document, then read it fully before editing Cogno. Cite it in the module’s references or checklist.
+- **Tier 1** (Governance): `PRD.md` (WHAT/WHY anchor), `constitution.md` (principles), `P1-plan.md` (roadmap). Product/Architecture leadership owns these.
+- **Tier 2** (Architecture): `architecture.md` (HOW - decision summary, patterns, structure), `architecture-decisions.md` (WHY - detailed ADRs), `tech-stack.md` (WHICH versions). Architecture team owns these.
+- **Tier 3** (Operational): This memory system (Cogno). Engineering owns these. Cogno derives guidance from Tier 1 and 2 artefacts.
+
+**Cascade rule**: Changes flow DOWN the tiers. Lower tiers MUST align with higher tiers. When governance docs change, update Cogno modules accordingly.
+
+- Use `docs/index.md` to locate the appropriate governance document, then read it fully before editing Cogno. Cite it in the module's references or checklist.
 - When proposing a new memory, explicitly explain how it supports the referenced canonical document (include doc name + rationale).
 
 ---
@@ -478,7 +492,7 @@ When you discover new patterns, constraints, or solutions:
 
 ---
 
-**Last Updated**: 2025-11-06
-**Status**: Phase 1 Complete – Cogno file-based system operational
+**Last Updated**: 2025-12-02
+**Status**: Phase 1 Complete – Cogno file-based system operational, BMAD-aligned tier structure
 **Maintainer**: Development Team
 

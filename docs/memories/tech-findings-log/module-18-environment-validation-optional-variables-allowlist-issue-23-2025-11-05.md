@@ -55,7 +55,7 @@ Added OPTIONAL_VARS configuration array with:
    - Updated CORS_ORIGIN comment to indicate it's optional (line 67)
    - Added "Optional Server Configuration" section with examples (lines 77-90)
 
-3. `docs/environment-setup.md`:
+3. `docs/project-config/supabase.md`:
    - Added "Optional Variables" section explaining defaults (lines 57-66)
    - Updated validation explanation to clarify optional vs required (lines 209-232)
 
@@ -220,7 +220,7 @@ export function loadDatabaseEnv(workspaceRoot: string): void {
       throw new Error(
         `Environment file not found: ${envFile}\n` +
           `Expected location: ${envPath}\n` +
-          `See: docs/environment-setup.md`
+          `See: docs/project-config/supabase.md`
       );
     }
 
@@ -232,7 +232,7 @@ export function loadDatabaseEnv(workspaceRoot: string): void {
       console.error(error.message);
     }
     console.error('\nTests cannot run without environment configuration.');
-    console.error('See: docs/environment-setup.md\n');
+    console.error('See: docs/project-config/supabase.md\n');
     process.exit(1);
   }
 }

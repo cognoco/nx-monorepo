@@ -12,7 +12,7 @@ if (!existsSync(envPath)) {
   throw new Error(
     `Environment file not found: ${envFile}\n` +
       `Expected location: ${envPath}\n` +
-      `See: docs/environment-setup.md`
+      `See: docs/project-config/supabase.md`
   );
 }
 
