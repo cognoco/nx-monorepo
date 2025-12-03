@@ -62,6 +62,7 @@ get_voice_id() {
     "Grandpa Spuds Oxley") echo "NOpBlnGInO9m6vDvFkFC" ;;
     "Grandpa Werthers") echo "MKlLqCItoCkvdhrxgtLv" ;;
     "Jessica Anne Bogart") echo "flHkNRp1BlvT73UL6gyz" ;;
+    "Jimbo") echo "YLbQE9U7P1K6rBNJWNSv" ;;
     "Juniper") echo "aMSt68OGf4xUZAnLpTU8" ;;
     "Lutz Laugh") echo "9yzdeviXkFddZ4Oz8Mok" ;;
     "Matilda") echo "XrExE9yKIg1WjnnlVkGX" ;;
@@ -95,6 +96,7 @@ list_elevenlabs_voices() {
   echo "Grandpa Spuds Oxley"
   echo "Grandpa Werthers"
   echo "Jessica Anne Bogart"
+  echo "Jimbo"
   echo "Juniper"
   echo "Lutz Laugh"
   echo "Matilda"

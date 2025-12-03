@@ -72,6 +72,12 @@ test-output
 nul
 temp/*
 
+# Agent-Vibes
+.agentvibes/
+.claude/audio
+.claude/tts*
+.claude/github-star-reminder.txt
+
 # START Ruler Generated Files
 /.codex/config.toml
 /.codex/config.toml.bak
