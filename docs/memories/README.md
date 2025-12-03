@@ -24,7 +24,7 @@ propagated-to: [".ruler/AGENTS.md"]
 - `docs/index.md` – Canonical documentation index (start here to find the right upstream artefact)
 - `docs/PRD.md` – WHAT and WHY (product requirements anchor)
 - `docs/constitution.md` – Non-negotiable principles
-- `docs/P1-plan.md` – Implementation roadmap and stages
+- `docs/roadmap.md` – Implementation roadmap and stages
 
 ### Tier 2: Architecture (Tactical)
 - `docs/architecture.md` – HOW system is built (decision summary, patterns, structure)
@@ -49,7 +49,7 @@ Follow this lightweight intake before starting substantial implementation or mem
 
 ## Upstream Governance (Canonical Layer)
 
-- **Tier 1** (Governance): `PRD.md` (WHAT/WHY anchor), `constitution.md` (principles), `P1-plan.md` (roadmap). Product/Architecture leadership owns these.
+- **Tier 1** (Governance): `PRD.md` (WHAT/WHY anchor), `constitution.md` (principles), `roadmap.md` (roadmap). Product/Architecture leadership owns these.
 - **Tier 2** (Architecture): `architecture.md` (HOW - decision summary, patterns, structure), `architecture-decisions.md` (WHY - detailed ADRs), `tech-stack.md` (WHICH versions). Architecture team owns these.
 - **Tier 3** (Operational): This memory system (Cogno). Engineering owns these. Cogno derives guidance from Tier 1 and 2 artefacts.
 
@@ -457,7 +457,7 @@ Use the decision tree:
 **Phase 1 Complete (Canonical Docs)**:
 - ✅ `docs/architecture-decisions.md` – Stage 4.1 (REST+OpenAPI), Stage 4.2 (Supabase+Prisma+RLS)
 - ✅ `docs/tech-stack.md` – Complete version inventory with pinning strategy
-- ✅ `docs/P1-plan.md` – Walking skeleton implementation plan
+- ✅ `docs/roadmap.md` – Walking skeleton implementation plan
 
 **Phase 2 (Planned)** – Expansion:
 - ⏳ `known-issues.md` – Active bugs and workarounds

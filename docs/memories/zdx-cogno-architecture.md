@@ -18,7 +18,7 @@ propagated-to: ["docs/memories/README.md"]
 - Provide deterministic read/write guidance so every agent interacts with Cogno consistently.
 
 ### Upstream Governance (Canonical Layer)
-- Start with `docs/index.md` to locate the relevant governance artefact (e.g. `P1-plan.md`, `architecture-decisions.md`, `tech-stack.md`, `constitution.md`). These documents are owned by architecture/product leadership.
+- Start with `docs/index.md` to locate the relevant governance artefact (e.g. `roadmap.md`, `architecture-decisions.md`, `tech-stack.md`, `constitution.md`). These documents are owned by architecture/product leadership.
 - Cogno derives actionable implementation guidance from those sources. Development leads own Cogno content but MUST align it with the upstream documents.
 - When governance artefacts change, Cogno stewards are responsible for updating this spec, the README, and relevant modules to keep the layers synchronized.
 

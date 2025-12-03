@@ -504,7 +504,7 @@ pnpm exec nx run server:spec-write && pnpm exec nx run api-client:generate-types
 - **Architecture Decisions**: `docs/architecture-decisions.md`
 - **Adopted Patterns**: `docs/memories/adopted-patterns.md`
 - **Tech Stack**: `docs/tech-stack.md`
-- **Phase 1 Plan**: `docs/P1-plan.md`
+- **Roadmap**: `docs/roadmap.md`
 - **Troubleshooting**: `docs/memories/troubleshooting.md`
 - **Agent Rules**: `CLAUDE.md` (for AI assistant context)
 

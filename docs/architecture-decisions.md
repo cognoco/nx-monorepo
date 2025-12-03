@@ -891,7 +891,7 @@ pnpm add openapi-fetch
 pnpm list | grep -E "(openapi|swagger)"
 ```
 
-**Task 4.1.6-4.1.11: Configuration** (detailed in P1-plan.md)
+**Task 4.1.6-4.1.11: Configuration** (detailed in roadmap.md)
 1. Configure Express routes structure
 2. Set up OpenAPI spec generation with zod-to-openapi
 3. Create `/api/docs/openapi.json` endpoint

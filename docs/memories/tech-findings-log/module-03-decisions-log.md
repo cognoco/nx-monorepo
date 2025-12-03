@@ -106,7 +106,7 @@ Need to create a shared database package in Nx monorepo that exports Prisma Clie
 - [Nx Official Recipe: NestJS + Prisma](https://github.com/nrwl/nx-recipes/blob/main/nestjs-prisma/README.md)
 - [Prisma Monorepo Docs](https://www.prisma.io/docs/orm/more/help-and-troubleshooting/help-articles/nextjs-prisma-client-monorepo)
 - [Nx Buildable vs Publishable Libraries](https://nx.dev/concepts/buildable-and-publishable-libraries)
-- Discussion: P1-plan.md Stage 2 validation (2025-10-20)
+- Discussion: roadmap.md Stage 2 validation (2025-10-20)
 
 ---
 
@@ -561,7 +561,7 @@ If this issue recurs, document:
 **Related**:
 - Issue #21 (deployment documentation)
 - PR #20 (Phase 5-6 validation)
-- P1-plan.md lines 613-619 (infrastructure migration notes)
+- roadmap.md (infrastructure migration notes)
 - Research: Sequential Thinking analysis 2025-11-05 (bundled vs unbundled trade-offs)
 
 **Tags**: #build #deployment #nx #esbuild #architecture #workspace-dependencies

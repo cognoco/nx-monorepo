@@ -107,7 +107,7 @@ Implement a minimal health check feature (HTTP endpoints: GET /api/health, POST 
 - [x] docs/architecture-decisions.md
 - [x] docs/memories/adopted-patterns.md
 - [x] docs/tech-stack.md
-- [x] docs/P1-plan.md
+- [x] docs/roadmap.md
 
 **Alignment Summary**:
 1. **Architecture Decisions**: ✅ Aligned

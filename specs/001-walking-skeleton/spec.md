@@ -223,7 +223,7 @@ The following are explicitly **out of scope** for the walking skeleton:
 
 ## Estimated Implementation Time
 
-**Total: 3-4 hours** (per P1-plan.md Stage 5 estimate)
+**Total: 3-4 hours** (per roadmap.md Stage 5 estimate)
 
 Breakdown:
 - 5.1 Database layer + tests: 30 minutes
@@ -268,6 +268,6 @@ This specification aligns with:
 - **docs/architecture-decisions.md**: Uses REST+OpenAPI, Supabase+Prisma, Nx monorepo structure
 - **docs/memories/adopted-patterns.md**: Co-located tests in `src/`, TypeScript module resolution patterns, Jest configuration patterns
 - **docs/tech-stack.md**: Uses pinned versions (Next.js 15.2, React 19, Prisma 6, Jest 30, Nx 21)
-- **docs/P1-plan.md**: Implements Stage 5 requirements exactly as specified
+- **docs/roadmap.md**: Implements Stage 5 requirements exactly as specified
 
 Any deviations are documented in `specs/exceptions.md` with rationale, scope, and expiry.

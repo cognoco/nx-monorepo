@@ -214,7 +214,7 @@ No tasks - infrastructure already exists from Phase 1 Stages 0-4.
 - [ ] T081 Verify end-to-end type safety by creating integration test that validates type flow: Prisma schema → Zod validation → OpenAPI spec → Generated types → API client → Web UI component props
 - [ ] T082 Execute quickstart.md validation steps 1-8 to ensure complete infrastructure validation
 - [ ] T083 Document any residual risks or known issues in specs/001-walking-skeleton/spec.md
-- [ ] T084 Update docs/P1-plan.md Stage 5 status to "Complete"
+- [ ] T084 Update docs/roadmap.md Stage 5 status to "Complete"
 
 ---
 
@@ -357,7 +357,7 @@ With multiple developers:
 - ✅ docs/architecture-decisions.md
 - ✅ docs/memories/adopted-patterns.md
 - ✅ docs/tech-stack.md
-- ✅ docs/P1-plan.md
+- ✅ docs/roadmap.md
 
 **Violations**: None
 

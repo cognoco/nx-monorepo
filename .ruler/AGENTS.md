@@ -359,16 +359,16 @@ This is a **gold standard Nx monorepo template** designed as a production-ready 
 - ✅ Complete QA infrastructure: Jest, ESLint, Prettier, Husky, lint-staged, CI/CD
 - ✅ Supabase + Prisma configured and validated
 - ✅ Walking skeleton: Health check feature working end-to-end (web → API → server → database)
-- ⏳ Next: Stage 6 - Comprehensive E2E tests and documentation
+- ⏳ Next: Stage 6 - E2E Testing evaluation and implementation
 
 **Architecture Goal**: Production-ready monorepo template demonstrating best practices for:
-- Cross-platform type safety (web, server, future mobile)
+- Cross-platform type safety (web, server, mobile)
 - Shared business logic via buildable libraries
 - End-to-end type safety with REST+OpenAPI
 - Database-first development with Prisma + Supabase
 - Comprehensive testing strategy (unit, integration, E2E)
 
-**Reference Document**: Always check `docs/P1-plan.md` for the current implementation plan, stage progress, and success criteria.
+**Reference Document**: Always check `docs/roadmap.md` for the current implementation plan, stage progress, and success criteria.
 
 ## Technology Stack
 
@@ -527,7 +527,7 @@ When creating shared packages:
 ### Spec‑Kit Compliance (MANDATORY)
 
 - Planning via Spec‑Kit MUST execute two gates in order:
-  1) Internal Governance Alignment (Phase -1): Verify alignment with `docs/architecture-decisions.md`, `docs/memories/adopted-patterns.md`, `docs/tech-stack.md`, and `docs/P1-plan.md`.
+  1) Internal Governance Alignment (Phase -1): Verify alignment with `docs/architecture-decisions.md`, `docs/memories/adopted-patterns.md`, `docs/tech-stack.md`, and `docs/roadmap.md`.
   2) External Research Validation (Phase 0): Validate material changes via MCP servers.
 - Use a per-feature exceptions docket (`specs/<feature>/exceptions.md`) to document any approved deviations. Each exception must cite a constitution principle, scope, approval, and expiry.
 
@@ -689,12 +689,16 @@ To enable distributed task execution in CI, uncomment the `nx start-ci-run` line
 3. ✅ QA Infrastructure - Set up Husky, lint-staged, pre-commit hooks, coverage reporting
 4. ✅ Configure Infrastructure - Set up Supabase + Prisma, REST+OpenAPI implementation
 5. ✅ Implement Walking Skeleton - Health check feature end-to-end (web → API → server → database)
-6. ⏳ [Next] E2E Testing - Comprehensive tests for walking skeleton, raise coverage to 80%, documentation
-7. ⏳ [Optional] External Services - Sentry, Nx Cloud optimization, TestSprite evaluation
+6. ⏳ [Next] E2E Testing - Evaluate TestSprite, write E2E tests for walking skeleton
+7. ⏳ External Services - Sentry observability, Nx Cloud optimization
+8. ⏳ Authentication Infrastructure - Auth middleware, Supabase Auth wiring
+9. ⏳ CI/CD Staging Deployment - Automatic deployment on merge to main
+10. ⏳ Mobile Walking Skeleton - Expo app with health check feature
+11. ⏳ MVP Documentation - Architecture docs, setup guide, troubleshooting
 
-**Success Criteria**: A new developer can clone, install, build, and run the full stack with a working health check feature flowing through all layers.
+**Success Criteria**: A new developer can clone, install, build, and run the full stack (web + mobile) with working walking skeleton flowing through all layers.
 
-**See `docs/P1-plan.md` for detailed stage breakdowns and checklists.**
+**See `docs/roadmap.md` for detailed stage breakdowns and checklists.**
 
 ## Troubleshooting
 
