@@ -7,7 +7,7 @@
  * - NEXT_PUBLIC_SUPABASE_URL
  * - NEXT_PUBLIC_SUPABASE_ANON_KEY
  *
- * @see docs/environment-setup.md for environment configuration
+ * @see docs/project-config/supabase.md for environment configuration
  * @see docs/memories/testing-reference.md for testing guidelines
  */
 

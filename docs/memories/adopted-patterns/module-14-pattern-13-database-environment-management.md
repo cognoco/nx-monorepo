@@ -43,7 +43,7 @@ if (!existsSync(envPath)) {
   throw new Error(
     `Environment file not found: ${envFile}\n` +
       `Expected location: ${envPath}\n` +
-      `See: docs/environment-setup.md`
+      `See: docs/project-config/supabase.md`
   );
 }
 
@@ -69,7 +69,7 @@ try {
     throw new Error(
       `Environment file not found: ${envFile}\n` +
         `Expected location: ${envPath}\n` +
-        `See: docs/environment-setup.md`
+        `See: docs/project-config/supabase.md`
     );
   }
 
@@ -79,7 +79,7 @@ try {
   console.error('❌ Failed to load environment variables for tests:');
   console.error(error.message);
   console.error('\nTests cannot run without environment configuration.');
-  console.error('See: docs/environment-setup.md\n');
+  console.error('See: docs/project-config/supabase.md\n');
   process.exit(1);
 }
 ```
@@ -258,8 +258,7 @@ pnpm run db:push:test
 
 **References**:
 - [Prisma Multi-Environment Guide](https://www.prisma.io/docs/orm/more/development-environment/environment-variables/using-multiple-env-files)
-- docs/environment-setup.md (comprehensive environment configuration guide)
-- docs/supabase-projects.md (Supabase project credentials)
+- docs/project-config/supabase.md (comprehensive Supabase configuration and environment setup)
 - Research conducted: 2025-11-03 with 4 parallel research agents (Prisma patterns, dotenv-cli, Nx integration, Next.js community practices)
 
 ---

@@ -2,6 +2,22 @@
 
 Use this index to locate relevant Cogno content quickly during task execution. For each topic area, start with the listed memory cores and modules, then drill into manifests for precise chunk IDs.
 
+> **Note**: For strategic architectural decisions, see `docs/architecture.md` (Tier 2). This index covers Tier 3 operational patterns.
+
+---
+
+## Architecture & Design
+- **Tier 2 Reference**: `docs/architecture.md` (Decision Summary, Implementation Patterns, Project Structure)
+- **Tier 2 Reference**: `docs/architecture-decisions.md` (detailed ADRs with rationale)
+- `adopted-patterns`: All patterns (operational implementation details)
+- Synonyms: system design, patterns, structure, conventions, ADRs
+
+## API & Integration
+- **Tier 2 Reference**: `docs/architecture.md` → API Contracts section
+- `adopted-patterns`: Pattern 5 (Router Organization), Pattern 6 (OpenAPI Spec), Pattern 7 (TypeScript Types)
+- `tech-findings-log`: REST+OpenAPI toolchain entries
+- Synonyms: REST, OpenAPI, endpoints, routes, api-client, type-safe client
+
 ## Styling & Theming
 - `adopted-patterns`: Pattern 5 (Component Styling), Pattern 12 (Dark Mode Implementation)
 - `tech-findings-log`: `module-20-next-themes-compatibility.md`
@@ -28,11 +44,24 @@ Use this index to locate relevant Cogno content quickly during task execution. F
 - Synonyms: scaffolds, codegen, Nx generators, post-gen fixes
 
 ## Supabase & Database
-- `adopted-patterns`: Pattern 13 (Database Environment Management), Pattern 14 (Migration Management & Rollback)
+- **Tier 2 Reference**: `docs/architecture.md` → Data Architecture section
+- `adopted-patterns`: Pattern 8 (Prisma Schema), Pattern 10 (Prisma Singleton), Pattern 13 (Database Environment Management), Pattern 14 (Migration Management & Rollback)
 - `tech-findings-log`: `module-15-database-configuration-supabase-pooler-hostname-discovery-2025-11-04.md`, `module-16-database-configuration-ipv6-requirement-and-free-tier-workaround-2025-11-04.md`
-- Synonyms: Prisma, Supabase, database config, migrations, schema
+- Synonyms: Prisma, Supabase, database config, migrations, schema, ORM
+
+## Security & Authentication
+- **Tier 2 Reference**: `docs/architecture.md` → Security Architecture section
+- `tech-findings-log`: RLS policy entries
+- Synonyms: auth, RLS, row-level security, JWT, sessions
+
+## Deployment & CI/CD
+- **Tier 2 Reference**: `docs/architecture.md` → Deployment Architecture section
+- `tech-findings-log`: CI/CD related entries
+- Synonyms: build, deploy, CI, GitHub Actions, quality gates
 
 ---
 
-**Adding new topics?** Keep entries concise, list the primary core/modules, and include key synonyms to aid search. Remember to update manifests and cross-references accordingly.
+**Adding new topics?** Keep entries concise, list the primary core/modules, and include key synonyms to aid search. For strategic decisions, reference `docs/architecture.md` sections. Remember to update manifests and cross-references accordingly.
+
+**Last Updated**: 2025-12-02
 

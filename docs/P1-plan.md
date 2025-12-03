@@ -1,9 +1,13 @@
 ---
 Created: 2025-10-17
 Modified: 2025-10-28T20:30
-Version: 1
+Version: 1.1
+tier: governance
+bmad-phase: planning
 ---
 # Phase 1: Walking Skeleton
+
+> **BMAD Tier 1: Governance** – This document defines the implementation roadmap and stages for Phase 1. It complements `PRD.md` (WHAT/WHY) and `constitution.md` (principles). For technical HOW details, see `architecture.md`.
 
 ## Introduction
 
@@ -51,6 +55,8 @@ The "health check" feature is throwaway code - its only purpose is to prove the 
 ---
 
 ## Architecture Decisions
+
+> **Cross-Reference**: Strategic technology decisions and their rationale are documented in `architecture.md` (Decision Summary) and `architecture-decisions.md` (detailed ADRs). This section provides context for Phase 1 implementation.
 
 Before starting implementation, we need to understand the architectural relationships and make key technology choices.
 
@@ -1167,7 +1173,7 @@ Phase 1 is complete when ALL of the following are true:
 ### Documentation Requirements
 - [ ] Package version baseline exists in `docs/package-versions-baseline.md`
 - [ ] Prerequisites documented in `docs/prerequisites.md`
-- [ ] Environment setup documented in `docs/environment-setup.md`
+- [ ] Environment setup documented in `docs/project-config/supabase.md`
 - [ ] Architecture decisions documented in `docs/architecture-decisions.md`
 - [ ] Walking skeleton architecture documented in `docs/walking-skeleton.md`
 - [ ] External services documented in `docs/external-services.md`
@@ -1204,3 +1210,24 @@ Once Phase 1 is complete, we will:
 4. **Execute POC Implementation** - Build the POC with confidence that infrastructure works
 
 The walking skeleton code (health check) can remain in the codebase as a reference implementation or be removed once the POC is complete.
+
+---
+
+## Document References
+
+| Document | Tier | Purpose |
+|----------|------|---------|
+| `docs/PRD.md` | Governance | WHAT and WHY (anchor) |
+| `docs/constitution.md` | Governance | Non-negotiable principles |
+| `docs/architecture.md` | Architecture | HOW system is built |
+| `docs/architecture-decisions.md` | Architecture | WHY decisions were made |
+| `docs/tech-stack.md` | Architecture | WHICH versions to use |
+| `docs/memories/` | Operational | Patterns, checklists, troubleshooting |
+
+**BMAD Workflow**: This plan follows the BMAD planning phase. Implementation stages align with BMAD's iterative development approach (design → implement → validate → document).
+
+---
+
+**Maintainer**: Engineering Team
+**Status**: Active (Stage 5 Complete)
+**Last Updated**: 2025-12-02

@@ -72,7 +72,7 @@ pnpm run db:migrate:deploy:test
 **References:**
 - adopted-patterns.md Pattern 14 (Migration Management and Rollback)
 - adopted-patterns.md Pattern 13 (Database Environment Management)
-- docs/environment-setup.md (migration command reference)
+- docs/project-config/supabase.md (migration command reference)
 - Prisma Migration Deployment Guide: https://www.prisma.io/docs/orm/prisma-migrate/workflows/production-troubleshooting
 
 **Cross-References:**

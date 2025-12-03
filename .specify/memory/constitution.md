@@ -278,10 +278,12 @@ Agent operational procedures (MCP server usage, git policies, sub-agent delegati
 
 ### Authority and Cross-References
 
+- **Documentation Index**: `docs/index.md` (tier structure, scope boundaries, navigation)
+- **Architecture**: `docs/architecture.md` (HOW system is built, implementation patterns)
+- **Technical Decisions**: `docs/architecture-decisions.md` (WHY decisions were made)
+- **Version Inventory**: `docs/tech-stack.md` (WHICH versions to use)
+- **Implementation Plan**: `docs/P1-plan.md` (roadmap and stages)
 - **Memory System**: `docs/memories/` directory (complete file structure in `docs/memories/README.md`)
 - **Agent Instructions**: `.ruler/AGENTS.md` (source, editable) → `CLAUDE.md` (generated, read-only)
-- **Technical Decisions**: `docs/architecture-decisions.md`
-- **Version Inventory**: `docs/tech-stack.md`
-- **Implementation Plan**: `docs/P1-plan.md`
 
-**Version**: 1.0.0 | **Ratified**: 2025-10-28 | **Last Amended**: 2025-10-28
+**Version**: 1.0.1 | **Ratified**: 2025-10-28 | **Last Amended**: 2025-12-02
