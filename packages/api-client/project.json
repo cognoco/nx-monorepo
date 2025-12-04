@@ -10,6 +10,7 @@
         "command": "pnpm exec openapi-typescript dist/apps/server/openapi.json -o packages/api-client/src/gen/openapi.d.ts --export-type",
         "cwd": "{workspaceRoot}"
       },
+      "inputs": ["{workspaceRoot}/dist/apps/server/openapi.json"],
       "outputs": ["{projectRoot}/src/gen/openapi.d.ts"],
       "dependsOn": [
         "@nx-monorepo/server:build",
