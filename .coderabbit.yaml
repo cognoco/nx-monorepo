@@ -115,9 +115,9 @@ reviews:
     max_files: 50 # Don't auto-review PRs touching more than 50 files
     max_lines: 1000 # Don't auto-review PRs with more than 1000 lines changed
 
-# Note: Removed invalid properties (review_filters, language_settings, static_analysis)
-# CodeRabbit respects existing ESLint/Prettier/TypeScript configs by default
-# Custom secret patterns below use Gitleaks which CodeRabbit integrates automatically
+# Note: Properties like review_filters, language_settings, and static_analysis are not
+# recognized by CodeRabbit's schema. CodeRabbit uses existing ESLint/Prettier/TypeScript
+# configs automatically. For secrets detection, CodeRabbit integrates with Gitleaks.
 
 # Chat settings
 chat:
