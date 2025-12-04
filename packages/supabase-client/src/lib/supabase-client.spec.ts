@@ -10,11 +10,7 @@ jest.mock('@supabase/ssr', () => {
     createServerClient: jest.fn(() => ({ kind: 'server' })),
   };
 });
-import {
-  createBrowserClient,
-  createServerClient,
-  type SupabaseClientOptions,
-} from '@supabase/ssr';
+import { createBrowserClient, createServerClient } from '@supabase/ssr';
 
 // Type definitions for test helpers
 type CookieConfig = {
@@ -39,11 +35,13 @@ jest.mock('next/headers', () => ({
 }));
 
 const originalEnv = { ...process.env };
-const originalWindow = globalThis.window;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const originalWindow = (globalThis as any).window;
 
 beforeEach(() => {
   process.env = { ...originalEnv };
-  globalThis.window = {} as Window & typeof globalThis;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (globalThis as any).window = {};
   jest.clearAllMocks();
   cookieStore.getAll.mockClear();
   cookieStore.set.mockClear();
@@ -51,7 +49,8 @@ beforeEach(() => {
 
 afterEach(() => {
   process.env = originalEnv;
-  globalThis.window = originalWindow;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (globalThis as any).window = originalWindow;
 });
 
 describe('createSupabaseBrowserClient', () => {
@@ -98,13 +97,15 @@ describe('createSupabaseBrowserClient', () => {
   });
 
   it('passes options through to createBrowserClient', () => {
-    globalThis.window = {} as Window & typeof globalThis;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any).window = {};
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon';
-    const options: Partial<SupabaseClientOptions<unknown>> = {
+    const options = {
       global: { headers: { 'x-test': '1' } },
     };
-    createSupabaseBrowserClient(options);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    createSupabaseBrowserClient(options as any);
     expect(createBrowserClient).toHaveBeenCalledWith(
       'https://example.supabase.co',
       'anon',
@@ -154,12 +155,13 @@ describe('createSupabaseServerClient', () => {
   it('passes options through to createServerClient', async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon';
-    const options: Partial<SupabaseClientOptions<unknown>> = {
+    const options = {
       global: {
         fetch: (() => Promise.resolve({})) as unknown as typeof fetch,
       },
     };
-    await createSupabaseServerClient(options);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await createSupabaseServerClient(options as any);
     const [, , cfg] = (
       createServerClient as jest.MockedFunction<typeof createServerClient>
     ).mock.calls[0] as [string, string, ServerClientConfig];
