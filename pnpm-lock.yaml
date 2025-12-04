@@ -219,6 +219,9 @@ importers:
       '@sentry/node':
         specifier: ^10.28.0
         version: 10.28.0
+      '@supabase/supabase-js':
+        specifier: ^2.78.0
+        version: 2.78.0
       cors:
         specifier: ^2.8.5
         version: 2.8.5
@@ -262,6 +265,9 @@ importers:
       '@nx-monorepo/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@nx-monorepo/supabase-client':
+        specifier: workspace:*
+        version: link:../../packages/supabase-client
       '@sentry/nextjs':
         specifier: ^10.28.0
         version: 10.28.0(@opentelemetry/context-async-hooks@2.2.0(@opentelemetry/api@1.9.0))(@opentelemetry/core@2.2.0(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@2.2.0(@opentelemetry/api@1.9.0))(encoding@0.1.13)(next@15.2.5(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-macros@3.1.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sass@1.93.3))(react@19.0.0)(webpack@5.102.1(@swc/core@1.14.0(@swc/helpers@0.5.17))(esbuild@0.19.12))

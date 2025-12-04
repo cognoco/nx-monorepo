@@ -353,11 +353,111 @@ If you're cloning this template for the first time:
 
 ---
 
+## Supabase Auth Configuration
+
+This section documents the Supabase Authentication settings configured for this project.
+
+### Configured Settings (nx-monorepo-DEV and nx-monorepo-TEST)
+
+| Setting | Value | Rationale |
+|---------|-------|-----------|
+| **Email provider** | Enabled | Primary auth method for MVP |
+| **Minimum password length** | 8 characters | Standard security baseline (NIST recommendation) |
+| **Password requirements** | No required characters | Sufficient for dev; tighten for production |
+| **Email confirmation** | OFF | Faster testing during development |
+| **Secure email change** | ON | Requires confirmation on both old and new email |
+| **Secure password change** | OFF | Users can change password anytime |
+| **JWT access token expiry** | 3600s (1 hour) | Supabase default; good balance |
+| **Refresh token expiry** | 7 days | Supabase default; reasonable session persistence |
+| **Detect compromised tokens** | ON | Security feature enabled |
+| **Refresh token reuse interval** | 10 seconds | Supabase recommended default |
+
+### Redirect URLs (nx-monorepo-DEV and nx-monorepo-TEST)
+
+Configured redirect URLs for authentication callbacks:
+
+```
+http://localhost:3000/**
+http://localhost:3001/**
+http://localhost:3002/**
+http://localhost:3003/**
+```
+
+These allow the web app (Next.js) to receive auth callbacks on common development ports.
+
+### RLS and Auth Context (Phase 2 Reference)
+
+Row Level Security (RLS) policies can use `auth.uid()` to restrict data access per user. Here's how the auth context flows:
+
+```
+┌─────────────┐     JWT Token      ┌─────────────────┐
+│   Browser   │ ─────────────────► │  Express API    │
+│  (Next.js)  │                    │  (Service Role) │
+└─────────────┘                    └────────┬────────┘
+                                            │
+                                   Uses service role key
+                                   (bypasses RLS)
+                                            │
+                                            ▼
+                                   ┌─────────────────┐
+                                   │   PostgreSQL    │
+                                   │   (Supabase)    │
+                                   └─────────────────┘
+```
+
+**Current State (Phase 1)**:
+- RLS is enabled on tables but no policies are defined
+- Express server uses `SUPABASE_SERVICE_ROLE_KEY` which bypasses RLS
+- All authorization logic is in Express middleware (`requireAuth`)
+
+**Phase 2 Pattern** (when user-specific data is needed):
+```sql
+-- Example: Users can only read their own tasks
+CREATE POLICY "Users can view own tasks" ON tasks
+  FOR SELECT USING (auth.uid() = user_id);
+
+-- Example: Users can only insert tasks for themselves
+CREATE POLICY "Users can create own tasks" ON tasks
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+```
+
+**Key Functions**:
+- `auth.uid()` - Returns the authenticated user's UUID from the JWT
+- `auth.role()` - Returns the role ('authenticated', 'anon', 'service_role')
+- `auth.email()` - Returns the authenticated user's email
+
+For more details, see [Supabase RLS Documentation](https://supabase.com/docs/guides/auth/row-level-security).
+
+### Production Considerations
+
+When deploying to production, update these settings:
+
+| Setting | Dev Value | Production Recommendation |
+|---------|-----------|---------------------------|
+| Email confirmation | OFF | **ON** - verify user emails |
+| Password requirements | None | **Letters + digits** minimum |
+| Redirect URLs | localhost:* | **Exact production URLs only** |
+| Secure password change | OFF | **ON** - require recent auth |
+
+### Dashboard Navigation
+
+To access these settings:
+
+1. Go to [supabase.com/dashboard](https://supabase.com/dashboard)
+2. Select your project (e.g., nx-monorepo-DEV)
+3. Navigate to:
+   - **Authentication → Providers → Email** - Password policy, email confirmation
+   - **Authentication → URL Configuration** - Redirect URLs
+   - **Authentication → Settings** - Session/token settings
+
+---
+
 ## Related Documentation
 
 - [Architecture Decisions](./architecture-decisions.md) - Why we use this architecture
 - [Security Architecture](./security-architecture.md) - RLS decisions and security model (TODO: Stage 4.4+)
 - [Supabase Documentation](https://supabase.com/docs) - Official Supabase docs
+- [Supabase Auth Documentation](https://supabase.com/docs/guides/auth) - Official auth docs
 - [Prisma Documentation](https://www.prisma.io/docs) - Official Prisma docs
 - [Next.js Environment Variables](https://nextjs.org/docs/basic-features/environment-variables) - Next.js env var docs
 
@@ -365,6 +465,12 @@ If you're cloning this template for the first time:
 
 ## Changelog
 
+- **2025-12-04**: Added Supabase Auth Configuration section (Story 4.2)
+  - Documented auth settings for both DEV and TEST projects
+  - Included password policy, email confirmation, JWT settings
+  - Added redirect URLs for development
+  - Included production considerations
+  - Added RLS and auth context documentation for Phase 2 reference
 - **2025-10-26**: Initial documentation created for Stage 4.3
   - Documented two connection methods (Prisma vs Supabase SDK)
   - Explained all environment variables with security notes

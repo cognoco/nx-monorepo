@@ -49,6 +49,9 @@
   ],
   "references": [
     {
+      "path": "../../packages/supabase-client"
+    },
+    {
       "path": "../../packages/api-client"
     }
   ]
