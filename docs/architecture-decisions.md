@@ -891,7 +891,7 @@ pnpm add openapi-fetch
 pnpm list | grep -E "(openapi|swagger)"
 ```
 
-**Task 4.1.6-4.1.11: Configuration** (detailed in P1-plan.md)
+**Task 4.1.6-4.1.11: Configuration** (detailed in roadmap.md)
 1. Configure Express routes structure
 2. Set up OpenAPI spec generation with zod-to-openapi
 3. Create `/api/docs/openapi.json` endpoint
@@ -1473,3 +1473,121 @@ Based on the decisions above, here's the execution plan:
   - Evaluated: oRPC, tRPC, ts-rest, Hono RPC, REST+OpenAPI
   - Initial recommendation: oRPC (influenced by sunk cost bias)
   - Eliminated: Hono RPC (Express incompatibility)
+
+---
+
+## Stage 6: E2E Testing Strategy - Hybrid Approach
+
+**Decision Date:** December 4, 2025
+**Story Reference:** Story 2.1 - Evaluate TestSprite MCP for E2E Testing
+
+---
+
+### Decision Summary
+
+| Aspect | Decision |
+|--------|----------|
+| **Primary E2E Tool** | Playwright (for CI/CD and committed tests) |
+| **Development Tool** | TestSprite MCP (for PRD validation and smoke testing) |
+| **Strategy** | Hybrid - tools are complementary, not competing |
+
+---
+
+### Decision 1: Hybrid E2E Testing Approach
+
+**Decision:** Use **Playwright** for production E2E tests (committed to repository, run in CI) and **TestSprite MCP** for development-time PRD validation and smoke testing.
+
+**Rationale:**
+
+TestSprite evaluation (15 frontend tests, 66.67% pass rate) demonstrated clear strengths and limitations:
+
+#### TestSprite Strengths
+- ✅ **PRD Validation**: Generates tests from PRDs, catches ambiguities before implementation
+- ✅ **API Contract Verification**: 100% pass rate on API tests (TC006-TC008)
+- ✅ **Fast Feedback Loop**: Cloud execution against local servers during development
+- ✅ **Zero Test Code Maintenance**: Tests are ephemeral, regenerated from PRD
+
+#### TestSprite Limitations
+- ❌ Cannot manipulate database state (can't test empty state UI)
+- ❌ Cannot inject network failures (can't test error state UI)
+- ❌ Cannot access external systems (CI/CD, Sentry, pre-commit hooks)
+- ❌ Cloud-based execution means no test environment control
+
+#### Playwright Strengths (Complementary)
+- ✅ Network interception and failure injection
+- ✅ Database fixture control via test setup/teardown
+- ✅ CI/CD integration (committed tests, GitHub Actions)
+- ✅ Visual regression testing and screenshot comparison
+- ✅ Complex multi-step user flow orchestration
+
+**Alternatives Considered:**
+- ❌ **Playwright Only**: Loses PRD validation capability during development
+- ❌ **TestSprite Only**: Can't cover edge cases or integrate with CI
+
+**Consequences:**
+- ✅ Best of both worlds: fast development feedback + comprehensive CI coverage
+- ✅ Clear separation of concerns (development vs production testing)
+- ⚠️ Two testing tools to understand (acceptable learning curve)
+- ⚠️ `testsprite_tests/` is gitignored (ephemeral, not part of committed test suite)
+
+---
+
+### Decision 2: Test Artifact Location Strategy
+
+**Decision:**
+- **Playwright tests**: `apps/web-e2e/src/*.spec.ts` (committed to repository)
+- **TestSprite artifacts**: `testsprite_tests/` (gitignored, development-only)
+
+**Rationale:**
+- Playwright tests are stable, version-controlled regression tests
+- TestSprite tests are regenerated on-demand from PRDs, no value in committing
+
+---
+
+### Use Case Matrix
+
+| Use Case | Tool | Rationale |
+|----------|------|-----------|
+| PRD validation before implementation | TestSprite | Fast feedback on spec accuracy |
+| Quick smoke testing during development | TestSprite | No test code to maintain |
+| API contract verification | TestSprite | Validates documented behavior |
+| Edge cases (empty state, error state) | Playwright | Requires state manipulation |
+| Network interception/failure injection | Playwright | TestSprite can't inject failures |
+| Visual regression testing | Playwright | Screenshot comparison |
+| CI/CD integration | Playwright | Committed tests for automation |
+| Complex multi-step user flows | Playwright | Better orchestration control |
+
+---
+
+### Implementation Reference
+
+**Operational Guide:** `docs/tooling/testsprite-workflow.md`
+- Complete workflow: PRD → Code Summary → Bootstrap → Test Plan → Execute
+- Troubleshooting guide for common issues
+- Integration with existing test infrastructure
+
+**Evaluation Report:** `testsprite_tests/testsprite-frontend-test-report.md`
+- Full test execution results with pass/fail analysis
+- Root cause analysis for each failure
+- Recommendations for test scoping
+
+---
+
+### Migration Path
+
+**Current State:** Hybrid approach established
+**Future Considerations:**
+- If TestSprite adds state manipulation capabilities, re-evaluate edge case coverage
+- If Playwright gains AI-assisted test generation, re-evaluate development workflow
+- Annual review or when major tool updates released
+
+---
+
+### Changelog
+
+- **2025-12-04**: Stage 6 - E2E Testing Strategy Decision
+  - Evaluated: TestSprite MCP vs Playwright
+  - Decision: Hybrid approach - complementary tools for different purposes
+  - Documented: Use case matrix, artifact locations, workflow guide
+  - Artifacts: testsprite-workflow.md, frontend test report
+  - Story 2.1 complete, Story 2.2 decision formalized

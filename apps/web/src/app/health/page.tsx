@@ -86,10 +86,14 @@ export default function HealthPage() {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="mx-auto max-w-4xl">
         <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1
+            data-testid="page-title"
+            className="text-3xl font-bold text-gray-900"
+          >
             Health Check Records
           </h1>
           <button
+            data-testid="ping-button"
             onClick={handlePing}
             disabled={pinging || loading}
             className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white shadow-md transition-all hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-400"
@@ -100,7 +104,10 @@ export default function HealthPage() {
 
         {/* Ping Error State */}
         {pingError && (
-          <div className="mb-4 rounded-lg bg-yellow-50 p-4 shadow">
+          <div
+            data-testid="ping-error"
+            className="mb-4 rounded-lg bg-yellow-50 p-4 shadow"
+          >
             <h3 className="mb-1 font-semibold text-yellow-900">
               Failed to Create Health Check
             </h3>
@@ -110,7 +117,10 @@ export default function HealthPage() {
 
         {/* Loading State */}
         {loading && (
-          <div className="rounded-lg bg-white p-8 text-center shadow">
+          <div
+            data-testid="loading-state"
+            className="rounded-lg bg-white p-8 text-center shadow"
+          >
             <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600"></div>
             <p className="mt-4 text-gray-600">Loading health checks...</p>
           </div>
@@ -118,11 +128,16 @@ export default function HealthPage() {
 
         {/* Error State */}
         {error && !loading && (
-          <div className="rounded-lg bg-red-50 p-6 shadow">
+          <div
+            data-testid="error-state"
+            className="rounded-lg bg-red-50 p-6 shadow"
+          >
             <h2 className="mb-2 text-lg font-semibold text-red-900">
               Error Loading Health Checks
             </h2>
-            <p className="text-red-700">{error}</p>
+            <p data-testid="error-message" className="text-red-700">
+              {error}
+            </p>
             <p className="mt-4 text-sm text-red-600">
               Make sure the server is running (default: http://localhost:4000).
               API requests are proxied through /api via Next.js rewrites.
@@ -132,7 +147,10 @@ export default function HealthPage() {
 
         {/* Empty State */}
         {!loading && !error && healthChecks.length === 0 && (
-          <div className="rounded-lg bg-white p-8 text-center shadow">
+          <div
+            data-testid="empty-state"
+            className="rounded-lg bg-white p-8 text-center shadow"
+          >
             <svg
               className="mx-auto h-12 w-12 text-gray-400"
               fill="none"
@@ -158,10 +176,11 @@ export default function HealthPage() {
 
         {/* Health Check List */}
         {!loading && !error && healthChecks.length > 0 && (
-          <div className="space-y-4">
+          <div data-testid="health-list" className="space-y-4">
             {healthChecks.map((check) => (
               <div
                 key={check.id}
+                data-testid="health-check-item"
                 className="rounded-lg bg-white p-6 shadow transition-shadow hover:shadow-md"
               >
                 <div className="flex items-start justify-between">
@@ -184,7 +203,7 @@ export default function HealthPage() {
             ))}
 
             <div className="mt-6 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center">
-              <p className="text-sm text-gray-600">
+              <p data-testid="health-count" className="text-sm text-gray-600">
                 Showing {healthChecks.length} health check
                 {healthChecks.length === 1 ? '' : 's'}
               </p>

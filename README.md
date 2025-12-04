@@ -95,7 +95,7 @@ nx-monorepo/
 │   ├── api-client/       # REST+OpenAPI client
 │   └── supabase-client/  # Supabase client configuration
 ├── docs/                 # Project documentation
-│   ├── P1-plan.md       # Phase 1 implementation plan
+│   ├── roadmap.md       # Implementation roadmap (MVP, Task App PoC, Extensions)
 │   └── tech-findings-log.md  # Technical decisions log
 └── .ruler/              # AI agent instructions
 ```
@@ -363,7 +363,7 @@ GitHub Actions workflow runs on all PRs and main branch commits:
 
 ## Documentation
 
-- **[P1-plan.md](docs/P1-plan.md)**: Phase 1 implementation plan with stage breakdowns
+- **[roadmap.md](docs/roadmap.md)**: Implementation roadmap (MVP, Task App PoC, Extensions)
 - **[testing-reference.md](docs/memories/testing-reference.md)**: Comprehensive Jest and testing configuration reference
 - **[troubleshooting.md](docs/memories/troubleshooting.md)**: Common development troubleshooting solutions
 - **[tech-findings-log.md](docs/memories/tech-findings-log.md)**: Technical decisions and empirical findings

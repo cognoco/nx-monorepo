@@ -506,7 +506,7 @@ This template is **deployment-agnostic** by design. The architecture avoids vend
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 22+
 - pnpm 10.19+
 - Git with LF line endings
 

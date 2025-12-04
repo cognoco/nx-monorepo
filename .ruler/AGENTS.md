@@ -118,9 +118,17 @@ This project uses [Ruler](https://github.com/intellectronica/ruler) to manage AI
 2. Explain what you were trying to accomplish
 3. Ask if user wants you to proceed without it (acknowledge reduced quality/visibility)
 
-### Additional MCP Servers (Examples)
+### On-Demand MCP Servers
 
-The following servers are commonly applicable. This list is **not exhaustive** - check available tools for other specialized servers.
+The following MCP servers extend your capabilities but may not always be enabled.
+
+**Behavior when a use case matches an on-demand server:**
+
+1. **If the server IS available**: Use it directly - no need to ask permission.
+2. **If the server is NOT available**: Inform the user of the relevant use case and ask if they'd like to enable it:
+   > "This would be a good case for [Server Name] - it can [capability]. Would you like to enable it?"
+
+---
 
 **Context7 MCP** - Library Documentation
 - **When**: BEFORE suggesting version changes, researching framework features
@@ -155,6 +163,18 @@ The following servers are commonly applicable. This list is **not exhaustive** -
   | Major refactor | Consider `serena project index` |
   | Cogno updates | None (reads on-demand) |
   | Setup/troubleshooting | See `docs/tooling/serena-workflow.md` |
+
+**TestSprite MCP** - AI-Generated E2E Tests
+- **When**: Validating PRD accuracy, smoke testing during feature development, quick API contract verification
+- **What**: Generates Python Playwright tests from PRDs, executes them in cloud against local servers
+- **Why**: Catches PRD ambiguities and implementation drift without manual test writing
+- **Recommend when**:
+  - User has created/updated a PRD and wants validation before implementation
+  - Quick smoke test needed during development iteration
+  - API responses need validation against documented contracts
+- **Limitations**: Cannot manipulate database state, inject network failures, or access external systems (CI/CD, Sentry). Use Playwright for edge cases and CI integration.
+- **Workflow**: Accurate PRD → Code Summary → Bootstrap → Test Plan → Execute → Report
+- **See**: `docs/tooling/testsprite-workflow.md` for full operational guide
 
 ### MCP Server Unavailability Protocol
 
@@ -359,16 +379,16 @@ This is a **gold standard Nx monorepo template** designed as a production-ready 
 - ✅ Complete QA infrastructure: Jest, ESLint, Prettier, Husky, lint-staged, CI/CD
 - ✅ Supabase + Prisma configured and validated
 - ✅ Walking skeleton: Health check feature working end-to-end (web → API → server → database)
-- ⏳ Next: Stage 6 - Comprehensive E2E tests and documentation
+- ⏳ Next: Stage 6 - E2E Testing evaluation and implementation
 
 **Architecture Goal**: Production-ready monorepo template demonstrating best practices for:
-- Cross-platform type safety (web, server, future mobile)
+- Cross-platform type safety (web, server, mobile)
 - Shared business logic via buildable libraries
 - End-to-end type safety with REST+OpenAPI
 - Database-first development with Prisma + Supabase
 - Comprehensive testing strategy (unit, integration, E2E)
 
-**Reference Document**: Always check `docs/P1-plan.md` for the current implementation plan, stage progress, and success criteria.
+**Reference Document**: Always check `docs/roadmap.md` for the current implementation plan, stage progress, and success criteria.
 
 ## Technology Stack
 
@@ -527,7 +547,7 @@ When creating shared packages:
 ### Spec‑Kit Compliance (MANDATORY)
 
 - Planning via Spec‑Kit MUST execute two gates in order:
-  1) Internal Governance Alignment (Phase -1): Verify alignment with `docs/architecture-decisions.md`, `docs/memories/adopted-patterns.md`, `docs/tech-stack.md`, and `docs/P1-plan.md`.
+  1) Internal Governance Alignment (Phase -1): Verify alignment with `docs/architecture-decisions.md`, `docs/memories/adopted-patterns.md`, `docs/tech-stack.md`, and `docs/roadmap.md`.
   2) External Research Validation (Phase 0): Validate material changes via MCP servers.
 - Use a per-feature exceptions docket (`specs/<feature>/exceptions.md`) to document any approved deviations. Each exception must cite a constitution principle, scope, approval, and expiry.
 
@@ -689,12 +709,16 @@ To enable distributed task execution in CI, uncomment the `nx start-ci-run` line
 3. ✅ QA Infrastructure - Set up Husky, lint-staged, pre-commit hooks, coverage reporting
 4. ✅ Configure Infrastructure - Set up Supabase + Prisma, REST+OpenAPI implementation
 5. ✅ Implement Walking Skeleton - Health check feature end-to-end (web → API → server → database)
-6. ⏳ [Next] E2E Testing - Comprehensive tests for walking skeleton, raise coverage to 80%, documentation
-7. ⏳ [Optional] External Services - Sentry, Nx Cloud optimization, TestSprite evaluation
+6. ⏳ [Next] E2E Testing - Evaluate TestSprite, write E2E tests for walking skeleton
+7. ⏳ External Services - Sentry observability, Nx Cloud optimization
+8. ⏳ Authentication Infrastructure - Auth middleware, Supabase Auth wiring
+9. ⏳ CI/CD Staging Deployment - Automatic deployment on merge to main
+10. ⏳ Mobile Walking Skeleton - Expo app with health check feature
+11. ⏳ MVP Documentation - Architecture docs, setup guide, troubleshooting
 
-**Success Criteria**: A new developer can clone, install, build, and run the full stack with a working health check feature flowing through all layers.
+**Success Criteria**: A new developer can clone, install, build, and run the full stack (web + mobile) with working walking skeleton flowing through all layers.
 
-**See `docs/P1-plan.md` for detailed stage breakdowns and checklists.**
+**See `docs/roadmap.md` for detailed stage breakdowns and checklists.**
 
 ## Troubleshooting
 

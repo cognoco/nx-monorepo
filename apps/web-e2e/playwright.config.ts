@@ -24,13 +24,28 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
   },
-  /* Run your local dev server before starting the tests */
-  webServer: {
-    command: 'pnpm exec nx run @nx-monorepo/web:start',
-    url: 'http://localhost:3000',
-    reuseExistingServer: true,
-    cwd: workspaceRoot,
-  },
+  /* Run your local dev servers before starting the tests */
+  /* NOTE: Both servers must be running before tests:
+   *   - Server: pnpm exec nx run server:serve (port 4000)
+   *   - Web: pnpm exec nx run web:start (port 3000)
+   * Using reuseExistingServer: true to use pre-started servers.
+   */
+  webServer: [
+    {
+      command: 'pnpm exec nx run server:serve',
+      url: 'http://localhost:4000/api/hello', // Simple endpoint that doesn't require DB
+      reuseExistingServer: true,
+      cwd: workspaceRoot,
+      timeout: 120000,
+    },
+    {
+      command: 'pnpm exec nx run @nx-monorepo/web:start',
+      url: 'http://localhost:3000',
+      reuseExistingServer: true,
+      cwd: workspaceRoot,
+      timeout: 120000,
+    },
+  ],
   projects: [
     {
       name: 'chromium',

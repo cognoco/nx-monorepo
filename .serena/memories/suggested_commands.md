@@ -1,38 +1,96 @@
 # Suggested Commands
 
-## Setup & Maintenance
-- `pnpm install` – install workspace dependencies (README quick start).
-- `pnpm run validate:env` – ensure required environment variables are present (`package.json`).
-- `pnpm run validate:governance` and `pnpm run validate:research` – run policy-as-code gates before major changes (`package.json`, AGENTS).
+## Daily Development
 
-## Development Servers
-- `pnpm run dev` – run web and server targets in parallel (`package.json`).
-- `pnpm exec nx run web:dev` – start the Next.js dev server.
-- `pnpm exec nx run server:serve` – start the Express API.
+### Start Development Servers
+```bash
+pnpm run dev                    # Web + server in parallel
+pnpm exec nx run web:dev        # Web only (port 3000)
+pnpm exec nx run server:serve   # Server only (port 3333)
+```
 
-## Quality Gates
-- `pnpm exec nx run-many -t lint` – lint all affected projects (README, AGENTS).
-- `pnpm exec nx run-many -t test` – run all unit/integration suites (README).
-- `pnpm exec nx run-many -t build` – build all projects to validate compilation.
-- `pnpm exec nx run-many -t e2e` – run Playwright suites in `apps/web-e2e`.
-- `pnpm run format:check` / `pnpm run format:write` – Prettier formatting check or write.
-- `pnpm exec nx affected -t lint test build --base=<sha>` – scoped CI-equivalent preflight (AGENTS).
+### Quality Checks
+```bash
+pnpm exec nx run-many -t lint   # Lint all projects
+pnpm exec nx run-many -t test   # Run all tests
+pnpm exec nx run-many -t build  # Build all projects
+pnpm exec nx affected -t test   # Test only changed projects
+```
 
-## Targeted Nx Operations
-- `pnpm exec nx run <project>:<target>` – invoke a single Nx target (e.g. `web:test`).
-- `pnpm exec nx graph` – visualize dependency graph and confirm clean edges (README).
-- `pnpm exec nx show project <name>` – inspect project configuration.
+### Formatting
+```bash
+pnpm run format:check           # Check formatting
+pnpm run format:write           # Fix formatting
+```
+
+## Targeted Operations
+
+### Single Project
+```bash
+pnpm exec nx run <project>:<target>
+# Examples:
+pnpm exec nx run web:test
+pnpm exec nx run server:build
+pnpm exec nx run api-client:lint
+```
+
+### E2E Testing
+```bash
+pnpm exec nx run web-e2e:e2e    # Run Playwright tests
+```
 
 ## Database & Prisma
-- `pnpm run db:push:dev` / `pnpm run db:migrate:dev` – apply schema changes against Supabase dev instance.
-- `pnpm run db:migrate:deploy:dev` – deploy migrations (package scripts).
-- `pnpm run db:studio:dev` – open Prisma Studio for the dev database.
-- `pnpm run db:generate` – regenerate Prisma client (packages/database setup).
 
-## Serena Operations
-- `uvx --from git+https://github.com/oraios/serena serena project generate-yml --language typescript` – regenerate `.serena/project.yml` when languages change (Serena docs).
-- `uvx --from git+https://github.com/oraios/serena serena project index` – refresh the cached symbol index after large refactors.
+```bash
+pnpm run db:generate            # Regenerate Prisma client
+pnpm run db:migrate:dev         # Create + apply migrations (dev)
+pnpm run db:push:dev            # Sync schema without migrations
+pnpm run db:studio:dev          # Open Prisma Studio GUI
+```
 
-## Everyday Utilities (Linux)
-- `git status`, `git diff`, `git restore` – inspect and manage changes (standard tooling).
-- `ls`, `cd`, `pwd`, `find`, `grep -R "pattern"` – filesystem and search helpers for `/home/jojorgen/Projects/nx-monorepo`.
+## Code Generation
+
+### Before generating, READ:
+- `docs/memories/adopted-patterns/`
+- `docs/memories/post-generation-checklist/`
+
+```bash
+pnpm exec nx g @nx/js:lib <name> --directory=packages/<name> --bundler=tsc
+pnpm exec nx g @nx/node:app <name> --directory=apps/<name>
+pnpm exec nx g @nx/jest:configuration --project=<name>
+```
+
+## Troubleshooting
+
+### Jest Hanging (Windows)
+```bash
+NX_DAEMON=false pnpm exec nx run-many -t test     # Try first
+pnpm exec nx run-many -t test --no-cloud          # Try second
+```
+
+### Clear Nx Cache
+```bash
+pnpm exec nx reset              # Clear all caches
+```
+
+### View Dependency Graph
+```bash
+pnpm exec nx graph              # Visual dependency graph
+pnpm exec nx show project <name> # Project details
+```
+
+## CI Simulation
+
+```bash
+pnpm exec nx run-many -t lint test build typecheck e2e
+```
+
+## Environment Validation
+
+```bash
+pnpm run validate:env           # Check environment variables
+pnpm run validate:governance    # Run policy-as-code checks
+```
+
+**Authoritative sources:** package.json, AGENTS.md, README.md
+**Last synced:** 2025-12-04

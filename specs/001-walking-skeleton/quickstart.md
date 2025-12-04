@@ -28,7 +28,7 @@ This guide walks you through setting up and running the walking skeleton health 
 
 | Tool | Minimum Version | Check Command |
 |------|----------------|---------------|
-| **Node.js** | 20.19.9+ | `node --version` |
+| **Node.js** | 22.16.0+ | `node --version` |
 | **pnpm** | 10.19.0 | `pnpm --version` |
 | **Git** | Any recent version | `git --version` |
 
@@ -67,7 +67,7 @@ pnpm exec nx run-many -t lint
 
 **Troubleshooting**:
 - If `pnpm install` fails with peer dependency warnings: This is normal, dependencies are compatible
-- If lint fails: Check Node.js version matches requirement (20.19.9+)
+- If lint fails: Check Node.js version matches requirement (22.16.0+)
 
 **Time**: ~3-5 minutes (depending on internet speed)
 
@@ -504,7 +504,7 @@ pnpm exec nx run server:spec-write && pnpm exec nx run api-client:generate-types
 - **Architecture Decisions**: `docs/architecture-decisions.md`
 - **Adopted Patterns**: `docs/memories/adopted-patterns.md`
 - **Tech Stack**: `docs/tech-stack.md`
-- **Phase 1 Plan**: `docs/P1-plan.md`
+- **Roadmap**: `docs/roadmap.md`
 - **Troubleshooting**: `docs/memories/troubleshooting.md`
 - **Agent Rules**: `CLAUDE.md` (for AI assistant context)
 

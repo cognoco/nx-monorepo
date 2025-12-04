@@ -10,7 +10,7 @@ Use this index to locate the authoritative artefacts that drive governance, arch
 ┌─────────────────────────────────────────────────────────────┐
 │                    TIER 1: GOVERNANCE                       │
 │                                                             │
-│  PRD.md         constitution.md         P1-plan.md         │
+│  PRD.md         constitution.md         roadmap.md         │
 │  (WHAT/WHY)     (Principles)            (Roadmap)          │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -47,7 +47,7 @@ Use this index to locate the authoritative artefacts that drive governance, arch
 |----------|-------|---------------|-------|------------------|
 | **PRD.md** | WHAT features exist, WHY they matter | No (capability-level) | Product | All stakeholders |
 | **constitution.md** | Non-negotiable principles | Yes | Architecture | All |
-| **P1-plan.md** | Implementation roadmap, phases | No (planning) | Product | Engineering |
+| **roadmap.md** | Implementation roadmap, phases | No (planning) | Product | Engineering |
 | **architecture.md** | HOW system is built, patterns | Yes | Architecture | Agents, Developers |
 | **architecture-decisions.md** | WHY decisions were made (ADRs) | Yes (rationale) | Architecture | Architects |
 | **tech-stack.md** | WHICH versions, pinning rules | Yes | Engineering | Agents, Developers |
@@ -66,7 +66,7 @@ Use this index to locate the authoritative artefacts that drive governance, arch
 |----------|--------|----------------|
 | `PRD.md` | Governance | **ANCHOR** - Master record for product vision, scope, success criteria, and functional requirements. All lower-tier content must align with PRD philosophy. |
 | `constitution.md` | Governance | Non-negotiable principles (TDD, quality gates, memory rules) that bind all work, framework-agnostic. |
-| `P1-plan.md` | Delivery | Phase 1 implementation roadmap with stages, tasks, and validation gates. |
+| `roadmap.md` | Delivery | Implementation roadmap (MVP, Task App PoC, Extensions) with stages, tasks, and validation gates. |
 
 ### Tier 2: Architecture (Tactical)
 

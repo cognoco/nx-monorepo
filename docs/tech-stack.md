@@ -4,7 +4,7 @@ purpose: Comprehensive version inventory, pinning strategy, and compatibility ma
 audience: AI agents, developers, architects
 tags: technology, versions, compatibility, dependencies, pinning
 created: 2025-10-28
-last-updated: 2025-12-03
+last-updated: 2025-12-04
 Created: 2025-10-28T11:36
 Modified: 2025-10-28T20:30
 ---
@@ -122,11 +122,11 @@ This document provides the complete technology stack inventory for the nx-monore
 
 | Tool | Version | Constraint | Purpose |
 |------|---------|------------|---------|
-| **Node.js** | 20.19.9 | >= 20.x | Runtime environment |
+| **Node.js** | 22.16.0 | >= 22.x | Runtime environment |
 | **pnpm** | 10.19.0 | Exact (packageManager field) | Fast, disk-efficient package manager |
 
 **Rationale**:
-- **Node.js 20 LTS**: Long-term support version, compatible with all stack dependencies
+- **Node.js 22 LTS**: Current LTS version, required for TestSprite MCP and modern tooling
 - **pnpm 10.19.0**: Enforced via packageManager field for consistency across team
 
 ---
@@ -246,11 +246,11 @@ This document provides the complete technology stack inventory for the nx-monore
 
 | Next.js | React | TypeScript | Node.js | Status |
 |---------|-------|------------|---------|--------|
-| ~15.2.4 | 19.0.0 | ~5.9.2 | 20.19.9 | ✅ Tested & Working |
+| ~15.2.4 | 19.0.0 | ~5.9.2 | 22.16.0 | ✅ Tested & Working |
 
 | Jest | @swc/jest | TypeScript | Node.js | Status |
 |------|-----------|------------|---------|--------|
-| 30.2.0 | ~0.2.38 | ~5.9.2 | 20.19.9 | ✅ Tested & Working |
+| 30.2.0 | ~0.2.38 | ~5.9.2 | 22.16.0 | ✅ Tested & Working |
 
 | Nx | @nx/jest | Jest | TypeScript | Status |
 |----|----------|------|------------|--------|
@@ -258,7 +258,7 @@ This document provides the complete technology stack inventory for the nx-monore
 
 | Playwright | Node.js | TypeScript | Status |
 |------------|---------|------------|--------|
-| 1.56.1 | 20.19.9 | ~5.9.2 | ✅ Tested & Working |
+| 1.56.1 | 22.16.0 | ~5.9.2 | ✅ Tested & Working |
 
 ### Known Incompatibilities
 
@@ -273,7 +273,7 @@ This document provides the complete technology stack inventory for the nx-monore
 ### Windows (Validated)
 
 - **Windows 11**: ✅ Fully supported
-- **Node.js 20.19.9**: ✅ Compatible
+- **Node.js 22.16.0**: ✅ Compatible
 - **pnpm 10.19.0**: ✅ Recommended (faster than npm on Windows)
 - **Jest hanging issue**: ⚠️ See `.ruler/AGENTS.md` Troubleshooting section for Windows-specific Jest workarounds (NX_DAEMON=false, --no-cloud)
 
@@ -401,6 +401,6 @@ Before approving version changes:
 - When platform-specific issues are identified
 - When upgrade guidelines need refinement
 
-**Last Updated**: 2025-10-28
-**Last Major Audit**: 2025-10-28
-**Next Review Due**: 2026-01-28 (quarterly review recommended)
+**Last Updated**: 2025-12-04
+**Last Major Audit**: 2025-12-04 (Node.js 22 upgrade)
+**Next Review Due**: 2026-03-04 (quarterly review recommended)
