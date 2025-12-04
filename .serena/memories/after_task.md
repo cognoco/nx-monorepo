@@ -1,15 +1,51 @@
 # Post-Task Checklist
 
-1. **Sync with governance** – If changes touch architecture, tooling, or conventions, cite the relevant canonical doc (`docs/index.md`) and update the matching Cogno module before declaring the task done.
-2. **Formatting** – Run `pnpm run format:check` (or `pnpm run format:write` when needed) and fix any Prettier issues.
-3. **Lint & type checks** – Execute `pnpm exec nx affected -t lint typecheck` (or targeted `nx run <project>:lint`) to ensure static analysis stays green.
-4. **Tests** – Run the smallest meaningful suite:
-   - `pnpm exec nx affected -t test` for unit/integration coverage.
-   - `pnpm exec nx affected -t e2e` when user-facing flows change.
-   - For database changes, add `pnpm run db:migrate:deploy:dev` dry run and verify Prisma generates cleanly.
-5. **Build validation** – `pnpm exec nx affected -t build` (or targeted builds) to confirm artifacts compile.
-6. **Dependency graph sanity** – `pnpm exec nx graph` (or `nx show project`) if dependencies changed to confirm no circular edges.
-7. **Review outputs** – Inspect `git status` / `git diff` and summarize key changes; never commit unless the user explicitly requests it (`AGENTS.md`).
-8. **Document** – Update README, docs, or Cogno memories if the task introduced new knowledge or workflows.
-9. **Serena maintenance** – After large refactors, rerun `serena project index` to refresh symbol caches before ending the session.
-10. **Handoff** – Report test/command results to the user, note any skipped steps, and list next recommended actions.
+Execute this checklist after completing any significant task.
+
+## 1. Governance Sync
+- [ ] If changes touch architecture, tooling, or conventions → cite the relevant canonical doc (`docs/index.md`) and update matching Cogno module
+
+## 2. Code Quality
+- [ ] **Format**: `pnpm run format:check` (fix with `format:write` if needed)
+- [ ] **Lint**: `pnpm exec nx affected -t lint`
+- [ ] **Types**: `pnpm exec nx affected -t typecheck`
+
+## 3. Testing
+- [ ] **Unit/Integration**: `pnpm exec nx affected -t test`
+- [ ] **E2E** (if user-facing flows changed): `pnpm exec nx affected -t e2e`
+- [ ] **Database** (if schema changed): `pnpm run db:generate` + verify Prisma generates cleanly
+
+## 4. Build Validation
+- [ ] `pnpm exec nx affected -t build`
+- [ ] If dependencies changed: `pnpm exec nx graph` — confirm no circular edges
+
+## 5. Git Hygiene
+- [ ] `git status` / `git diff` — review changes
+- [ ] **NEVER commit unless explicitly requested** (AGENTS.md rule)
+- [ ] Summarize key changes for user
+
+## 6. Documentation
+- [ ] Update README, docs, or Cogno memories if task introduced new knowledge
+- [ ] If new pattern established → add to `adopted-patterns/`
+
+## 7. Serena Maintenance (Major Refactors Only)
+- [ ] After large structural changes: `serena project index` to refresh symbol caches
+
+## 8. Handoff
+- [ ] Report test/command results to user
+- [ ] Note any skipped steps with rationale
+- [ ] List recommended next actions
+
+## Quick Reference
+
+| Check | Command |
+|-------|---------|
+| Format | `pnpm run format:check` |
+| Lint | `pnpm exec nx affected -t lint` |
+| Test | `pnpm exec nx affected -t test` |
+| Build | `pnpm exec nx affected -t build` |
+| Types | `pnpm exec nx affected -t typecheck` |
+| Graph | `pnpm exec nx graph` |
+
+**Authoritative sources:** constitution.md §II-III, AGENTS.md
+**Last synced:** 2025-12-04
