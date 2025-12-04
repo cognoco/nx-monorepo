@@ -15,7 +15,7 @@ Implement a minimal health check feature (HTTP endpoints: GET /api/health, POST 
 
 ## Technical Context
 
-**Language/Version**: TypeScript 5.9.2, Node.js 20.19.9+
+**Language/Version**: TypeScript 5.9.2, Node.js 22.16.0+
 **Primary Dependencies**:
 - Web: Next.js 15.2.4, React 19.0.0, Tailwind CSS 3.4.3 (upgrade to 4.1.x recommended)
 - Server: Express 4.21.2, @asteasolutions/zod-to-openapi 8.1.0

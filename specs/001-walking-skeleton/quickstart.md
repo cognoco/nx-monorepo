@@ -28,7 +28,7 @@ This guide walks you through setting up and running the walking skeleton health 
 
 | Tool | Minimum Version | Check Command |
 |------|----------------|---------------|
-| **Node.js** | 20.19.9+ | `node --version` |
+| **Node.js** | 22.16.0+ | `node --version` |
 | **pnpm** | 10.19.0 | `pnpm --version` |
 | **Git** | Any recent version | `git --version` |
 
@@ -67,7 +67,7 @@ pnpm exec nx run-many -t lint
 
 **Troubleshooting**:
 - If `pnpm install` fails with peer dependency warnings: This is normal, dependencies are compatible
-- If lint fails: Check Node.js version matches requirement (20.19.9+)
+- If lint fails: Check Node.js version matches requirement (22.16.0+)
 
 **Time**: ~3-5 minutes (depending on internet speed)
 
