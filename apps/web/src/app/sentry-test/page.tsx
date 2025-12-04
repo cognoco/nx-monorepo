@@ -17,6 +17,7 @@
 'use client';
 
 import * as Sentry from '@sentry/nextjs';
+import Link from 'next/link';
 
 export default function SentryTestPage() {
   const throwClientError = () => {
@@ -204,9 +205,12 @@ export default function SentryTestPage() {
         </div>
 
         <div className="mt-6 text-center">
-          <a href="/" className="text-blue-600 hover:text-blue-800 underline">
+          <Link
+            href="/"
+            className="text-blue-600 hover:text-blue-800 underline"
+          >
             ← Back to Home
-          </a>
+          </Link>
         </div>
       </div>
     </div>

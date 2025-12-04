@@ -10,7 +10,25 @@ jest.mock('@supabase/ssr', () => {
     createServerClient: jest.fn(() => ({ kind: 'server' })),
   };
 });
-import { createBrowserClient, createServerClient } from '@supabase/ssr';
+import {
+  createBrowserClient,
+  createServerClient,
+  type SupabaseClientOptions,
+} from '@supabase/ssr';
+
+// Type definitions for test helpers
+type CookieConfig = {
+  name: string;
+  value: string;
+  options?: Record<string, unknown>;
+};
+
+type ServerClientConfig = {
+  cookies: {
+    getAll: () => CookieConfig[];
+    setAll: (cookies: CookieConfig[]) => void;
+  };
+};
 
 const cookieStore = {
   getAll: jest.fn(() => [{ name: 'a', value: '1' }]),
@@ -21,11 +39,11 @@ jest.mock('next/headers', () => ({
 }));
 
 const originalEnv = { ...process.env };
-const originalWindow = (global as any).window;
+const originalWindow = globalThis.window;
 
 beforeEach(() => {
   process.env = { ...originalEnv };
-  (global as any).window = {};
+  globalThis.window = {} as Window & typeof globalThis;
   jest.clearAllMocks();
   cookieStore.getAll.mockClear();
   cookieStore.set.mockClear();
@@ -33,7 +51,7 @@ beforeEach(() => {
 
 afterEach(() => {
   process.env = originalEnv;
-  (global as any).window = originalWindow;
+  globalThis.window = originalWindow;
 });
 
 describe('createSupabaseBrowserClient', () => {
@@ -71,7 +89,7 @@ describe('createSupabaseBrowserClient', () => {
   });
 
   it('throws when called server-side (no window)', () => {
-    delete (global as any).window;
+    delete (globalThis as { window?: unknown }).window;
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon';
     expect(() => createSupabaseBrowserClient()).toThrow(
@@ -80,10 +98,12 @@ describe('createSupabaseBrowserClient', () => {
   });
 
   it('passes options through to createBrowserClient', () => {
-    (global as any).window = {};
+    globalThis.window = {} as Window & typeof globalThis;
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon';
-    const options = { global: { headers: { 'x-test': '1' } } } as any;
+    const options: Partial<SupabaseClientOptions<unknown>> = {
+      global: { headers: { 'x-test': '1' } },
+    };
     createSupabaseBrowserClient(options);
     expect(createBrowserClient).toHaveBeenCalledWith(
       'https://example.supabase.co',
@@ -101,8 +121,9 @@ describe('createSupabaseServerClient', () => {
     await createSupabaseServerClient();
     expect(mockedCookies as unknown as jest.Mock).toHaveBeenCalled();
     // getAll is called lazily by the adapter when cookies are read; ensure adapter was passed
-    const [, , cfg] = (createServerClient as unknown as jest.Mock).mock
-      .calls[0] as any[];
+    const [, , cfg] = (
+      createServerClient as jest.MockedFunction<typeof createServerClient>
+    ).mock.calls[0] as [string, string, ServerClientConfig];
     expect(cfg.cookies.getAll()).toEqual([{ name: 'a', value: '1' }]);
     expect(createServerClient).toHaveBeenCalled();
   });
@@ -121,25 +142,27 @@ describe('createSupabaseServerClient', () => {
     });
     await createSupabaseServerClient();
     // invoke setAll manually via last call config to ensure coverage
-    const [, , cfg] = (createServerClient as unknown as jest.Mock).mock
-      .calls[0] as any[];
+    const [, , cfg] = (
+      createServerClient as jest.MockedFunction<typeof createServerClient>
+    ).mock.calls[0] as [string, string, ServerClientConfig];
     expect(cfg).toBeDefined();
     expect(() =>
-      (cfg as any).cookies.setAll([
-        { name: 's', value: 'v', options: {} } as any,
-      ])
+      cfg.cookies.setAll([{ name: 's', value: 'v', options: {} }])
     ).not.toThrow();
   });
 
   it('passes options through to createServerClient', async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon';
-    const options = {
-      global: { fetch: (() => Promise.resolve({})) as any },
-    } as any;
+    const options: Partial<SupabaseClientOptions<unknown>> = {
+      global: {
+        fetch: (() => Promise.resolve({})) as unknown as typeof fetch,
+      },
+    };
     await createSupabaseServerClient(options);
-    const [, , cfg] = (createServerClient as unknown as jest.Mock).mock
-      .calls[0] as any[];
+    const [, , cfg] = (
+      createServerClient as jest.MockedFunction<typeof createServerClient>
+    ).mock.calls[0] as [string, string, ServerClientConfig];
     expect(cfg).toEqual(expect.objectContaining(options));
   });
 });

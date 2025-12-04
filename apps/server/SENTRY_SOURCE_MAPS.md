@@ -149,9 +149,23 @@ To verify source maps work correctly:
 - [Sentry CLI Documentation](https://docs.sentry.io/cli/)
 - [esbuild Source Map Options](https://esbuild.github.io/api/#sourcemap)
 
+## Implementation Status
+
+**Current Status:** Source maps are generated but NOT uploaded in CI.
+
+**Rationale:** Deferred to Stage 9 (CI/CD Staging Deployment) because:
+- No staging/production environment exists yet
+- Uploading in CI provides no value until code is deployed
+- Source maps should be uploaded during deployment, not every PR
+
+**Planned Implementation (Stage 9):**
+- Add source map upload to staging/production deployment pipeline
+- Only upload on successful deployments
+- See `docs/roadmap.md` Stage 9 for timeline
+
 ## Future Improvements
 
-1. **Automated Upload**: Integrate source map upload into the build process
+1. **Automated Upload**: Integrate source map upload into the deployment process
 2. **Release Creation**: Automatically create Sentry releases with deploy metadata
 3. **Source Map Validation**: Add pre-deploy validation to ensure source maps are correct
 4. **Artifact Cleanup**: Automatically remove old releases and source maps
