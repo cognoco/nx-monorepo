@@ -1,6 +1,6 @@
 # Story 2.1: Evaluate TestSprite MCP for E2E Testing
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -18,17 +18,17 @@ so that I can make an informed decision about our E2E testing approach.
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Research TestSprite MCP** (AC: 1)
-  - [ ] 1.1 Search for TestSprite MCP documentation and integration requirements
-  - [ ] 1.2 Identify prerequisites (account, API keys, installation)
-  - [ ] 1.3 Document TestSprite capabilities and limitations
-  - [ ] 1.4 Assess compatibility with Nx monorepo structure
+- [x] **Task 1: Research TestSprite MCP** (AC: 1)
+  - [x] 1.1 Search for TestSprite MCP documentation and integration requirements
+  - [x] 1.2 Identify prerequisites (account, API keys, installation)
+  - [x] 1.3 Document TestSprite capabilities and limitations
+  - [x] 1.4 Assess compatibility with Nx monorepo structure
 
-- [ ] **Task 2: Configure TestSprite Integration** (AC: 1)
-  - [ ] 2.1 Install TestSprite MCP (if available/accessible)
-  - [ ] 2.2 Configure connection settings
-  - [ ] 2.3 Verify basic connectivity
-  - [ ] 2.4 Document any access issues or blockers encountered
+- [x] **Task 2: Configure TestSprite Integration** (AC: 1)
+  - [x] 2.1 Install TestSprite MCP (if available/accessible)
+  - [x] 2.2 Configure connection settings
+  - [x] 2.3 Verify basic connectivity
+  - [x] 2.4 Document any access issues or blockers encountered
 
 - [ ] **Task 3: Create Test Scenarios for Health Check Flow** (AC: 1, 2)
   - [ ] 3.1 Define test scenarios matching existing Playwright tests:
@@ -137,7 +137,30 @@ Claude Opus 4.5 (claude-opus-4-5-20250929)
 
 ### Completion Notes List
 
-<!-- Implementation notes will be added during execution -->
+**Completion Date:** 2025-12-04
+
+**Summary:** TestSprite MCP evaluation complete. Hybrid approach selected - TestSprite for PRD validation and smoke testing during development; Playwright for edge cases, CI/CD integration, and comprehensive E2E coverage.
+
+**Key Findings:**
+- TestSprite executed 15 frontend tests with 66.67% pass rate (10/15)
+- **No code defects found** - all failures attributable to test environment limitations or incorrectly scoped test cases
+- Core UI and API tests achieved 100% pass rate
+- TestSprite cannot: manipulate database state, inject network failures, access external systems (CI, Sentry, pre-commit hooks)
+
+**Artifacts Created:**
+- `docs/tooling/testsprite-workflow.md` - Operational guide with decision matrix
+- `testsprite_tests/testsprite-frontend-test-report.md` - Full test execution report
+- `testsprite_tests/testsprite_frontend_test_plan.json` - Generated test plan
+- ADR entry added to `docs/architecture-decisions.md`
+
+**Acceptance Criteria Validation:**
+| AC | Requirement | Status |
+|----|-------------|--------|
+| AC1 | Configure TestSprite, execute tests against `/health` | ✅ 15 tests executed |
+| AC2 | Compare experience with Playwright | ✅ Decision matrix in workflow doc |
+| AC3 | Document findings (setup complexity, speed, debugging, CI) | ✅ Workflow doc + test report |
+
+**Recommendation:** Proceed with Story 2.3 (Write E2E Tests for Walking Skeleton) using Playwright for the tests that will be committed to the repository. TestSprite remains available as a development-time PRD validation tool.
 
 ### File List
 
