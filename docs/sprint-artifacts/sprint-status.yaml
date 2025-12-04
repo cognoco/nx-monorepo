@@ -1,5 +1,5 @@
 # Sprint Status Tracking
-# generated: 2025-12-03
+# generated: 2025-12-04
 # project: nx-monorepo
 # tracking_system: file-system
 # story_location: docs/sprint-artifacts
@@ -13,14 +13,7 @@ planning_notes:
   # Stories that REQUIRE your input before starting
   # These cannot proceed without decisions from you
   requires_input:
-    - story: 2-1-evaluate-testsprite-mcp-for-e2e-testing
-      reason: "Need access to TestSprite MCP or decision to skip evaluation"
-      decision_type: tool-access
-
-    - story: 2-2-e2e-testing-decision-and-strategy
-      reason: "Final decision: Playwright, TestSprite, or hybrid?"
-      decision_type: architectural-choice
-      depends_on: 2-1
+    # 2-1 and 2-2 COMPLETED - Hybrid approach decided: Playwright for CI/committed tests, TestSprite for PRD validation
 
     - story: 3-1-set-up-sentry-project-and-configuration
       reason: "Need Sentry account access or decision on observability platform"
@@ -42,8 +35,8 @@ planning_notes:
   # You can kick these off and review results later
   autonomous_ready:
     - story: 2-3-write-e2e-tests-for-walking-skeleton
-      notes: "Once 2-2 decision made, implementation is straightforward"
-      depends_on: 2-2
+      notes: "READY NOW - 2-2 decision complete (hybrid approach). Use Playwright for committed E2E tests."
+      depends_on: 2-2  # SATISFIED
 
     - story: 2-4-optimize-nx-cloud-remote-caching
       notes: "Configuration work - nxCloudId already in nx.json"
@@ -137,7 +130,7 @@ planning_notes:
 # - SM typically drafts next story after previous one is 'done' to incorporate learnings
 # - Dev moves story to 'review', SM reviews, then Dev moves to 'done'
 
-generated: 2025-12-03
+generated: 2025-12-04
 project: nx-monorepo
 tracking_system: file-system
 story_location: docs/sprint-artifacts
@@ -152,10 +145,10 @@ development_status:
   epic-1-retrospective: completed  # Validated working in implementation-readiness
 
   # Epic 2: E2E Testing & Quality Gates
-  epic-2: backlog
-  2-1-evaluate-testsprite-mcp-for-e2e-testing: ready-for-dev
-  2-2-e2e-testing-decision-and-strategy: backlog
-  2-3-write-e2e-tests-for-walking-skeleton: backlog
+  epic-2: contexted
+  2-1-evaluate-testsprite-mcp-for-e2e-testing: done
+  2-2-e2e-testing-decision-and-strategy: done
+  2-3-write-e2e-tests-for-walking-skeleton: done
   2-4-optimize-nx-cloud-remote-caching: backlog
   epic-2-retrospective: optional
 
