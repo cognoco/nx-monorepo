@@ -118,9 +118,17 @@ This project uses [Ruler](https://github.com/intellectronica/ruler) to manage AI
 2. Explain what you were trying to accomplish
 3. Ask if user wants you to proceed without it (acknowledge reduced quality/visibility)
 
-### Additional MCP Servers (Examples)
+### On-Demand MCP Servers
 
-The following servers are commonly applicable. This list is **not exhaustive** - check available tools for other specialized servers.
+The following MCP servers extend your capabilities but may not always be enabled.
+
+**Behavior when a use case matches an on-demand server:**
+
+1. **If the server IS available**: Use it directly - no need to ask permission.
+2. **If the server is NOT available**: Inform the user of the relevant use case and ask if they'd like to enable it:
+   > "This would be a good case for [Server Name] - it can [capability]. Would you like to enable it?"
+
+---
 
 **Context7 MCP** - Library Documentation
 - **When**: BEFORE suggesting version changes, researching framework features
@@ -155,6 +163,18 @@ The following servers are commonly applicable. This list is **not exhaustive** -
   | Major refactor | Consider `serena project index` |
   | Cogno updates | None (reads on-demand) |
   | Setup/troubleshooting | See `docs/tooling/serena-workflow.md` |
+
+**TestSprite MCP** - AI-Generated E2E Tests
+- **When**: Validating PRD accuracy, smoke testing during feature development, quick API contract verification
+- **What**: Generates Python Playwright tests from PRDs, executes them in cloud against local servers
+- **Why**: Catches PRD ambiguities and implementation drift without manual test writing
+- **Recommend when**:
+  - User has created/updated a PRD and wants validation before implementation
+  - Quick smoke test needed during development iteration
+  - API responses need validation against documented contracts
+- **Limitations**: Cannot manipulate database state, inject network failures, or access external systems (CI/CD, Sentry). Use Playwright for edge cases and CI integration.
+- **Workflow**: Accurate PRD → Code Summary → Bootstrap → Test Plan → Execute → Report
+- **See**: `docs/tooling/testsprite-workflow.md` for full operational guide
 
 ### MCP Server Unavailability Protocol
 
