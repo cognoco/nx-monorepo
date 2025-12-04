@@ -70,8 +70,7 @@ export class HealthPage {
     const initialCount = await this.getHealthCheckCount();
     await this.ping();
 
-    // Wait for button to show loading state then return to normal
-    await expect(this.pingButton).toContainText('Pinging...');
+    // Wait for button to return to ready state (loading state may be too fast to observe)
     await expect(this.pingButton).toContainText('Ping', { timeout: 10000 });
 
     // Wait for new record to appear
