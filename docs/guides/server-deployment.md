@@ -19,7 +19,7 @@ The server application is built with:
 
 **Default configuration**:
 - Port: 4000 (configurable via `PORT` environment variable)
-- Node.js: 20.x or higher
+- Node.js: 22.x or higher
 
 ---
 
@@ -260,7 +260,7 @@ node main.js
 
 ```dockerfile
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /build
 
@@ -278,7 +278,7 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm exec nx run server:build --configuration=production
 
 # Production stage
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
@@ -554,7 +554,7 @@ For a **single-app deployment**, bundled mode is simpler. For a **growing monore
 
 - ✅ Run container as non-root user (see Dockerfile example)
 - ✅ Scan images for vulnerabilities: `docker scan nx-monorepo-server:latest`
-- ✅ Keep base image updated: `node:20-alpine` gets security patches
+- ✅ Keep base image updated: `node:22-alpine` gets security patches
 - ✅ Use multi-stage builds to minimize attack surface
 
 ---
