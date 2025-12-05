@@ -161,19 +161,19 @@ development_status:
   epic-3-retrospective: optional
 
   # Epic 4: Authentication Infrastructure Wiring
-  epic-4: backlog
-  4-1-create-server-auth-middleware-structure: backlog
-  4-2-configure-supabase-auth-project-settings: backlog
-  4-3-create-web-auth-state-management-patterns: backlog
-  4-4-validate-auth-infrastructure-readiness: backlog
+  epic-4: contexted  # Stories to be drafted 2025-12-04
+  4-1-create-server-auth-middleware-structure: done  # Completed 2025-12-04
+  4-2-configure-supabase-auth-project-settings: ready-for-dev
+  4-3-create-web-auth-state-management-patterns: done  # Completed 2025-12-04
+  4-4-validate-auth-infrastructure-readiness: done  # Completed 2025-12-04
   epic-4-retrospective: optional
 
   # Epic 5: CI/CD Staging Deployment
-  epic-5: backlog
-  5-1-select-staging-platform: backlog
-  5-2-configure-github-actions-deployment-workflow: backlog
-  5-3-configure-docker-containerization: backlog
-  5-4-validate-staging-deployment: backlog
+  epic-5: contexted  # Stories drafted 2025-12-04
+  5-1-select-staging-platform: drafted  # Drafted 2025-12-04 - REQUIRES USER INPUT: platform choice
+  5-2-configure-github-actions-deployment-workflow: drafted  # Drafted 2025-12-04 - depends on 5-1
+  5-3-configure-docker-containerization: drafted  # Drafted 2025-12-04 - can run parallel with 5-2
+  5-4-validate-staging-deployment: drafted  # Drafted 2025-12-04 - depends on 5-1, 5-2, 5-3
   epic-5-retrospective: optional
 
   # Epic 6: Mobile Walking Skeleton

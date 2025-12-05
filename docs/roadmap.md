@@ -903,35 +903,72 @@ Wire up authentication infrastructure so it's ready for application-level implem
 
 #### Sub-stages
 
-- [ ] **8.1: Server auth middleware patterns**
-  - [ ] 8.1.1: Create auth middleware structure in `apps/server/src/middleware/`
-  - [ ] 8.1.2: Implement protected route pattern
-  - [ ] 8.1.3: Set up Supabase session verification
-  - [ ] 8.1.4: Document middleware usage patterns
+- [x] **8.1: Server auth middleware patterns** ✅ Completed 2025-12-04 (Story 4.1)
+  - [x] 8.1.1: Create auth middleware structure in `apps/server/src/middleware/`
+  - [x] 8.1.2: Implement protected route pattern
+  - [x] 8.1.3: Set up Supabase session verification
+  - [x] 8.1.4: Document middleware usage patterns
 
-- [ ] **8.2: Supabase Auth integration points**
-  - [ ] 8.2.1: Configure Supabase Auth for the project
-  - [ ] 8.2.2: Set up session handling patterns
-  - [ ] 8.2.3: Configure token refresh flow
-  - [ ] 8.2.4: Test auth flow manually
+- [x] **8.2: Supabase Auth integration points** ✅ Completed 2025-12-04 (Story 4.2)
+  - [x] 8.2.1: Configure Supabase Auth for the project
+  - [x] 8.2.2: Set up session handling patterns
+  - [x] 8.2.3: Configure token refresh flow
+  - [x] 8.2.4: Test auth flow manually
 
-- [ ] **8.3: Web auth state management**
-  - [ ] 8.3.1: Set up auth context/provider pattern
-  - [ ] 8.3.2: Create auth hooks (useUser, useSession)
-  - [ ] 8.3.3: Document auth state patterns for web
+- [x] **8.3: Web auth state management** ✅ Completed 2025-12-04 (Story 4.3)
+  - [x] 8.3.1: Set up auth context/provider pattern
+  - [x] 8.3.2: Create auth hooks (useUser, useSession)
+  - [x] 8.3.3: Document auth state patterns for web
 
-- [ ] **8.4: Validation**
-  - [ ] 8.4.1: Verify auth infrastructure is ready for Phase 2 features
-  - [ ] 8.4.2: Document what's in place vs what needs application-level implementation
+- [x] **8.4: Validation** ✅ Completed 2025-12-04 (Story 4.4)
+  - [x] 8.4.1: Verify auth infrastructure is ready for Phase 2 features
+  - [x] 8.4.2: Document what's in place vs what needs application-level implementation
 
 #### Success Criteria
 
-- [ ] Auth middleware patterns in server ready for use
-- [ ] Supabase Auth configured and tested
-- [ ] Web auth state management patterns documented
-- [ ] Infrastructure ready for Phase 2 auth implementation
+- [x] Auth middleware patterns in server ready for use
+- [x] Supabase Auth configured and tested
+- [x] Web auth state management patterns documented
+- [x] Infrastructure ready for Phase 2 auth implementation
 
 **Stage 8 Estimated Time:** 2-3 hours
+
+#### Epic 4 Validation Notes (2025-12-04)
+
+**Infrastructure Readiness Status: ✅ COMPLETE**
+
+All auth infrastructure components are in place and tested. The following 13 components have been verified:
+
+| Component | Location | Status |
+|-----------|----------|--------|
+| Server auth middleware | `apps/server/src/middleware/auth.ts` | ✅ |
+| requireAuth export | `apps/server/src/middleware/index.ts` | ✅ |
+| Server middleware tests | `apps/server/src/middleware/auth.spec.ts` (18 tests) | ✅ |
+| Supabase admin client | `apps/server/src/lib/supabase-admin.ts` | ✅ |
+| Supabase email auth | Supabase Dashboard | ✅ |
+| JWT configuration | Supabase Dashboard (1hr access, 7d refresh) | ✅ |
+| Redirect URLs | Supabase Dashboard (localhost:3000-3003) | ✅ |
+| Web auth utilities | `apps/web/src/lib/auth.ts` | ✅ |
+| Web auth hooks | `apps/web/src/lib/auth-hooks.ts` | ✅ |
+| Web middleware | `apps/web/src/middleware.ts` (disabled) | ✅ |
+| Web auth tests | `apps/web/src/lib/auth.spec.ts` (13 tests) | ✅ |
+| Environment docs | `docs/guides/environment-setup.md` | ✅ |
+| RLS documentation | `docs/guides/environment-setup.md` | ✅ |
+
+**Phase 2 Prerequisites Satisfied:**
+- ✅ Server can validate JWT tokens via `requireAuth` middleware
+- ✅ Web can retrieve session/user in Server Components via `getSession()`/`getUser()`
+- ✅ Web can respond to auth state changes in Client Components via `useAuthStateChange()`
+- ✅ Next.js middleware pattern ready (currently disabled via empty matcher)
+- ✅ Environment configuration documented for developer onboarding
+- ✅ RLS bypass pattern documented for Express server
+
+**Recommendations for Epic 9 (User Authentication Flows):**
+1. Start with signup/login UI (Stories 9.1, 9.2) as they have no dependencies
+2. Enable Next.js middleware after auth UI is functional (Story 9.4)
+3. Apply `requireAuth` to task routes incrementally (Story 9.5)
+4. Consider addressing minor tech debt (React `act()` warnings) during Epic 9
+5. **Production consideration**: Enable email confirmation before production deployment
 
 ---
 

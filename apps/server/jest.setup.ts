@@ -16,6 +16,7 @@
 
 import { loadDatabaseEnv } from '@nx-monorepo/test-utils';
 import { resolve } from 'path';
+import type { Application, Request, Response, NextFunction } from 'express';
 
 // Load database environment variables for tests
 // Use __dirname (not process.cwd()) to ensure correct path resolution
@@ -30,9 +31,9 @@ jest.mock('@sentry/node', () => ({
   captureException: jest.fn(),
   captureMessage: jest.fn(),
   // v8+ API: Single function instead of Handlers object
-  setupExpressErrorHandler: jest.fn((app: any) => {
+  setupExpressErrorHandler: jest.fn((app: Application) => {
     // Add a mock error handler middleware to the app
-    app.use((err: any, _req: any, res: any, next: any) => {
+    app.use((err: Error, _req: Request, res: Response, next: NextFunction) => {
       if (res.headersSent) {
         return next(err);
       }

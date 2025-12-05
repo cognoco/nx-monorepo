@@ -3,7 +3,7 @@
 This document defines **HOW** the AI-Native Nx Monorepo Template is built and **HOW** features should be implemented. It is derived from PRD.md and constitution.md, with detailed rationale in architecture-decisions.md.
 
 **Audience**: AI coding agents (primary), architects, developers
-**Last Updated**: 2025-12-03
+**Last Updated**: 2025-12-04
 **Stack Verification**: See `docs/tech-stack.md` (verified 2025-12-03)
 
 ---
@@ -426,6 +426,78 @@ const result = Schema.safeParse(req.body);
 if (!result.success) {
   return res.status(400).json({ errors: result.error.errors });
 }
+```
+
+### Authentication Infrastructure (Phase 1 Foundation)
+
+Authentication infrastructure is ready for Phase 2 implementation. The patterns are in place but not yet applied to business routes.
+
+#### Server Auth Middleware (`apps/server/src/middleware/auth.ts`)
+
+```typescript
+// Protect routes with requireAuth middleware
+import { requireAuth } from './middleware';
+
+router.get('/protected', requireAuth, (req: AuthenticatedRequest, res) => {
+  // req.user contains validated user info
+  res.json({ userId: req.user.id });
+});
+```
+
+**Pattern**: Express middleware validates JWT tokens via Supabase Admin client. Uses service role key for secure server-side verification.
+
+#### Web Auth Utilities (`apps/web/src/lib/auth.ts`)
+
+```typescript
+// Server Components - retrieve session/user
+import { getSession, getUser } from '@/lib/auth';
+
+export default async function ProtectedPage() {
+  const session = await getSession();
+  if (!session) redirect('/login');
+  // ...
+}
+```
+
+```typescript
+// Client Components - auth state changes (forward-looking example)
+// NOTE: Current useAuthStateChange() returns AuthState object; API may evolve in Phase 2
+import { useAuthStateChange } from '@/lib/auth-hooks';
+
+function AuthProvider({ children }) {
+  const { session, user, loading } = useAuthStateChange();
+  // ...
+}
+```
+
+#### Next.js Middleware Pattern (`apps/web/src/middleware.ts`)
+
+```typescript
+// Currently disabled (matcher: []) - enable in Phase 2
+export async function middleware(request: NextRequest) {
+  const session = await getSession();
+  if (!session && isProtectedRoute(request.pathname)) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+}
+```
+
+**Phase 2 Enablement**: Update `matcher` array to include protected routes (e.g., `/tasks/*`).
+
+### Rate Limiting
+
+Rate limiting middleware is available to protect against brute force and DDoS attacks:
+
+| Limiter | Window | Max Requests | Use Case |
+|---------|--------|--------------|----------|
+| `defaultRateLimiter` | 15 min | 100 | General API endpoints |
+| `authRateLimiter` | 15 min | 10 | Login, signup, password reset |
+| `sensitiveRateLimiter` | 1 hour | 5 | Password change, account deletion |
+
+**Usage:**
+```typescript
+import { authRateLimiter } from './middleware';
+app.use('/api/auth', authRateLimiter);
 ```
 
 ---

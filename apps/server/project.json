@@ -5,6 +5,14 @@
   "projectType": "application",
   "tags": ["type:app"],
   "targets": {
+    "docker-build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docker build -f apps/server/Dockerfile -t nx-monorepo-server .",
+        "cwd": "{workspaceRoot}"
+      },
+      "dependsOn": ["build"]
+    },
     "spec-write": {
       "executor": "nx:run-commands",
       "options": {
@@ -12,6 +20,10 @@
         "cwd": "{workspaceRoot}"
       },
       "dependsOn": ["build"],
+      "inputs": [
+        "{workspaceRoot}/dist/apps/server/apps/server/src/**/*.js",
+        "{projectRoot}/scripts/write-openapi.ts"
+      ],
       "outputs": ["{workspaceRoot}/dist/apps/server/openapi.json"],
       "cache": true
     },
