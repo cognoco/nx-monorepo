@@ -1591,3 +1591,283 @@ TestSprite evaluation (15 frontend tests, 66.67% pass rate) demonstrated clear s
   - Documented: Use case matrix, artifact locations, workflow guide
   - Artifacts: testsprite-workflow.md, frontend test report
   - Story 2.1 complete, Story 2.2 decision formalized
+
+---
+
+## Epic 5: CI/CD Staging Deployment - Platform Selection
+
+**Decision Date:** December 4, 2025
+**Story Reference:** Story 5.1 - Select Staging Platform
+
+---
+
+### Decision Summary
+
+| Aspect | Decision |
+|--------|----------|
+| **Primary Target** | Vercel (web) + Railway (API) |
+| **Secondary Target** | Railway (both web + API in containers) |
+| **Database** | Supabase TEST project for both targets |
+| **Strategy** | PoC both approaches; primary first, secondary if time permits |
+
+---
+
+### Decision 1: Two-Target Deployment Strategy
+
+**Decision:** Implement **two staging deployment targets** to demonstrate deployment portability as required by PRD.
+
+**Primary Target (Implement First):**
+- **Web App**: Vercel (zero-config Next.js deployment)
+- **API Server**: Railway (Docker container, long-running process)
+- **Approach**: Best-of-breed platform selection
+
+**Secondary Target (Implement Second, if time permits):**
+- **Web App**: Railway (Docker container)
+- **API Server**: Railway (Docker container)
+- **Approach**: Single-platform containerized deployment
+
+**Rationale:**
+
+1. **Deployment Portability Proof (PRD FR19)**
+   - Two targets prove apps can deploy to multiple platforms
+   - Validates "no vendor lock-in" architecture principle
+   - Different approaches demonstrate flexibility
+
+2. **Primary Target Rationale (Vercel + Railway)**
+   - Vercel: Best Next.js DX (created by Vercel), preview URLs, instant rollbacks
+   - Railway: Native Docker support, no cold starts (critical for mobile dev)
+   - Fastest time-to-first-deployment (Vercel needs no Docker)
+   - Validates "best tool for each job" philosophy
+
+3. **Secondary Target Rationale (Railway + Railway)**
+   - Simpler operations (one dashboard, one billing)
+   - Pure Docker approach (production-realistic)
+   - Validates container portability (could move to Fly.io, Render, etc.)
+
+**Alternatives Considered:**
+- ❌ **Vercel for both**: Express requires serverless adaptation, cold starts
+- ❌ **Fly.io**: More complex setup, CLI-focused workflow
+- ❌ **Render**: Free tier cold starts affect mobile DX
+- ❌ **Single target only**: Doesn't prove deployment portability
+
+**Consequences:**
+- ✅ Proves deployment portability with two distinct approaches
+- ✅ Best DX for both Next.js (Vercel) and Express (Railway)
+- ✅ No cold starts for API (critical for mobile development)
+- ✅ Docker work for primary enables secondary target
+- ⚠️ Two platforms to manage for primary target (acceptable for staging)
+
+---
+
+### Decision 2: Platform Selection Details
+
+#### Vercel (Web App - Primary Target)
+
+**Rationale:**
+- Native Next.js 15 App Router support (Vercel creates Next.js)
+- Auto-detection of Nx monorepo structure
+- Preview deployments for every PR
+- Edge network for global performance
+- Free tier generous for staging workloads
+
+**Configuration:**
+- Root Directory: `apps/web`
+- Build Command: `pnpm exec nx build web`
+- Framework: Next.js (auto-detected)
+- Environment Variables: Via Vercel dashboard or GitHub integration
+
+**Nx Integration:**
+- Uses `nx-ignore` for selective builds
+- Respects Nx dependency graph
+- Can use Vercel Remote Cache OR Nx Cloud (we have Nx Cloud)
+
+#### Railway (API Server - Both Targets)
+
+**Rationale:**
+- Full Docker support with Nixpacks auto-detection
+- Long-running process (no cold starts)
+- Simple GitHub integration with auto-deploy
+- Stable public URLs (`*.railway.app`)
+- $5/month Hobby plan includes $5 usage credit
+
+**Configuration:**
+- Dockerfile: `apps/server/Dockerfile` (created in Story 5-3)
+- Build Context: Monorepo root (for workspace dependencies)
+- Environment Variables: Via Railway dashboard
+- Health Check: `/api/health` endpoint
+
+**Pricing (Staging Workload):**
+- Hobby: $5/month + usage ($5 credit included)
+- Expected cost: ~$0-5/month for staging (within credit)
+- Pay-per-use: ~$0.000231/min for 0.5 vCPU
+
+---
+
+### Decision 3: Mobile Compatibility Requirements
+
+**Critical for Expo/React Native Development:**
+
+| Requirement | Vercel | Railway | Status |
+|-------------|--------|---------|--------|
+| HTTPS with valid SSL | ✅ Auto | ✅ Auto | ✅ |
+| Stable public URLs | ✅ `*.vercel.app` | ✅ `*.railway.app` | ✅ |
+| No API cold starts | N/A (web only) | ✅ Long-running | ✅ |
+| CORS for mobile origins | App-level | App-level | ✅ |
+| Reachable from Expo Go | ✅ | ✅ | ✅ |
+| Physical device access | ✅ | ✅ | ✅ |
+
+**Mobile Development Scenarios:**
+
+| Scenario | API URL Configuration |
+|----------|----------------------|
+| Expo Go development | Railway staging URL (public HTTPS) |
+| Development build (simulator) | Railway staging URL or localhost |
+| Development build (device) | Railway staging URL (must be public) |
+| EAS Build (preview/production) | Railway staging URL (env var injection) |
+
+**CORS Configuration Required:**
+```javascript
+// apps/server/src/main.ts
+app.use(cors({
+  origin: [
+    'https://your-app.vercel.app',     // Staging web
+    'http://localhost:3000',            // Local web dev
+    /^exp:\/\/.*/,                      // Expo Go
+    // Add custom scheme for dev builds if needed
+  ]
+}));
+```
+
+---
+
+### Decision 4: Environment Strategy
+
+**Decision:** Use **Supabase TEST project** for staging (no 4th Supabase project needed)
+
+**Environment Mapping:**
+
+| Environment | Supabase Project | Hosting | Purpose |
+|-------------|------------------|---------|---------|
+| Development | DEV (`pjbnwtsufqpgsdlxydbo`) | localhost | Local development |
+| CI/Testing | TEST (`uvhnqtzufwvaqvbdgcnn`) | GitHub Actions | Automated tests |
+| **Staging** | **TEST** (`uvhnqtzufwvaqvbdgcnn`) | **Vercel + Railway** | **Demo, validation, mobile dev** |
+| Production | PROD (TBD) | TBD (Phase 2) | Live users |
+
+**Rationale:**
+- TEST project already isolated from DEV
+- Schema synchronized via migrations
+- Staging and CI can share database (different purposes, same schema)
+- Avoids managing 4th Supabase project
+
+**Environment Variables (Staging):**
+
+```bash
+# Vercel (apps/web)
+NEXT_PUBLIC_SUPABASE_URL="https://uvhnqtzufwvaqvbdgcnn.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJ..."
+NEXT_PUBLIC_API_URL="https://your-api.railway.app/api"
+
+# Railway (apps/server)
+DATABASE_URL="postgresql://postgres.uvhnqtzufwvaqvbdgcnn:...@pooler.supabase.com:6543/postgres"
+DIRECT_URL="postgresql://postgres.uvhnqtzufwvaqvbdgcnn:...@pooler.supabase.com:5432/postgres"
+SUPABASE_URL="https://uvhnqtzufwvaqvbdgcnn.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY="eyJ..."
+NODE_ENV="production"
+```
+
+---
+
+### Implementation Sequence
+
+**Week 1: Primary Target (Vercel + Railway)**
+
+1. **Story 5-1** ✅ (this decision document)
+2. **Story 5-2**: Configure GitHub Actions deployment workflow
+   - Create `staging` GitHub environment with secrets
+   - Create `.github/workflows/deploy-staging.yml`
+   - Deploy web to Vercel (no Docker needed)
+   - Deploy API to Railway (needs Dockerfile)
+3. **Story 5-3**: Create `apps/server/Dockerfile` only (web uses Vercel's builder)
+4. **Story 5-4**: Validate staging deployment
+
+**Week 2 (Optional): Secondary Target (Railway + Railway)**
+
+1. Add `apps/web/Dockerfile` for Next.js standalone output
+2. Deploy both to Railway
+3. Compare operational experience
+4. Document findings
+
+---
+
+### Docker Strategy (Forward-Compatible)
+
+**Primary Target:**
+- Only `apps/server/Dockerfile` needed (Vercel handles web)
+
+**Secondary Target Preparation:**
+- `apps/web/Dockerfile` created during Story 5-3 anyway
+- Both Dockerfiles ready for Railway + Railway deployment
+- Same Dockerfiles work for Fly.io, Render, or self-hosted
+
+**Next.js Standalone Output:**
+```javascript
+// apps/web/next.config.js
+module.exports = {
+  output: 'standalone',  // Required for Docker deployment
+  // ... other config
+};
+```
+
+---
+
+### Cost Analysis (Staging)
+
+| Platform | Tier | Expected Monthly Cost |
+|----------|------|----------------------|
+| **Vercel** | Hobby (free) | $0 |
+| **Railway** | Hobby ($5/mo) | $0-5 (within credit) |
+| **Supabase** | Free tier | $0 |
+| **Total (Primary)** | - | **$0-5/month** |
+
+| Platform | Tier | Expected Monthly Cost |
+|----------|------|----------------------|
+| **Railway** (both) | Hobby ($5/mo) | $5-10 |
+| **Supabase** | Free tier | $0 |
+| **Total (Secondary)** | - | **$5-10/month** |
+
+---
+
+### Comparison Matrix
+
+| Criterion | Primary (Vercel+Railway) | Secondary (Railway+Railway) |
+|-----------|--------------------------|----------------------------|
+| **Web DX** | ✅ Best (native Next.js) | ✅ Good (Docker) |
+| **API DX** | ✅ Pure Express | ✅ Pure Express |
+| **Cold Starts** | None | None |
+| **Ops Complexity** | Medium (2 platforms) | Low (1 platform) |
+| **Docker Required** | API only | Both apps |
+| **Cost** | $0-5/mo | $5-10/mo |
+| **Mobile Compat** | ✅ Excellent | ✅ Excellent |
+| **Deployment Portability Proof** | ✅ Cross-platform | ✅ Container-portable |
+
+---
+
+### References
+
+- [PRD FR16-FR19]: CI/CD and deployment requirements
+- [PRD FR20-FR22]: Mobile platform requirements
+- [Architecture.md - Deployment Targets]: Deployment architecture context
+- [Story 5.1]: Platform selection story
+- [Epic 6]: Mobile Walking Skeleton (depends on this decision)
+
+---
+
+### Changelog
+
+- **2025-12-04**: Epic 5 - CI/CD Staging Platform Selection
+  - Decision: Two-target strategy (Vercel+Railway primary, Railway+Railway secondary)
+  - Rationale: Proves deployment portability, best DX for each platform
+  - Mobile compatibility: Both targets provide stable HTTPS URLs, no cold starts
+  - Environment: Supabase TEST project for staging (reuse existing)
+  - Cost: $0-10/month acceptable for staging
+  - Implementation: Primary first, secondary if time permits

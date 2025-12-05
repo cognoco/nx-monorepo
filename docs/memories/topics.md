@@ -43,6 +43,11 @@ Use this index to locate relevant Cogno content quickly during task execution. F
 - `tech-findings-log`: Entries tagged `generators`, `nx`, `post-generation`
 - Synonyms: scaffolds, codegen, Nx generators, post-gen fixes
 
+## Nx Caching & Build Configuration
+- `tech-findings-log`: `module-12-nx-configuration-nx-dependson-syntax-string-form-vs-object-form-2025-11-02.md`, `module-20-nx-configuration-custom-target-cache-inputs-2025-12-05.md`
+- `adopted-patterns`: Pattern 6 (OpenAPI Spec Generation - includes `spec-write` target configuration)
+- Synonyms: cache invalidation, inputs, outputs, dependsOn, custom targets, CI cache
+
 ## Supabase & Database
 - **Tier 2 Reference**: `docs/architecture.md` → Data Architecture section
 - `adopted-patterns`: Pattern 8 (Prisma Schema), Pattern 10 (Prisma Singleton), Pattern 13 (Database Environment Management), Pattern 14 (Migration Management & Rollback)
@@ -63,5 +68,5 @@ Use this index to locate relevant Cogno content quickly during task execution. F
 
 **Adding new topics?** Keep entries concise, list the primary core/modules, and include key synonyms to aid search. For strategic decisions, reference `docs/architecture.md` sections. Remember to update manifests and cross-references accordingly.
 
-**Last Updated**: 2025-12-02
+**Last Updated**: 2025-12-05
 

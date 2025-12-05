@@ -166,6 +166,15 @@ chunks:
     last_updated_by: gpt-5-codex
     last_updated_at: 2025-11-06
     last_synced_at: null
+  - id: tfl-nx-custom-target-cache-inputs-20251205
+    title: Nx Configuration – Custom Target Cache Inputs (2025-12-05)
+    file: module-20-nx-configuration-custom-target-cache-inputs-2025-12-05.md
+    tags: [nx, caching, configuration, ci]
+    checksum: null
+    validation_status: valid
+    last_updated_by: claude-opus-4-5
+    last_updated_at: 2025-12-05
+    last_synced_at: null
   - id: tfl-future-entries
     title: Future Entries
     file: module-19-future-entries.md

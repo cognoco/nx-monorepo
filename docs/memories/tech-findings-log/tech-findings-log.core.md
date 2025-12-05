@@ -30,6 +30,7 @@
 - [Database Configuration: IPv6 Requirement & Free Tier Workaround (2025-11-04)](module-16-database-configuration-ipv6-requirement-and-free-tier-workaround-2025-11-04.md)
 - [Phase 5 Completion – Multi-environment Migration Synchronization](module-17-phase-5-completion-multi-environment-migration-synchronization.md)
 - [Environment Validation: Optional Variables Allowlist (Issue #23, 2025-11-05)](module-18-environment-validation-optional-variables-allowlist-issue-23-2025-11-05.md)
+- [Nx Configuration: Custom Target Cache Inputs (2025-12-05)](module-20-nx-configuration-custom-target-cache-inputs-2025-12-05.md)
 - [Future Entries Placeholder](module-19-future-entries.md)
 
 ## Usage Notes
