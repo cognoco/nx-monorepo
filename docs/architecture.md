@@ -460,11 +460,12 @@ export default async function ProtectedPage() {
 ```
 
 ```typescript
-// Client Components - auth state changes
+// Client Components - auth state changes (forward-looking example)
+// NOTE: Current useAuthStateChange() returns AuthState object; API may evolve in Phase 2
 import { useAuthStateChange } from '@/lib/auth-hooks';
 
 function AuthProvider({ children }) {
-  const session = useAuthStateChange(null); // Initial SSR value
+  const { session, user, loading } = useAuthStateChange();
   // ...
 }
 ```

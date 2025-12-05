@@ -14,13 +14,17 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
  * ```
  */
 function validateServerEnv(): { url: string; serviceRoleKey: string } {
-  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const url = process.env.SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url) {
     throw new Error(
-      'SUPABASE_URL is not defined. Add it to .env.development.local (see docs/guides/environment-setup.md). ' +
-        'Note: SUPABASE_URL is preferred; NEXT_PUBLIC_SUPABASE_URL is accepted for backward compatibility.'
+      'SUPABASE_URL is required for server-side Supabase operations.\n' +
+        'Add to your .env.development.local:\n' +
+        '  SUPABASE_URL="https://YOUR-PROJECT.supabase.co"\n\n' +
+        'This should match your NEXT_PUBLIC_SUPABASE_URL value.\n' +
+        'Note: Do NOT use NEXT_PUBLIC_SUPABASE_URL for server code.\n' +
+        'See: docs/guides/environment-setup.md'
     );
   }
 

@@ -39,13 +39,11 @@ describe('validateSupabaseServerConfig (validateServerEnv)', () => {
   describe('Environment Variable Presence', () => {
     it('should throw with guidance message when SUPABASE_URL is missing', () => {
       delete process.env.SUPABASE_URL;
-      delete process.env.NEXT_PUBLIC_SUPABASE_URL;
       process.env.SUPABASE_SERVICE_ROLE_KEY =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
 
       expect(() => validateSupabaseServerConfig()).toThrow(
-        'SUPABASE_URL is not defined. Add it to .env.development.local (see docs/guides/environment-setup.md). ' +
-          'Note: SUPABASE_URL is preferred; NEXT_PUBLIC_SUPABASE_URL is accepted for backward compatibility.'
+        'SUPABASE_URL is required for server-side Supabase operations.'
       );
     });
 
@@ -61,35 +59,24 @@ describe('validateSupabaseServerConfig (validateServerEnv)', () => {
 
     it('should throw when both environment variables are missing', () => {
       delete process.env.SUPABASE_URL;
-      delete process.env.NEXT_PUBLIC_SUPABASE_URL;
       delete process.env.SUPABASE_SERVICE_ROLE_KEY;
 
       // Fails on the first missing variable (URL)
       expect(() => validateSupabaseServerConfig()).toThrow(
-        'SUPABASE_URL is not defined'
+        'SUPABASE_URL is required'
       );
     });
 
-    it('should accept NEXT_PUBLIC_SUPABASE_URL for backward compatibility', () => {
+    it('should NOT accept NEXT_PUBLIC_SUPABASE_URL (server must use SUPABASE_URL)', () => {
       delete process.env.SUPABASE_URL;
       process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co';
       process.env.SUPABASE_SERVICE_ROLE_KEY =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
 
-      const result = validateSupabaseServerConfig();
-
-      expect(result.url).toBe('https://project.supabase.co');
-    });
-
-    it('should prefer SUPABASE_URL over NEXT_PUBLIC_SUPABASE_URL when both are set', () => {
-      process.env.SUPABASE_URL = 'https://preferred.supabase.co';
-      process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://fallback.supabase.co';
-      process.env.SUPABASE_SERVICE_ROLE_KEY =
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
-
-      const result = validateSupabaseServerConfig();
-
-      expect(result.url).toBe('https://preferred.supabase.co');
+      // Should throw because SUPABASE_URL is not set (no fallback)
+      expect(() => validateSupabaseServerConfig()).toThrow(
+        'SUPABASE_URL is required for server-side Supabase operations.'
+      );
     });
   });
 
@@ -282,11 +269,10 @@ describe('getSupabaseAdmin', () => {
     it('should throw when environment validation fails (missing URL)', () => {
       // Clear environment before validation
       delete process.env.SUPABASE_URL;
-      delete process.env.NEXT_PUBLIC_SUPABASE_URL;
 
       // Use validateSupabaseServerConfig instead of getSupabaseAdmin to test validation
       expect(() => validateSupabaseServerConfig()).toThrow(
-        'SUPABASE_URL is not defined'
+        'SUPABASE_URL is required'
       );
     });
 
