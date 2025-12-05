@@ -21,7 +21,8 @@ test.describe('Health Check Page', () => {
     test('should navigate to health page and display title', async () => {
       await healthPage.goto();
       await healthPage.waitForLoad();
-      await healthPage.verifyPageTitle();
+      // Inline assertion to satisfy Playwright's "test has no assertions" lint rule
+      await expect(healthPage.pageTitle).toHaveText('Health Check Records');
     });
 
     test('should show health check list when records exist', async () => {
@@ -36,42 +37,38 @@ test.describe('Health Check Page', () => {
       expect(isEmpty || hasRecords).toBe(true);
     });
 
-    test('should display records with correct format (message, timestamp, ID)', async () => {
-      await healthPage.goto();
-      await healthPage.waitForLoad();
+    test.describe('with data present', () => {
+      // Ensure at least one record exists before each test in this group
+      // This moves the conditional setup into beforeEach where it belongs
+      test.beforeEach(async () => {
+        await healthPage.goto();
+        await healthPage.waitForLoad();
+        if (await healthPage.isEmpty()) {
+          await healthPage.pingAndWaitForRecord();
+        }
+      });
 
-      // Create a record if none exist to test display format
-      if (await healthPage.isEmpty()) {
-        await healthPage.pingAndWaitForRecord();
-      }
+      test('should display records with correct format (message, timestamp, ID)', async () => {
+        // At least one record is guaranteed by beforeEach
+        const count = await healthPage.getHealthCheckCount();
+        expect(count).toBeGreaterThan(0);
 
-      // Verify at least one record exists
-      const count = await healthPage.getHealthCheckCount();
-      expect(count).toBeGreaterThan(0);
+        // Verify record structure - each item should have ID visible
+        const firstItem = healthPage.healthCheckItems.first();
+        await expect(firstItem).toBeVisible();
 
-      // Verify record structure - each item should have ID visible
-      const firstItem = healthPage.healthCheckItems.first();
-      await expect(firstItem).toBeVisible();
+        // Verify ID format (should contain "ID:" text)
+        await expect(firstItem.locator('text=ID:')).toBeVisible();
 
-      // Verify ID format (should contain "ID:" text)
-      await expect(firstItem.locator('text=ID:')).toBeVisible();
+        // Verify status badge is visible (OK badge)
+        await expect(firstItem.locator('text=OK')).toBeVisible();
+      });
 
-      // Verify status badge is visible (OK badge)
-      await expect(firstItem.locator('text=OK')).toBeVisible();
-    });
-
-    test('should display count of health checks', async () => {
-      await healthPage.goto();
-      await healthPage.waitForLoad();
-
-      // Create a record if none exist
-      if (await healthPage.isEmpty()) {
-        await healthPage.pingAndWaitForRecord();
-      }
-
-      // Verify count display is visible and shows correct count
-      const count = await healthPage.getHealthCheckCount();
-      await expect(healthPage.healthCount).toContainText(`${count}`);
+      test('should display count of health checks', async () => {
+        // At least one record is guaranteed by beforeEach
+        const count = await healthPage.getHealthCheckCount();
+        await expect(healthPage.healthCount).toContainText(`${count}`);
+      });
     });
   });
 
@@ -101,26 +98,31 @@ test.describe('Health Check Page', () => {
       expect(newCount).toBe(initialCount + 1);
     });
 
-    test('should add new record to top of list', async () => {
-      await healthPage.goto();
-      await healthPage.waitForLoad();
+    test.describe('with existing record', () => {
+      // Ensure at least one record exists before testing record ordering
+      // This moves the conditional setup into beforeEach where it belongs
+      test.beforeEach(async () => {
+        await healthPage.goto();
+        await healthPage.waitForLoad();
+        if (await healthPage.isEmpty()) {
+          await healthPage.pingAndWaitForRecord();
+        }
+      });
 
-      // Ensure we have at least one record
-      if (await healthPage.isEmpty()) {
+      test('should add new record to top of list', async () => {
+        // At least one record is guaranteed by beforeEach
+        // Get ID of first record before ping
+        const oldFirstId = await healthPage.getHealthCheckId(0);
+
+        // Create new record
         await healthPage.pingAndWaitForRecord();
-      }
 
-      // Get ID of first record before ping
-      const oldFirstId = await healthPage.getHealthCheckId(0);
+        // Get ID of new first record
+        const newFirstId = await healthPage.getHealthCheckId(0);
 
-      // Create new record
-      await healthPage.pingAndWaitForRecord();
-
-      // Get ID of new first record
-      const newFirstId = await healthPage.getHealthCheckId(0);
-
-      // New record should have different ID (added to top)
-      expect(newFirstId).not.toBe(oldFirstId);
+        // New record should have different ID (added to top)
+        expect(newFirstId).not.toBe(oldFirstId);
+      });
     });
   });
 

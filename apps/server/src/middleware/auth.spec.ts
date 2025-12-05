@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { User } from '@supabase/supabase-js';
+import { User, SupabaseClient } from '@supabase/supabase-js';
 import {
   extractBearerToken,
   validateToken,
@@ -105,7 +105,7 @@ describe('validateToken', () => {
           error: null,
         }),
       },
-    } as any);
+    } as unknown as SupabaseClient);
 
     // Use properly formatted JWT token (3 parts separated by dots)
     const user = await validateToken(
@@ -123,7 +123,7 @@ describe('validateToken', () => {
           error: { message: 'Invalid token' },
         }),
       },
-    } as any);
+    } as unknown as SupabaseClient);
 
     // Use properly formatted JWT token that Supabase rejects
     const user = await validateToken(
@@ -140,7 +140,7 @@ describe('validateToken', () => {
           error: null,
         }),
       },
-    } as any);
+    } as unknown as SupabaseClient);
 
     // Use properly formatted JWT token that returns null user
     const user = await validateToken(
@@ -154,7 +154,7 @@ describe('validateToken', () => {
       auth: {
         getUser: jest.fn().mockRejectedValue(new Error('Network error')),
       },
-    } as any);
+    } as unknown as SupabaseClient);
 
     // Use properly formatted JWT token that triggers network error
     const user = await validateToken(
@@ -197,7 +197,7 @@ describe('validateToken', () => {
           error: { message: 'Invalid JWT' },
         }),
       },
-    } as any);
+    } as unknown as SupabaseClient);
 
     const user = await validateToken('eyJhbGc.eyJzdWI.SflKxwRJ');
     expect(user).toBeNull();
@@ -272,7 +272,7 @@ describe('requireAuth middleware', () => {
           error: null,
         }),
       },
-    } as any);
+    } as unknown as SupabaseClient);
 
     await requireAuth(
       mockRequest as AuthenticatedRequest,
@@ -339,7 +339,7 @@ describe('requireAuth middleware', () => {
           error: { message: 'Invalid token' },
         }),
       },
-    } as any);
+    } as unknown as SupabaseClient);
 
     await requireAuth(
       mockRequest as AuthenticatedRequest,
@@ -370,7 +370,7 @@ describe('requireAuth middleware', () => {
           error: null,
         }),
       },
-    } as any);
+    } as unknown as SupabaseClient);
 
     await requireAuth(
       mockRequest as AuthenticatedRequest,

@@ -423,6 +423,41 @@ If you're cloning this template for the first time:
 
 ---
 
+## Staging Deployment Environment
+
+Reference `docs/architecture-decisions.md` Stage 5 for deployment platform decisions.
+
+### Staging Environment (Vercel + Railway)
+
+**Web App (Vercel)**:
+```bash
+# Required environment variables
+NEXT_PUBLIC_SUPABASE_URL="https://xxxx.supabase.co"      # TEST project URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGc..."               # TEST project anon key
+NEXT_PUBLIC_API_URL="https://api.staging.example.com/api" # Railway staging API URL
+```
+
+**Server App (Railway)**:
+```bash
+# Required environment variables
+DATABASE_URL="postgresql://..."                   # TEST project pooler connection
+DIRECT_URL="postgresql://..."                     # TEST project direct connection
+SUPABASE_URL="https://xxxx.supabase.co"          # TEST project URL
+SUPABASE_SERVICE_ROLE_KEY="eyJhbGc..."           # TEST project service key
+NODE_ENV="production"                             # Enables production optimizations
+PORT="4000"                                       # Railway will override this
+```
+
+See `.env.example` (lines 108-138) for the complete multi-environment variable reference.
+
+**Key Differences from Production**:
+- Uses Supabase **TEST** project (not DEV or PROD)
+- May use less restrictive rate limits for testing
+- Error details may be more verbose for debugging
+- No user email verification required
+
+---
+
 ## Supabase Auth Configuration
 
 This section documents the Supabase Authentication settings configured for this project.
@@ -525,7 +560,7 @@ To access these settings:
 ## Related Documentation
 
 - [Architecture Decisions](./architecture-decisions.md) - Why we use this architecture
-- [Security Architecture](./security-architecture.md) - RLS decisions and security model (TODO: Stage 4.4+)
+- [RLS Policy Decisions](../architecture-decisions.md#decision-4-rls-policy-approach) - Defense-in-depth with service_role bypass
 - [Supabase Documentation](https://supabase.com/docs) - Official Supabase docs
 - [Supabase Auth Documentation](https://supabase.com/docs/guides/auth) - Official auth docs
 - [Prisma Documentation](https://www.prisma.io/docs) - Official Prisma docs
