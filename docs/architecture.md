@@ -483,6 +483,22 @@ export async function middleware(request: NextRequest) {
 
 **Phase 2 Enablement**: Update `matcher` array to include protected routes (e.g., `/tasks/*`).
 
+### Rate Limiting
+
+Rate limiting middleware is available to protect against brute force and DDoS attacks:
+
+| Limiter | Window | Max Requests | Use Case |
+|---------|--------|--------------|----------|
+| `defaultRateLimiter` | 15 min | 100 | General API endpoints |
+| `authRateLimiter` | 15 min | 10 | Login, signup, password reset |
+| `sensitiveRateLimiter` | 1 hour | 5 | Password change, account deletion |
+
+**Usage:**
+```typescript
+import { authRateLimiter } from './middleware';
+app.use('/api/auth', authRateLimiter);
+```
+
 ---
 
 ## Performance Considerations

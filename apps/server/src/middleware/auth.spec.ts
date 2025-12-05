@@ -107,7 +107,10 @@ describe('validateToken', () => {
       },
     } as any);
 
-    const user = await validateToken('valid-token');
+    // Use properly formatted JWT token (3 parts separated by dots)
+    const user = await validateToken(
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyLTEyMyJ9.signature'
+    );
     expect(user).toEqual(mockUser);
     expect(mockGetSupabaseAdmin).toHaveBeenCalledTimes(1);
   });
@@ -122,7 +125,10 @@ describe('validateToken', () => {
       },
     } as any);
 
-    const user = await validateToken('invalid-token');
+    // Use properly formatted JWT token that Supabase rejects
+    const user = await validateToken(
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJpbnZhbGlkIn0.invalid'
+    );
     expect(user).toBeNull();
   });
 
@@ -136,7 +142,10 @@ describe('validateToken', () => {
       },
     } as any);
 
-    const user = await validateToken('expired-token');
+    // Use properly formatted JWT token that returns null user
+    const user = await validateToken(
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjB9.expired'
+    );
     expect(user).toBeNull();
   });
 
@@ -147,8 +156,60 @@ describe('validateToken', () => {
       },
     } as any);
 
-    const user = await validateToken('network-fail-token');
+    // Use properly formatted JWT token that triggers network error
+    const user = await validateToken(
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJuZXR3b3JrIn0.error'
+    );
     expect(user).toBeNull();
+  });
+
+  it('should return null for malformed token without dots (not JWT format)', async () => {
+    const user = await validateToken('not-a-jwt');
+    expect(user).toBeNull();
+    // Supabase should not be called for malformed tokens
+    expect(mockGetSupabaseAdmin).not.toHaveBeenCalled();
+  });
+
+  it('should return null for empty string token', async () => {
+    const user = await validateToken('');
+    expect(user).toBeNull();
+    expect(mockGetSupabaseAdmin).not.toHaveBeenCalled();
+  });
+
+  it('should return null for token with only 2 parts', async () => {
+    const user = await validateToken('only.two');
+    expect(user).toBeNull();
+    expect(mockGetSupabaseAdmin).not.toHaveBeenCalled();
+  });
+
+  it('should return null for token with 4 parts', async () => {
+    const user = await validateToken('one.two.three.four');
+    expect(user).toBeNull();
+    expect(mockGetSupabaseAdmin).not.toHaveBeenCalled();
+  });
+
+  it('should return null for valid JWT format but invalid token (Supabase rejects)', async () => {
+    // Token has valid JWT format (3 parts) but Supabase rejects it
+    mockGetSupabaseAdmin.mockReturnValue({
+      auth: {
+        getUser: jest.fn().mockResolvedValue({
+          data: { user: null },
+          error: { message: 'Invalid JWT' },
+        }),
+      },
+    } as any);
+
+    const user = await validateToken('eyJhbGc.eyJzdWI.SflKxwRJ');
+    expect(user).toBeNull();
+    // Supabase should be called for tokens with valid format
+    expect(mockGetSupabaseAdmin).toHaveBeenCalledTimes(1);
+  });
+
+  it('should reject token with invalid base64url characters', async () => {
+    // Token with invalid characters (+ and / instead of - and _)
+    const user = await validateToken('eyJhbGc+.eyJzdWI/.SflKxwRJ');
+    expect(user).toBeNull();
+    expect(mockGetSupabaseAdmin).not.toHaveBeenCalled();
   });
 });
 
@@ -198,8 +259,10 @@ describe('requireAuth middleware', () => {
       updated_at: '2025-01-01T00:00:00Z',
     };
 
+    // Use properly formatted JWT token
     mockRequest.headers = {
-      authorization: 'Bearer valid-token',
+      authorization:
+        'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyLTEyMyJ9.signature',
     };
 
     mockGetSupabaseAdmin.mockReturnValue({
@@ -263,8 +326,10 @@ describe('requireAuth middleware', () => {
   });
 
   it('should return 401 INVALID_TOKEN when token validation fails', async () => {
+    // Use properly formatted JWT token that Supabase rejects
     mockRequest.headers = {
-      authorization: 'Bearer invalid-token',
+      authorization:
+        'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJpbnZhbGlkIn0.invalid',
     };
 
     mockGetSupabaseAdmin.mockReturnValue({
@@ -292,8 +357,10 @@ describe('requireAuth middleware', () => {
   });
 
   it('should return 401 INVALID_TOKEN when Supabase returns null user', async () => {
+    // Use properly formatted JWT token that returns null user
     mockRequest.headers = {
-      authorization: 'Bearer expired-token',
+      authorization:
+        'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjB9.expired',
     };
 
     mockGetSupabaseAdmin.mockReturnValue({

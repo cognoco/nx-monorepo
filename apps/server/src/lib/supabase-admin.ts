@@ -4,7 +4,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
  * Validates presence and format of server-side Supabase environment variables.
  * Returns the URL and service role key or throws with actionable guidance.
  *
- * @throws {Error} If NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is missing or invalid
+ * @throws {Error} If SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is missing or invalid
  * @returns Object containing validated URL and service role key
  *
  * @example
@@ -14,12 +14,13 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
  * ```
  */
 function validateServerEnv(): { url: string; serviceRoleKey: string } {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url) {
     throw new Error(
-      'NEXT_PUBLIC_SUPABASE_URL is not defined. Add it to .env.development.local (see docs/guides/environment-setup.md).'
+      'SUPABASE_URL is not defined. Add it to .env.development.local (see docs/guides/environment-setup.md). ' +
+        'Note: SUPABASE_URL is preferred; NEXT_PUBLIC_SUPABASE_URL is accepted for backward compatibility.'
     );
   }
 
@@ -32,7 +33,7 @@ function validateServerEnv(): { url: string; serviceRoleKey: string } {
 
   if (!url.startsWith('https://') || !url.includes('.supabase.co')) {
     throw new Error(
-      `NEXT_PUBLIC_SUPABASE_URL has invalid format: ${url}. Expected: https://YOUR-PROJECT.supabase.co`
+      `SUPABASE_URL has invalid format: ${url}. Expected: https://YOUR-PROJECT.supabase.co`
     );
   }
 

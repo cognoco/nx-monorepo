@@ -57,6 +57,10 @@ DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co
 
 **Create `.env.local` in workspace root (use `.env.example` as a template):**
 ```bash
+# Server-side Supabase credentials
+SUPABASE_URL="https://[PROJECT-REF].supabase.co"
+SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
 # Client-side Supabase credentials
 NEXT_PUBLIC_SUPABASE_URL="https://[PROJECT-REF].supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -104,6 +108,65 @@ DIRECT_URL="postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler
 - NOT the same as the Supabase service role key (which applies to the HTTP API path)
 - Uses Supavisor connection pooler for better scalability
 - See: `.env.example` for detailed comments and setup instructions
+
+---
+
+### SERVER-SIDE (.env or .env.local)
+
+#### `SUPABASE_URL`
+
+**Purpose**: Supabase project URL for server-side SDK connections
+
+**Format**:
+```
+https://[PROJECT-REF].supabase.co
+```
+
+**Used by**:
+- `apps/server` (Express API - server-side operations)
+
+**What it's for**:
+- Server-side Supabase client initialization
+- Authentication token validation
+- Admin operations with service role key
+
+**Security**:
+- ⚠️ **Server-side only** - not exposed to browser
+- ✅ Safe to use with service role key
+- ✅ Preferred over `NEXT_PUBLIC_SUPABASE_URL` for server apps
+
+**Backward Compatibility**:
+- Server code accepts `NEXT_PUBLIC_SUPABASE_URL` as fallback
+- Use `SUPABASE_URL` for new server-side code
+- Both variables can coexist in `.env.local`
+
+---
+
+#### `SUPABASE_SERVICE_ROLE_KEY`
+
+**Purpose**: Admin key for server-side operations (bypasses RLS)
+
+**Format**:
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+**Used by**:
+- `apps/server` (Express API - admin operations)
+
+**What it's for**:
+- Server-side authentication token validation
+- Admin database operations (bypasses Row Level Security)
+- Operations requiring elevated permissions
+
+**Security**:
+- ⚠️ **NEVER expose to browser/client**
+- ⚠️ **Server-side only**
+- ⚠️ Grants full database access - use carefully
+- ⚠️ Never use `NEXT_PUBLIC_` prefix
+
+**Get from**:
+- Supabase Dashboard → Project Settings → API → service_role key (NOT anon key)
 
 ---
 
@@ -190,32 +253,37 @@ https://api.your-domain.com/api
 ## Architecture Diagram
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│ Supabase Cloud Project                                  │
-│  ├─ PostgreSQL Database (data storage)                 │
-│  └─ Auth Service (login/signup/sessions)               │
-└─────────────────────────────────────────────────────────┘
-           ↑                           ↑
-           │                           │
-    DATABASE_URL               SUPABASE_URL + Keys
-    (PostgreSQL)               (HTTP API)
-           │                           │
-           │                           │
-    ┌──────┴─────┐            ┌────────┴──────┐
-    │   .env     │            │  .env.local   │
-    │            │            │               │
-    │  Prisma   │            │ Supabase SDK  │
-    │   (ORM)   │            │   (Auth)      │
-    └──────┬─────┘            └────────┬──────┘
-           │                           │
-           │                           │
-    ┌──────┴──────────┐       ┌────────┴──────────┐
-    │  apps/server    │       │  apps/web         │
-    │  (Express API)  │       │  (Next.js)        │
-    │                 │       │                   │
-    │  CRUD via       │←──────│  Calls API via    │
-    │  Prisma         │  HTTP │  openapi-fetch    │
-    └─────────────────┘       └───────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│ Supabase Cloud Project                                       │
+│  ├─ PostgreSQL Database (data storage)                      │
+│  └─ Auth Service (login/signup/sessions)                    │
+└──────────────────────────────────────────────────────────────┘
+           ↑                                    ↑
+           │                                    │
+    DATABASE_URL                    SUPABASE_URL + SERVICE_ROLE_KEY
+    (PostgreSQL)                    (HTTP API - Server)
+           │                                    │
+           │                        NEXT_PUBLIC_SUPABASE_URL + ANON_KEY
+           │                                    (HTTP API - Client)
+           │                                    │
+    ┌──────┴─────┐                   ┌─────────┴─────────┐
+    │   .env     │                   │   .env.local      │
+    │            │                   │                   │
+    │  Prisma   │                   │  Supabase SDK     │
+    │   (ORM)   │                   │  (Auth + Admin)   │
+    └──────┬─────┘                   └─────────┬─────────┘
+           │                                    │
+           │                                    │
+    ┌──────┴──────────┐                ┌───────┴───────────┐
+    │  apps/server    │                │  apps/web         │
+    │  (Express API)  │                │  (Next.js)        │
+    │                 │                │                   │
+    │  CRUD via       │←───────────────│  Calls API via    │
+    │  Prisma         │      HTTP      │  openapi-fetch    │
+    │                 │                │                   │
+    │  Auth via       │                │  Auth via         │
+    │  service role   │                │  anon key         │
+    └─────────────────┘                └───────────────────┘
 ```
 
 ---
@@ -341,6 +409,8 @@ If you're cloning this template for the first time:
    ```bash
    # Server (backend deployment)
    DATABASE_URL="postgresql://..."
+   SUPABASE_URL="https://..."
+   SUPABASE_SERVICE_ROLE_KEY="eyJhbGc..."
 
    # Web (Next.js deployment)
    NEXT_PUBLIC_SUPABASE_URL="https://..."
@@ -465,6 +535,13 @@ To access these settings:
 
 ## Changelog
 
+- **2025-12-05**: Fixed environment variable naming inconsistency
+  - Added `SUPABASE_URL` as preferred server-side variable (Story 5.1)
+  - Added `SUPABASE_SERVICE_ROLE_KEY` documentation
+  - Maintained backward compatibility with `NEXT_PUBLIC_SUPABASE_URL`
+  - Updated `.env.example` with all server-side Supabase variables
+  - Updated architecture diagram to show both server/client paths
+  - Documented server-side vs client-side variable conventions
 - **2025-12-04**: Added Supabase Auth Configuration section (Story 4.2)
   - Documented auth settings for both DEV and TEST projects
   - Included password policy, email confirmation, JWT settings

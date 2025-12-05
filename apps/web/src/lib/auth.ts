@@ -2,12 +2,25 @@ import type { Session, User } from '@nx-monorepo/supabase-client';
 import { createSupabaseServerClient } from '@nx-monorepo/supabase-client';
 
 /**
+ * Result type for auth operations that may fail.
+ * Allows callers to distinguish between "no data" and "error occurred".
+ */
+export interface AuthResult<T> {
+  data: T | null;
+  error: Error | null;
+}
+
+/**
  * Gets the current session from cookies (Server Components only).
  *
  * This utility is for use in Server Components, Route Handlers, and Server Actions.
  * For Client Components, use the `useAuthStateChange` hook instead.
  *
- * @returns The current session or null if not authenticated
+ * @returns AuthResult with session data or error
+ *
+ * @breaking This function signature changed in v1.x.
+ * Now returns AuthResult<Session> instead of Session | null.
+ * Callers must update to handle { data, error } tuple.
  *
  * @example
  * // In app/dashboard/page.tsx (Server Component)
@@ -15,7 +28,11 @@ import { createSupabaseServerClient } from '@nx-monorepo/supabase-client';
  * import { redirect } from 'next/navigation';
  *
  * export default async function DashboardPage() {
- *   const session = await getSession();
+ *   const { data: session, error } = await getSession();
+ *   if (error) {
+ *     console.error('Auth error:', error);
+ *     return <ErrorComponent />;
+ *   }
  *   if (!session) {
  *     redirect('/login');
  *   }
@@ -28,14 +45,17 @@ import { createSupabaseServerClient } from '@nx-monorepo/supabase-client';
  * import { NextResponse } from 'next/server';
  *
  * export async function GET() {
- *   const session = await getSession();
+ *   const { data: session, error } = await getSession();
+ *   if (error) {
+ *     return NextResponse.json({ error: error.message }, { status: 500 });
+ *   }
  *   if (!session) {
  *     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
  *   }
  *   return NextResponse.json({ data: 'protected' });
  * }
  */
-export async function getSession(): Promise<Session | null> {
+export async function getSession(): Promise<AuthResult<Session>> {
   const supabase = await createSupabaseServerClient();
   const {
     data: { session },
@@ -43,11 +63,10 @@ export async function getSession(): Promise<Session | null> {
   } = await supabase.auth.getSession();
 
   if (error) {
-    console.error('Error getting session:', error.message);
-    return null;
+    return { data: null, error: new Error(error.message) };
   }
 
-  return session;
+  return { data: session, error: null };
 }
 
 /**
@@ -57,7 +76,11 @@ export async function getSession(): Promise<Session | null> {
  * Internally uses `supabase.auth.getUser()` which validates the JWT token.
  * For Client Components, use the `useAuthStateChange` hook instead.
  *
- * @returns The current user or null if not authenticated
+ * @returns AuthResult with user data or error
+ *
+ * @breaking This function signature changed in v1.x.
+ * Now returns AuthResult<User> instead of User | null.
+ * Callers must update to handle { data, error } tuple.
  *
  * @example
  * // In app/profile/page.tsx (Server Component)
@@ -65,7 +88,11 @@ export async function getSession(): Promise<Session | null> {
  * import { redirect } from 'next/navigation';
  *
  * export default async function ProfilePage() {
- *   const user = await getUser();
+ *   const { data: user, error } = await getUser();
+ *   if (error) {
+ *     console.error('Auth error:', error);
+ *     return <ErrorComponent />;
+ *   }
  *   if (!user) {
  *     redirect('/login');
  *   }
@@ -78,14 +105,17 @@ export async function getSession(): Promise<Session | null> {
  * import { NextResponse } from 'next/server';
  *
  * export async function GET() {
- *   const user = await getUser();
+ *   const { data: user, error } = await getUser();
+ *   if (error) {
+ *     return NextResponse.json({ error: error.message }, { status: 500 });
+ *   }
  *   if (!user) {
  *     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
  *   }
  *   return NextResponse.json({ user });
  * }
  */
-export async function getUser(): Promise<User | null> {
+export async function getUser(): Promise<AuthResult<User>> {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -93,9 +123,8 @@ export async function getUser(): Promise<User | null> {
   } = await supabase.auth.getUser();
 
   if (error) {
-    console.error('Error getting user:', error.message);
-    return null;
+    return { data: null, error: new Error(error.message) };
   }
 
-  return user;
+  return { data: user, error: null };
 }

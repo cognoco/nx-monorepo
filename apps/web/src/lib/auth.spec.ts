@@ -6,7 +6,7 @@
  * - Client-side auth state subscription hook (auth-hooks.ts)
  */
 
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 
 // Mock Supabase client before imports
 const mockGetSession = jest.fn();
@@ -64,14 +64,14 @@ describe('Server Auth Utilities', () => {
       });
 
       // Act
-      const session = await getSession();
+      const result = await getSession();
 
       // Assert
-      expect(session).toEqual(mockSession);
+      expect(result).toEqual({ data: mockSession, error: null });
       expect(mockGetSession).toHaveBeenCalledTimes(1);
     });
 
-    it('should return null when no session exists', async () => {
+    it('should return null data when no session exists', async () => {
       // Arrange
       mockGetSession.mockResolvedValueOnce({
         data: { session: null },
@@ -79,14 +79,14 @@ describe('Server Auth Utilities', () => {
       });
 
       // Act
-      const session = await getSession();
+      const result = await getSession();
 
       // Assert
-      expect(session).toBeNull();
+      expect(result).toEqual({ data: null, error: null });
       expect(mockGetSession).toHaveBeenCalledTimes(1);
     });
 
-    it('should return null and log error when getSession fails', async () => {
+    it('should return error when getSession fails', async () => {
       // Arrange
       const mockError = { message: 'Auth service unavailable' };
       mockGetSession.mockResolvedValueOnce({
@@ -95,14 +95,30 @@ describe('Server Auth Utilities', () => {
       });
 
       // Act
-      const session = await getSession();
+      const result = await getSession();
 
       // Assert
-      expect(session).toBeNull();
-      expect(console.error).toHaveBeenCalledWith(
-        'Error getting session:',
-        'Auth service unavailable'
-      );
+      expect(result.data).toBeNull();
+      expect(result.error).toBeInstanceOf(Error);
+      expect(result.error?.message).toBe('Auth service unavailable');
+      expect(console.error).not.toHaveBeenCalled();
+    });
+
+    it('should return error for network failures', async () => {
+      // Arrange
+      const mockError = { message: 'Network error' };
+      mockGetSession.mockResolvedValueOnce({
+        data: { session: null },
+        error: mockError,
+      });
+
+      // Act
+      const result = await getSession();
+
+      // Assert
+      expect(result.data).toBeNull();
+      expect(result.error).toBeInstanceOf(Error);
+      expect(result.error?.message).toBe('Network error');
     });
   });
 
@@ -121,14 +137,14 @@ describe('Server Auth Utilities', () => {
       });
 
       // Act
-      const user = await getUser();
+      const result = await getUser();
 
       // Assert
-      expect(user).toEqual(mockUser);
+      expect(result).toEqual({ data: mockUser, error: null });
       expect(mockGetUser).toHaveBeenCalledTimes(1);
     });
 
-    it('should return null when no user is authenticated', async () => {
+    it('should return null data when no user is authenticated', async () => {
       // Arrange
       mockGetUser.mockResolvedValueOnce({
         data: { user: null },
@@ -136,14 +152,14 @@ describe('Server Auth Utilities', () => {
       });
 
       // Act
-      const user = await getUser();
+      const result = await getUser();
 
       // Assert
-      expect(user).toBeNull();
+      expect(result).toEqual({ data: null, error: null });
       expect(mockGetUser).toHaveBeenCalledTimes(1);
     });
 
-    it('should return null and log error when getUser fails', async () => {
+    it('should return error when getUser fails', async () => {
       // Arrange
       const mockError = { message: 'Invalid JWT token' };
       mockGetUser.mockResolvedValueOnce({
@@ -152,14 +168,30 @@ describe('Server Auth Utilities', () => {
       });
 
       // Act
-      const user = await getUser();
+      const result = await getUser();
 
       // Assert
-      expect(user).toBeNull();
-      expect(console.error).toHaveBeenCalledWith(
-        'Error getting user:',
-        'Invalid JWT token'
-      );
+      expect(result.data).toBeNull();
+      expect(result.error).toBeInstanceOf(Error);
+      expect(result.error?.message).toBe('Invalid JWT token');
+      expect(console.error).not.toHaveBeenCalled();
+    });
+
+    it('should return error for authentication failures', async () => {
+      // Arrange
+      const mockError = { message: 'Token expired' };
+      mockGetUser.mockResolvedValueOnce({
+        data: { user: null },
+        error: mockError,
+      });
+
+      // Act
+      const result = await getUser();
+
+      // Assert
+      expect(result.data).toBeNull();
+      expect(result.error).toBeInstanceOf(Error);
+      expect(result.error?.message).toBe('Token expired');
     });
   });
 });
@@ -292,8 +324,11 @@ describe('Client Auth Hook', () => {
         },
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      authCallback!('SIGNED_IN', newSession);
+      // Wrap in act() to properly handle state updates
+      await act(async () => {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        authCallback!('SIGNED_IN', newSession);
+      });
 
       // Assert
       await waitFor(() => {
@@ -341,8 +376,11 @@ describe('Client Auth Hook', () => {
       });
 
       // Simulate sign out
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      authCallback!('SIGNED_OUT', null);
+      // Wrap in act() to properly handle state updates
+      await act(async () => {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        authCallback!('SIGNED_OUT', null);
+      });
 
       // Assert
       await waitFor(() => {

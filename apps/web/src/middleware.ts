@@ -72,9 +72,7 @@ const AUTH_ROUTES = ['/login', '/signup', '/forgot-password'];
  * isProtectedRoute('/dashboard/settings') // true
  * isProtectedRoute('/') // false
  */
-// @ts-expect-error Phase 2 helper - will be used when middleware is enabled
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function isProtectedRoute(pathname: string): boolean {
+export function isProtectedRoute(pathname: string): boolean {
   return PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
 }
 
@@ -89,9 +87,7 @@ function isProtectedRoute(pathname: string): boolean {
  * isAuthRoute('/signup') // true
  * isAuthRoute('/dashboard') // false
  */
-// @ts-expect-error Phase 2 helper - will be used when middleware is enabled
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function isAuthRoute(pathname: string): boolean {
+export function isAuthRoute(pathname: string): boolean {
   return AUTH_ROUTES.some((route) => pathname.startsWith(route));
 }
 

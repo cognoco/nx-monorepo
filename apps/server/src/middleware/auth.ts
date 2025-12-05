@@ -9,7 +9,21 @@ import { getSupabaseAdmin } from '../lib/supabase-admin.js';
 export interface AuthenticatedRequest extends Request {
   /**
    * Authenticated user object from Supabase.
-   * Populated by requireAuth middleware after successful JWT validation.
+   *
+   * @remarks
+   * This property is optional on the interface to allow middleware composition,
+   * but is **guaranteed to be defined** after the `requireAuth` middleware.
+   * Route handlers protected by `requireAuth` can safely access `req.user`
+   * without null checks.
+   *
+   * @example
+   * ```typescript
+   * router.get('/profile', requireAuth, (req: AuthenticatedRequest, res) => {
+   *   // After requireAuth, user is guaranteed to exist
+   *   const userId = req.user!.id; // Safe to use non-null assertion
+   *   res.json({ id: userId });
+   * });
+   * ```
    */
   user?: User;
 }
@@ -60,6 +74,11 @@ export function extractBearerToken(
  * Validates JWT token with Supabase admin client.
  * Uses service role key to verify token authenticity and retrieve user data.
  *
+ * **Format Validation:**
+ * Performs fast format check before making Supabase API call to reject
+ * malformed tokens early. JWT must have exactly 3 base64url-encoded parts
+ * separated by dots (header.payload.signature).
+ *
  * @param token - JWT token string to validate
  * @returns User object if token is valid, null otherwise
  *
@@ -75,6 +94,13 @@ export function extractBearerToken(
  */
 export async function validateToken(token: string): Promise<User | null> {
   try {
+    // JWT must have 3 base64url parts separated by dots (header.payload.signature)
+    // Base64url alphabet: A-Z, a-z, 0-9, -, _
+    const jwtPattern = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/;
+    if (!jwtPattern.test(token)) {
+      return null;
+    }
+
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase.auth.getUser(token);
 
