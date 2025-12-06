@@ -23,9 +23,7 @@ planning_notes:
       reason: "Auth settings: email verification on/off, password requirements, OAuth providers?"
       decision_type: configuration-choice
 
-    - story: 5-1-select-staging-platform
-      reason: "Choose staging host: Vercel, Railway, Render, or Fly.io?"
-      decision_type: platform-choice
+    # 5-1 COMPLETED - Two-target strategy: Primary (Vercel+Railway), Secondary (Railway+Railway)
 
     - story: 13-1-select-production-platforms
       reason: "Choose 2 production platforms to demonstrate portability"
@@ -67,7 +65,7 @@ planning_notes:
       depends_on: [4-1, 4-2, 4-3]
 
     - story: 6-1-generate-expo-mobile-application
-      notes: "Nx generator + post-generation checklist"
+      notes: "DRAFTED - All Epic 6 stories drafted 2025-12-05. Run story-context or mark ready-for-dev to begin implementation."
       depends_on: null
 
     - story: 7-1-document-walking-skeleton-architecture
@@ -81,6 +79,18 @@ planning_notes:
     - story: 7-3-compile-troubleshooting-guide
       notes: "Consolidate from memory files"
       depends_on: null
+
+    - story: 5-2-configure-github-actions-deployment-workflow
+      notes: "READY - Context generated 2025-12-05. Primary target: Vercel (web) + Railway (API)"
+      depends_on: 5-1  # SATISFIED
+
+    - story: 5-3-configure-docker-containerization
+      notes: "READY - Context generated 2025-12-05. Partial impl exists (Dockerfiles created). Tasks 5-6 blocked (Docker unavailable in WSL)"
+      depends_on: 5-1  # SATISFIED
+
+    - story: 5-4-validate-staging-deployment
+      notes: "READY - Context generated 2025-12-05. Validation story - execute after 5-2 and 5-3 complete"
+      depends_on: [5-2, 5-3]
 
   # Key dependency chains to understand sequencing
   dependency_chains:
@@ -98,8 +108,8 @@ planning_notes:
       parallelizable: [4-1, 4-2, 4-3]
 
     staging_deployment:
-      sequence: [5-1, 5-2, 5-3, 5-4]
-      notes: "Platform choice → CI/CD → Docker → Validate"
+      sequence: [5-1, 5-2, 5-3, 5-4, 5-4b]
+      notes: "Platform choice → CI/CD → Docker → Validate Primary → Decision Gate for Secondary"
 
     mobile:
       sequence: [6-1, 6-2, 6-3, 6-4, 6-5]
@@ -166,23 +176,24 @@ development_status:
   4-2-configure-supabase-auth-project-settings: ready-for-dev
   4-3-create-web-auth-state-management-patterns: done  # Completed 2025-12-04
   4-4-validate-auth-infrastructure-readiness: done  # Completed 2025-12-04
-  epic-4-retrospective: optional
+  epic-4-retrospective: done  # Completed 2025-12-05
 
   # Epic 5: CI/CD Staging Deployment
   epic-5: contexted  # Stories drafted 2025-12-04
-  5-1-select-staging-platform: drafted  # Drafted 2025-12-04 - REQUIRES USER INPUT: platform choice
-  5-2-configure-github-actions-deployment-workflow: drafted  # Drafted 2025-12-04 - depends on 5-1
-  5-3-configure-docker-containerization: drafted  # Drafted 2025-12-04 - can run parallel with 5-2
-  5-4-validate-staging-deployment: drafted  # Drafted 2025-12-04 - depends on 5-1, 5-2, 5-3
+  5-1-select-staging-platform: done  # Completed 2025-12-04 - Two-target strategy selected
+  5-2-configure-github-actions-deployment-workflow: ready-for-dev  # Context generated 2025-12-05 - Primary target: Vercel (web) + Railway (API)
+  5-3-configure-docker-containerization: ready-for-dev  # Context generated 2025-12-05 - Partial impl exists (validation needed). Tasks 5-6 blocked (Docker not in WSL)
+  5-4-validate-staging-deployment: ready-for-dev  # Context generated 2025-12-05 - Depends on 5-2, 5-3 completion
+  5-4b-secondary-target-decision-gate: drafted  # Decision gate - no context needed, executes after 5-4 validation
   epic-5-retrospective: optional
 
   # Epic 6: Mobile Walking Skeleton
-  epic-6: backlog
-  6-1-generate-expo-mobile-application: backlog
-  6-2-configure-api-client-for-mobile: backlog
-  6-3-implement-mobile-health-check-screen: backlog
-  6-4-validate-cross-platform-sync: backlog
-  6-5-document-mobile-development-setup: backlog
+  epic-6: contexted  # Tech context completed 2025-12-05 - see epic-6-design-decisions.md
+  6-1-generate-expo-mobile-application: ready-for-dev  # Context generated 2025-12-05
+  6-2-configure-api-client-for-mobile: ready-for-dev  # Context generated 2025-12-05
+  6-3-implement-mobile-health-check-screen: ready-for-dev  # Context generated 2025-12-05
+  6-4-validate-cross-platform-sync: ready-for-dev  # Context generated 2025-12-05
+  6-5-document-mobile-development-setup: ready-for-dev  # Context generated 2025-12-05
   epic-6-retrospective: optional
 
   # Epic 7: MVP Documentation

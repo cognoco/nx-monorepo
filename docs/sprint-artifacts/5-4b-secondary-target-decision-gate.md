@@ -1,6 +1,6 @@
 # Story 5.4b: Secondary Target Decision Gate
 
-Status: backlog
+Status: drafted
 
 ## Story
 

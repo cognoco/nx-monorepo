@@ -259,7 +259,7 @@ Deployment workflow should:
 
 ### Context Reference
 
-<!-- Path to story context XML will be added by context workflow -->
+5-2-configure-github-actions-deployment-workflow.context.xml
 
 ### Agent Model Used
 

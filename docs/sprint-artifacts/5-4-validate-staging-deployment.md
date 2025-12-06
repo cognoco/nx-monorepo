@@ -1,6 +1,6 @@
 # Story 5.4: Validate Staging Deployment
 
-Status: drafted
+Status: ready-for-dev
 
 ## Story
 
@@ -209,7 +209,7 @@ Recommended prerequisites:
 
 ### Context Reference
 
-<!-- Path to story context XML will be added by context workflow -->
+5-4-validate-staging-deployment.context.xml
 
 ### Agent Model Used
 

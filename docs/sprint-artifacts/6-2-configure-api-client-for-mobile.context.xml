@@ -1,0 +1,143 @@
+<story-context id="6-2-configure-api-client-for-mobile" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>2</storyId>
+    <title>Configure API Client for Mobile</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-12-05</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/6-2-configure-api-client-for-mobile.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>mobile developer</asA>
+    <iWant>the API client working in the mobile app</iWant>
+    <soThat>I can make type-safe API calls from mobile</soThat>
+    <tasks>
+      <task id="1" acs="1">Verify Package Import Resolution - test @nx-monorepo/api-client import</task>
+      <task id="2" acs="2,3">Create API Client Configuration - apps/mobile/src/lib/api.ts</task>
+      <task id="3" acs="2,4,5">Configure Environment Variables - app.config.ts extras</task>
+      <task id="4" acs="3">Validate Type Safety - verify TypeScript autocomplete</task>
+      <task id="5" acs="4,5">Test API Connectivity - iOS Simulator and Android Emulator</task>
+      <task id="6" acs="6">Document Networking Configuration</task>
+      <task id="7" acs="1,2,3">Write Unit Test for API Configuration</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Import @nx-monorepo/api-client resolves without TypeScript errors</criterion>
+    <criterion id="2">Client correctly points to local dev server or staging based on environment</criterion>
+    <criterion id="3">TypeScript provides autocomplete for path, params, and response types</criterion>
+    <criterion id="4">API calls reach http://localhost:4000/api from iOS Simulator</criterion>
+    <criterion id="5">API calls reach http://10.0.2.2:4000/api from Android Emulator</criterion>
+    <criterion id="6">Networking configuration documented with platform differences explained</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprint-artifacts/epic-6-design-decisions.md</path>
+        <title>Epic 6 Design Decisions</title>
+        <section>D5: API Client Approach</section>
+        <snippet>Use openapi-fetch from @nx-monorepo/api-client. Environment URLs: iOS localhost:4000, Android 10.0.2.2:4000</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-6.md</path>
+        <title>Epic 6 Technical Specification</title>
+        <section>AC-6.2, APIs and Interfaces</section>
+        <snippet>API client configuration pattern using expo-constants for environment-aware base URL</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>packages/api-client/src/index.ts</path>
+        <kind>library</kind>
+        <symbol>createClient, paths type</symbol>
+        <reason>Source of API client factory and OpenAPI-generated types to import</reason>
+      </file>
+      <file>
+        <path>apps/web/src/lib/api.ts</path>
+        <kind>client-config</kind>
+        <symbol>apiClient</symbol>
+        <reason>Reference pattern for how web configures API client - mobile should follow similar pattern</reason>
+      </file>
+      <file>
+        <path>apps/server/src/routes/health.ts</path>
+        <kind>endpoint</kind>
+        <symbol>GET /api/health, POST /api/health</symbol>
+        <reason>Endpoints that mobile will call - understand request/response shape</reason>
+      </file>
+      <file>
+        <path>packages/schemas/src/lib/health.schema.ts</path>
+        <kind>schema</kind>
+        <symbol>HealthCheckSchema, CreateHealthCheckSchema</symbol>
+        <reason>Zod schemas defining health check data types</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <ecosystem name="existing-workspace">
+        <package name="openapi-fetch" version="^0.14.0" note="Already in api-client package" />
+        <package name="@nx-monorepo/api-client" version="workspace:*" />
+        <package name="@nx-monorepo/schemas" version="workspace:*" />
+      </ecosystem>
+      <ecosystem name="mobile-to-add">
+        <package name="expo-constants" version="~17.0.0" note="For accessing app.config.ts extras" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="import">Must import from @nx-monorepo/api-client - Metro must resolve workspace packages</constraint>
+    <constraint type="environment">iOS Simulator uses localhost:4000, Android Emulator uses 10.0.2.2:4000</constraint>
+    <constraint type="environment">Physical devices require public HTTPS URL (staging)</constraint>
+    <constraint type="type-safety">TypeScript autocomplete must work for all API paths and response types</constraint>
+    <constraint type="dependency">Depends on Story 6.1 completion - mobile app must exist</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>API Client Factory</name>
+      <kind>function</kind>
+      <signature>createClient&lt;paths&gt;({ baseUrl: string })</signature>
+      <path>packages/api-client/src/index.ts</path>
+    </interface>
+    <interface>
+      <name>Health Check GET</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/health → { data: HealthCheck[] }</signature>
+      <path>apps/server/src/routes/health.ts</path>
+    </interface>
+    <interface>
+      <name>Health Check POST</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/health { message: string } → { data: HealthCheck }</signature>
+      <path>apps/server/src/routes/health.ts</path>
+    </interface>
+    <interface>
+      <name>Expo Constants</name>
+      <kind>SDK module</kind>
+      <signature>Constants.expoConfig?.extra?.apiUrl</signature>
+      <path>expo-constants (to install)</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Jest with @swc/jest transformer. Test file: apps/mobile/src/lib/api.spec.ts
+      Mock expo-constants for test isolation. Verify client created with correct baseUrl.
+    </standards>
+    <locations>
+      <location>apps/mobile/src/lib/api.spec.ts</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test that @nx-monorepo/api-client import compiles without errors</idea>
+      <idea ac="2,3">Test apiClient is created with correct baseUrl from environment</idea>
+      <idea ac="3">Test TypeScript types are correctly inferred for API responses</idea>
+      <idea ac="4,5">Integration test: make actual API call to local server (manual)</idea>
+    </ideas>
+  </tests>
+</story-context>
+
+

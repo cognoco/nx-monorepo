@@ -1,0 +1,135 @@
+<story-context id="6-3-implement-mobile-health-check-screen" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>3</storyId>
+    <title>Implement Mobile Health Check Screen</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-12-05</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/6-3-implement-mobile-health-check-screen.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>mobile developer</asA>
+    <iWant>a health check screen mirroring the web experience</iWant>
+    <soThat>I can validate end-to-end mobile connectivity</soThat>
+    <tasks>
+      <task id="1" acs="1,3">Implement Home Screen with Health Checks - modify app/index.tsx, use FlatList</task>
+      <task id="2" acs="1,4">Implement Data Fetching - useEffect, apiClient.GET, ActivityIndicator</task>
+      <task id="3" acs="2">Implement Ping Button - POST /api/health, refetch list</task>
+      <task id="4" acs="5">Implement Error Handling - catch errors, display message, allow retry</task>
+      <task id="5" acs="1,3">Create Health Check List Component</task>
+      <task id="6" acs="6">Test on iOS Simulator</task>
+      <task id="7" acs="7">Test on Android Emulator</task>
+      <task id="8" acs="8">Validate Cross-Platform Sync</task>
+      <task id="9" acs="1-5">Write Component Tests</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Health check list fetched and displayed when app opens</criterion>
+    <criterion id="2">Ping button creates new health check and it appears in list</criterion>
+    <criterion id="3">Scrolling is smooth (60 FPS) using FlatList</criterion>
+    <criterion id="4">Loading indicator displayed during API calls</criterion>
+    <criterion id="5">Error message displayed clearly when API fails</criterion>
+    <criterion id="6">Screen works on iOS Simulator</criterion>
+    <criterion id="7">Screen works on Android Emulator</criterion>
+    <criterion id="8">Data created on mobile appears on web (cross-platform sync)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-6.md</path>
+        <title>Epic 6 Technical Specification</title>
+        <section>AC-6.3, Workflows and Sequencing</section>
+        <snippet>Health check flow: mount → fetch → display → ping → create → refetch. Use FlatList, ActivityIndicator.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/epic-6-design-decisions.md</path>
+        <title>Epic 6 Design Decisions</title>
+        <section>Walking Skeleton Approach</section>
+        <snippet>Use out-of-box scaffolding. No custom navigation, state management, or offline patterns.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>apps/web/src/app/page.tsx</path>
+        <kind>page</kind>
+        <symbol>Home page with health check</symbol>
+        <reason>Reference for health check UI pattern - mobile should mirror functionality</reason>
+      </file>
+      <file>
+        <path>apps/mobile/src/lib/api.ts</path>
+        <kind>client</kind>
+        <symbol>apiClient</symbol>
+        <reason>API client to use for health check calls (from Story 6.2)</reason>
+      </file>
+      <file>
+        <path>packages/schemas/src/lib/health.schema.ts</path>
+        <kind>schema</kind>
+        <symbol>HealthCheck type</symbol>
+        <reason>Type definition for health check data to display</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <ecosystem name="react-native-core">
+        <package name="react-native" note="FlatList, View, Text, Button, ActivityIndicator, Pressable" />
+      </ecosystem>
+      <ecosystem name="from-previous-story">
+        <package name="@nx-monorepo/api-client" note="apiClient configured in Story 6.2" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="dependency">Depends on Story 6.2 completion - API client must be configured</constraint>
+    <constraint type="pattern">Walking skeleton: minimal UI, no complex state management</constraint>
+    <constraint type="pattern">Use FlatList for efficient scrolling (not ScrollView)</constraint>
+    <constraint type="pattern">Use ActivityIndicator for loading states</constraint>
+    <constraint type="testing">Co-locate tests: HealthCheckList.spec.tsx</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Health Check GET</name>
+      <kind>API call</kind>
+      <signature>apiClient.GET('/api/health') → { data: { data: HealthCheck[] } }</signature>
+      <path>apps/mobile/src/lib/api.ts</path>
+    </interface>
+    <interface>
+      <name>Health Check POST</name>
+      <kind>API call</kind>
+      <signature>apiClient.POST('/api/health', { body: { message: string } }) → { data: { data: HealthCheck } }</signature>
+      <path>apps/mobile/src/lib/api.ts</path>
+    </interface>
+    <interface>
+      <name>FlatList</name>
+      <kind>React Native component</kind>
+      <signature>&lt;FlatList data={items} renderItem={...} keyExtractor={...} /&gt;</signature>
+      <path>react-native</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Jest with @swc/jest. Test components in isolation with mocked API client.
+      Test loading, success, and error states. Use @testing-library/react-native if available.
+    </standards>
+    <locations>
+      <location>apps/mobile/src/components/HealthCheckList.spec.tsx</location>
+      <location>apps/mobile/app/index.spec.tsx</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test list renders health check items with correct data</idea>
+      <idea ac="2">Test ping button triggers POST and refetches list</idea>
+      <idea ac="4">Test loading state shows ActivityIndicator</idea>
+      <idea ac="5">Test error state shows error message</idea>
+      <idea ac="3">Test FlatList keyExtractor works correctly</idea>
+    </ideas>
+  </tests>
+</story-context>
+
+
