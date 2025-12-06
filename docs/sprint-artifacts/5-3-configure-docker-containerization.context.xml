@@ -22,6 +22,14 @@
     <dependencies>
       <dependency story-id="5-1" status="done">Select Staging Platform</dependency>
     </dependencies>
+    <environment-dependencies>
+      <dependency type="runtime" critical="true">
+        <name>Docker Desktop with WSL Integration</name>
+        <description>Docker commands require Docker Desktop running on Windows with WSL2 integration enabled</description>
+        <cogno-reference>docs/memories/troubleshooting/module-10-docker-wsl-environment.md</cogno-reference>
+        <agent-protocol>If Docker commands fail, HALT and notify user. Do not attempt to fix Docker infrastructure.</agent-protocol>
+      </dependency>
+    </environment-dependencies>
   </metadata>
 
   <story-summary>
