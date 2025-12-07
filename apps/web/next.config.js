@@ -1,5 +1,6 @@
 //@ts-check
 
+const path = require('path');
 const { composePlugins, withNx } = require('@nx/next');
 const { withSentryConfig } = require('@sentry/nextjs');
 
@@ -10,6 +11,15 @@ const nextConfig = {
   // Use this to set Nx-specific options
   // See: https://nx.dev/recipes/next/next-config-setup
   nx: {},
+
+  // Enable standalone output for Docker deployment
+  // Creates a self-contained build in .next/standalone with minimal node_modules
+  // Required for containerized deployments (Railway, Docker, etc.)
+  output: 'standalone',
+
+  // Configure output file tracing for monorepo
+  // This ensures shared packages from the monorepo root are included in the standalone build
+  outputFileTracingRoot: path.join(__dirname, '../../'),
 
   // Note: instrumentation.ts is automatically loaded in Next.js 15+
   // No experimental flag needed - it's a stable feature now
