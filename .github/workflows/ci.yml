@@ -79,4 +79,11 @@ jobs:
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: pnpm exec nx-cloud record -- echo Hello World
       # When you enable task distribution, run the e2e-ci task instead of e2e
+
+      # Clear local Nx cache to prevent "File exists (os error 17)" race condition
+      # This allows remote cache hits from Nx Cloud while avoiding stale local cache conflicts
+      # See: docs/memories/tech-findings-log/module-21-deployment-vercel-railway-nx-monorepo-configuration-2025-12-08.md
+      - name: Clear Nx local cache
+        run: rm -rf .nx/cache node_modules/.cache/nx
+
       - run: pnpm exec nx run-many -t lint test build typecheck e2e
