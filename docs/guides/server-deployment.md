@@ -405,15 +405,16 @@ Create `railway.json` in the **repository root** (not `apps/server/`):
 
 Set these in Railway → Project → Variables:
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATABASE_URL` | Supabase pooler connection | `postgresql://postgres.[ref]:[pwd]@...` |
-| `DIRECT_URL` | Supabase direct connection (for migrations) | `postgresql://postgres.[ref]:[pwd]@...` |
-| `SUPABASE_URL` | Supabase project URL | `https://xxx.supabase.co` |
-| `SUPABASE_ANON_KEY` | Supabase anonymous key | `eyJhbGc...` |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | `eyJhbGc...` |
-| `PORT` | (Auto-set by Railway) | — |
-| `NODE_ENV` | (Optional, defaults to production) | `production` |
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| `DATABASE_URL` | ✅ | Supabase pooler connection | `postgresql://postgres.[ref]:[pwd]@...` |
+| `DIRECT_URL` | ✅ | Supabase direct connection (migrations) | `postgresql://postgres.[ref]:[pwd]@...` |
+| `SUPABASE_URL` | ✅ | Supabase project URL | `https://xxx.supabase.co` |
+| `SUPABASE_SERVICE_ROLE_KEY` | ✅ | Supabase service role key | `eyJhbGc...` |
+| `PORT` | — | Auto-set by Railway | — |
+| `NODE_ENV` | — | Defaults to production | `production` |
+
+**Note:** The server does NOT need `SUPABASE_ANON_KEY` — it uses the service role key for admin operations.
 
 ### Critical: Server Host Binding
 

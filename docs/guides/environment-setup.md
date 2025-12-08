@@ -457,11 +457,12 @@ This keeps API calls going through the Next.js proxy, avoiding CORS issues and k
 DATABASE_URL="postgresql://..."                   # TEST project pooler connection
 DIRECT_URL="postgresql://..."                     # TEST project direct connection
 SUPABASE_URL="https://xxxx.supabase.co"          # TEST project URL
-SUPABASE_ANON_KEY="eyJhbGc..."                   # TEST project anon key
 SUPABASE_SERVICE_ROLE_KEY="eyJhbGc..."           # TEST project service key
 NODE_ENV="production"                             # Enables production optimizations
 PORT="4000"                                       # Railway will override this
 ```
+
+**Note:** The server does NOT need `SUPABASE_ANON_KEY` — it only uses the service role key for admin operations.
 
 See `.env.example` (lines 108-138) for the complete multi-environment variable reference.
 

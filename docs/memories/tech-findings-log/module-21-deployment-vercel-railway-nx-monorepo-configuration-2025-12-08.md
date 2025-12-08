@@ -58,9 +58,8 @@ rm -rf apps/web/.next && pnpm exec prisma generate --schema=packages/database/pr
 | Variable | Purpose | Scope |
 |----------|---------|-------|
 | `BACKEND_URL` | Railway API URL for Next.js rewrites proxy | Preview, Production |
-| `DATABASE_URL` | Supabase connection string | Preview, Production |
-| `SUPABASE_URL` | Supabase project URL | Preview, Production |
-| `SUPABASE_ANON_KEY` | Supabase anonymous key | Preview, Production |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL (client-side) | Preview, Production |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key (client-side, for auth) | Preview, Production |
 
 **Important:** Do NOT set `NEXT_PUBLIC_API_URL`. Use `BACKEND_URL` instead to leverage Next.js rewrites for cleaner API routing.
 
@@ -133,11 +132,13 @@ const port = process.env.PORT ? Number(process.env.PORT) : 4000;
 
 | Variable | Purpose |
 |----------|---------|
-| `DATABASE_URL` | Supabase connection string |
+| `DATABASE_URL` | Supabase pooler connection string |
+| `DIRECT_URL` | Supabase direct connection (for migrations) |
 | `SUPABASE_URL` | Supabase project URL |
-| `SUPABASE_ANON_KEY` | Supabase anonymous key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server-only) |
 | `PORT` | Auto-set by Railway |
+
+**Note:** The server does NOT need `SUPABASE_ANON_KEY` — it only uses the service role key.
 
 ---
 
