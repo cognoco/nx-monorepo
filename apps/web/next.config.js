@@ -24,13 +24,15 @@ const nextConfig = {
   // Note: instrumentation.ts is automatically loaded in Next.js 15+
   // No experimental flag needed - it's a stable feature now
 
-  // Proxy /api/* requests to the backend server in development
-  // This allows the frontend to use relative URLs (/api/...) instead of hardcoded localhost URLs
+  // Proxy /api/* requests to the backend server
+  // This allows the frontend to use relative URLs (/api/...) instead of hardcoded URLs
+  // In production, set BACKEND_URL environment variable to the API server URL
   async rewrites() {
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:4000';
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:4000/api/:path*',
+        destination: `${backendUrl}/api/:path*`,
       },
     ];
   },
