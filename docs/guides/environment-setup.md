@@ -434,8 +434,22 @@ Reference `docs/architecture-decisions.md` Stage 5 for deployment platform decis
 # Required environment variables
 NEXT_PUBLIC_SUPABASE_URL="https://xxxx.supabase.co"      # TEST project URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGc..."               # TEST project anon key
-NEXT_PUBLIC_API_URL="https://api.staging.example.com/api" # Railway staging API URL
+BACKEND_URL="https://nx-monoreposerver-production.up.railway.app"  # Railway API URL
 ```
+
+**⚠️ Important: Use `BACKEND_URL`, NOT `NEXT_PUBLIC_API_URL`**
+
+| Variable | Layer | Purpose |
+|----------|-------|---------|
+| `BACKEND_URL` | Server-side (Next.js rewrites) | Configures where Next.js proxies `/api/*` requests |
+| `NEXT_PUBLIC_API_URL` | Client-side (baked into JS) | **Do NOT use** — bypasses proxy, causes path issues |
+
+**How it works:**
+1. Client code calls `/api/health` (relative URL)
+2. Next.js rewrite proxies to `${BACKEND_URL}/api/health`
+3. Railway receives request at full URL
+
+This keeps API calls going through the Next.js proxy, avoiding CORS issues and keeping backend URL out of client bundles.
 
 **Server App (Railway)**:
 ```bash
@@ -443,6 +457,7 @@ NEXT_PUBLIC_API_URL="https://api.staging.example.com/api" # Railway staging API 
 DATABASE_URL="postgresql://..."                   # TEST project pooler connection
 DIRECT_URL="postgresql://..."                     # TEST project direct connection
 SUPABASE_URL="https://xxxx.supabase.co"          # TEST project URL
+SUPABASE_ANON_KEY="eyJhbGc..."                   # TEST project anon key
 SUPABASE_SERVICE_ROLE_KEY="eyJhbGc..."           # TEST project service key
 NODE_ENV="production"                             # Enables production optimizations
 PORT="4000"                                       # Railway will override this
@@ -455,6 +470,29 @@ See `.env.example` (lines 108-138) for the complete multi-environment variable r
 - May use less restrictive rate limits for testing
 - Error details may be more verbose for debugging
 - No user email verification required
+
+### Vercel Build Configuration
+
+For Nx monorepo deployments on Vercel, use these dashboard settings:
+
+| Setting | Value | Rationale |
+|---------|-------|-----------|
+| **Root Directory** | `.` (empty) | Required for Nx to resolve workspace packages |
+| **Build Command** | See below | Custom command for Prisma + Nx |
+| **Output Directory** | `apps/web/.next` | Standard Next.js output |
+| **Node.js Version** | `22.x` | Match project's `engines.node` |
+
+**Build Command:**
+```bash
+rm -rf apps/web/.next && pnpm exec prisma generate --schema=packages/database/prisma/schema.prisma && pnpm exec nx build web --skip-nx-cache
+```
+
+**Why this specific command:**
+- `rm -rf apps/web/.next` — Clears cached files to prevent conflicts
+- `prisma generate` — Generates Prisma client with custom schema path
+- `--skip-nx-cache` — Avoids "File exists" error with Next.js standalone output symlinks
+
+See `docs/memories/tech-findings-log/module-21-deployment-vercel-railway-nx-monorepo-configuration-2025-12-08.md` for full technical details.
 
 ---
 
@@ -570,6 +608,12 @@ To access these settings:
 
 ## Changelog
 
+- **2025-12-08**: Updated staging deployment configuration (Story 5.2)
+  - Added `BACKEND_URL` as the correct variable for Vercel → Railway proxy
+  - Clarified why NOT to use `NEXT_PUBLIC_API_URL` (bypasses proxy, causes path issues)
+  - Added Vercel Build Configuration section with monorepo-specific settings
+  - Documented the custom build command and rationale for each part
+  - Added reference to tech-findings-log module for full details
 - **2025-12-05**: Fixed environment variable naming inconsistency
   - Added `SUPABASE_URL` as preferred server-side variable (Story 5.1)
   - Added `SUPABASE_SERVICE_ROLE_KEY` documentation

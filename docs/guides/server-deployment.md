@@ -2,7 +2,7 @@
 title: Server Deployment Guide
 purpose: Comprehensive guide for deploying the Express API server application
 audience: DevOps engineers, developers deploying to production
-last-updated: 2025-11-05
+last-updated: 2025-12-08
 ---
 
 # Server Deployment Guide
@@ -364,6 +364,111 @@ services:
       retries: 3
       start_period: 40s
 ```
+
+---
+
+## Railway Deployment
+
+Railway is the recommended platform for deploying the API server in staging and production.
+
+### Prerequisites
+
+1. Railway account ([railway.app](https://railway.app))
+2. Railway project created and linked to your GitHub repository
+3. Dockerfile exists at `apps/server/Dockerfile`
+
+### Configuration File
+
+Create `railway.json` in the **repository root** (not `apps/server/`):
+
+```json
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "apps/server/Dockerfile"
+  },
+  "deploy": {
+    "healthcheckPath": "/api/hello",
+    "healthcheckTimeout": 60,
+    "restartPolicyMaxRetries": 3
+  }
+}
+```
+
+**Configuration notes:**
+- `dockerfilePath` — Must specify full path from repo root (required for monorepo)
+- `healthcheckPath` — Use `/api/hello` (lightweight, no database query) instead of `/api/health`
+- `healthcheckTimeout` — 60 seconds allows for cold starts
+
+### Environment Variables (Railway Dashboard)
+
+Set these in Railway → Project → Variables:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `DATABASE_URL` | Supabase pooler connection | `postgresql://postgres.[ref]:[pwd]@...` |
+| `DIRECT_URL` | Supabase direct connection (for migrations) | `postgresql://postgres.[ref]:[pwd]@...` |
+| `SUPABASE_URL` | Supabase project URL | `https://xxx.supabase.co` |
+| `SUPABASE_ANON_KEY` | Supabase anonymous key | `eyJhbGc...` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | `eyJhbGc...` |
+| `PORT` | (Auto-set by Railway) | — |
+| `NODE_ENV` | (Optional, defaults to production) | `production` |
+
+### Critical: Server Host Binding
+
+The server **must** bind to `0.0.0.0` (not `localhost`) for Railway's proxy to connect:
+
+```typescript
+// apps/server/src/main.ts
+const host = process.env.HOST ?? '0.0.0.0';  // NOT 'localhost'
+const port = process.env.PORT ? Number(process.env.PORT) : 4000;
+```
+
+**Why**: In containers, `localhost` only accepts connections from inside the container. Railway's proxy connects from outside, so the server must listen on all interfaces (`0.0.0.0`).
+
+### Health Check Endpoint Selection
+
+| Endpoint | Use Case | Notes |
+|----------|----------|-------|
+| `/api/hello` | Infrastructure health check | Fast, no DB dependency |
+| `/api/health` | Application health check | Queries database, may timeout on cold start |
+
+**Recommendation**: Use `/api/hello` for Railway health checks. The `/api/health` endpoint queries the database, which can cause timeouts during cold starts.
+
+### Deployment Workflow
+
+1. **Link repository** in Railway Dashboard
+2. **Set environment variables** (see table above)
+3. **Deploy** — Railway auto-detects `railway.json` and builds from Dockerfile
+4. **Generate domain** — Railway Dashboard → Service → Settings → Generate Domain
+5. **Verify** — `curl https://your-service.up.railway.app/api/hello`
+
+### Railway Domain
+
+Your deployed server URL will look like:
+```
+https://[service-name]-[environment].up.railway.app
+```
+
+Example: `https://nx-monoreposerver-production.up.railway.app`
+
+### Troubleshooting Railway
+
+**Health check timeout (502 errors):**
+- Check server binds to `0.0.0.0` (not `localhost`)
+- Verify environment variables are set correctly
+- Change health check to `/api/hello` (lighter than `/api/health`)
+- Increase `healthcheckTimeout` in `railway.json`
+
+**Build fails:**
+- Verify `dockerfilePath` in `railway.json` points to correct location
+- Check Dockerfile syntax
+- Review Railway build logs
+
+**Connection refused:**
+- Server must bind to `HOST=0.0.0.0`
+- Check `PORT` environment variable is being used
 
 ---
 
