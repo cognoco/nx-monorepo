@@ -31,7 +31,7 @@ so that I have confidence in our observability infrastructure.
   - [x] 2.4: Page includes development warning banner
 
 - [x] Task 3: Execute Server Error Tests (AC: #1, #2, #3) - **Verified locally**
-  - [x] 3.1: Server starts and warns when SENTRY_DSN_SERVER not set
+  - [x] 3.1: Server starts and warns when SENTRY_DSN_API not set
   - [x] 3.2: Verified `GET /api/debug/sentry-test` returns 500 with error message
   - [ ] 3.3: Sentry dashboard verification (requires DSN configuration by user)
   - [ ] 3.4: Source map verification (requires Sentry auth token)

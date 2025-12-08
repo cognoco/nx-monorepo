@@ -26,7 +26,7 @@ so that server-side errors are captured and reported.
 - [ ] Task 2: Initialize Sentry Early (AC: #1, #2)
   - [ ] 2.1: Create `apps/server/src/instrumentation.ts` for Sentry init
   - [ ] 2.2: Initialize Sentry at the top of `apps/server/src/main.ts` (before Express)
-  - [ ] 2.3: Configure DSN from `process.env.SENTRY_DSN_SERVER`
+  - [ ] 2.3: Configure DSN from `process.env.SENTRY_DSN_API`
   - [ ] 2.4: Enable performance tracing with `tracesSampleRate`
   - [ ] 2.5: Set `environment` from `process.env.NODE_ENV` or custom var
 
@@ -84,9 +84,9 @@ so that server-side errors are captured and reported.
 import * as Sentry from '@sentry/node';
 
 export function initSentry() {
-  if (process.env.SENTRY_DSN_SERVER) {
+  if (process.env.SENTRY_DSN_API) {
     Sentry.init({
-      dsn: process.env.SENTRY_DSN_SERVER,
+      dsn: process.env.SENTRY_DSN_API,
       environment: process.env.NODE_ENV || 'development',
       tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
       release: process.env.npm_package_version,

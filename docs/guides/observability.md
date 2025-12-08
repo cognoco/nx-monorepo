@@ -42,10 +42,10 @@ The monorepo uses **Sentry** for:
 Add these to your `.env.local` or environment-specific files:
 
 ```bash
-# Server (Express API)
-SENTRY_DSN_SERVER=https://your-key@your-org.ingest.sentry.io/your-project-id
+# Server (Express API) - Pattern: SERVICE_VARIABLE_APP
+SENTRY_DSN_API=https://your-key@your-org.ingest.sentry.io/your-project-id
 
-# Web (Next.js)
+# Web (Next.js) - Pattern: NEXT_PUBLIC_* (framework-mandated prefix)
 NEXT_PUBLIC_SENTRY_DSN=https://your-key@your-org.ingest.sentry.io/your-project-id
 
 # Sentry organization and project (for source map uploads)
@@ -72,13 +72,13 @@ The server initializes Sentry in `apps/server/src/instrumentation.ts`:
 import * as Sentry from '@sentry/node';
 
 export function initSentry(): void {
-  if (!process.env.SENTRY_DSN_SERVER) {
+  if (!process.env.SENTRY_DSN_API) {
     console.warn('⚠️  Sentry DSN not configured. Error tracking disabled.');
     return;
   }
 
   Sentry.init({
-    dsn: process.env.SENTRY_DSN_SERVER,
+    dsn: process.env.SENTRY_DSN_API,
     environment: process.env.NODE_ENV || 'development',
     release: process.env.npm_package_version || 'unknown',
     tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
@@ -176,7 +176,7 @@ When Sentry DSNs are configured, verify the following:
 
 ### Server Verification
 
-- [ ] Start server with `SENTRY_DSN_SERVER` set
+- [ ] Start server with `SENTRY_DSN_API` set
 - [ ] Call `GET /api/debug/sentry-test`
 - [ ] Check Sentry Issues dashboard for the error
 - [ ] Verify stack trace is readable (source maps working)
@@ -201,12 +201,12 @@ When Sentry DSNs are configured, verify the following:
 
 ### "Sentry DSN not configured" Warning
 
-**Cause:** `SENTRY_DSN_SERVER` or `NEXT_PUBLIC_SENTRY_DSN` not set.
+**Cause:** `SENTRY_DSN_API` or `NEXT_PUBLIC_SENTRY_DSN` not set.
 
 **Solution:** Add the DSN to your environment:
 ```bash
 # .env.local
-SENTRY_DSN_SERVER=https://...
+SENTRY_DSN_API=https://...
 NEXT_PUBLIC_SENTRY_DSN=https://...
 ```
 

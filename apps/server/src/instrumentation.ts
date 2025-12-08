@@ -5,7 +5,7 @@
  * It must be imported BEFORE any other application code to ensure proper error capture.
  *
  * Configuration:
- * - DSN: Set via SENTRY_DSN_SERVER environment variable
+ * - DSN: Set via SENTRY_DSN_API environment variable
  * - Environment: Automatically tagged using NODE_ENV
  * - Performance: Trace sampling rates differ by environment
  * - Release: Uses package version for release tracking
@@ -20,15 +20,15 @@ import * as Sentry from '@sentry/node';
  * It should be called as early as possible in the application lifecycle.
  *
  * Environment Variables:
- * - SENTRY_DSN_SERVER: Sentry Data Source Name (required for Sentry to work)
+ * - SENTRY_DSN_API: Sentry Data Source Name (required for Sentry to work)
  * - NODE_ENV: Environment name (development, test, production)
  * - npm_package_version: Package version for release tracking
  */
 export function initSentry(): void {
   // Only initialize if DSN is provided
-  if (!process.env.SENTRY_DSN_SERVER) {
+  if (!process.env.SENTRY_DSN_API) {
     console.warn(
-      '⚠️  Sentry DSN not configured (SENTRY_DSN_SERVER). Error tracking disabled.'
+      '⚠️  Sentry DSN not configured (SENTRY_DSN_API). Error tracking disabled.'
     );
     return;
   }
@@ -37,7 +37,7 @@ export function initSentry(): void {
   const isProduction = environment === 'production';
 
   Sentry.init({
-    dsn: process.env.SENTRY_DSN_SERVER,
+    dsn: process.env.SENTRY_DSN_API,
 
     // Environment identification
     environment,
