@@ -66,10 +66,15 @@ So that **I can demo and validate features with confidence**.
   - [ ] Verify connection pooling works (Supavisor)
 
 - [ ] **Task 6: Verify observability integration** (AC: #1)
-  - [ ] Trigger a test error on staging
-  - [ ] Check Sentry dashboard for staging environment
-  - [ ] Verify error includes correct environment tag
-  - [ ] Verify source maps resolve correctly
+  - [ ] 6.1 Fix Sentry deployment warnings discovered in Story 5.2:
+    - [ ] Add `onRequestError` hook to `instrumentation.ts` (RSC error capture)
+    - [ ] Create `app/global-error.tsx` for React rendering error boundary
+    - [ ] Migrate `sentry.client.config.ts` → `instrumentation-client.ts` (Turbopack compat)
+  - [ ] 6.2 Trigger a test error on staging
+  - [ ] 6.3 Check Sentry dashboard for staging environment
+  - [ ] 6.4 Verify error includes correct environment tag
+  - [ ] 6.5 Verify source maps resolve correctly
+  - [ ] 6.6 Verify no Sentry warnings in Vercel build logs
 
 - [ ] **Task 7: Document staging URL in README** (AC: #4)
   - [ ] Add "Live Demo" or "Staging" section to README
@@ -164,6 +169,20 @@ echo "All staging checks passed! ✅"
 | `SENTRY_DSN` | Staging DSN | Separate environment |
 | `NODE_ENV` | `production` | Staging uses production mode |
 
+### Sentry Deployment Warnings (from Story 5.2)
+
+During Vercel deployment in Story 5.2, the following Sentry warnings were identified that should be resolved as part of staging validation:
+
+| Warning | Severity | Fix |
+|---------|----------|-----|
+| Missing `onRequestError` hook | 🟡 Medium | Add to `instrumentation.ts` for RSC error capture |
+| Missing `global-error.js` | 🟡 Medium | Create `app/global-error.tsx` for React error boundary |
+| Deprecated `sentry.client.config.ts` | 🟡 Medium | Migrate to `instrumentation-client.ts` for Turbopack compatibility |
+
+**References:**
+- Vercel build logs: `dpl_BTkoAyAE1eCBz3yuxbsJ2v9X1zCU`
+- Sentry docs: https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
+
 ### Known Staging vs Local Differences
 
 Document any expected differences:
@@ -235,3 +254,4 @@ Recommended prerequisites:
 |------|--------|--------|
 | 2025-12-04 | SM Agent (Rincewind) | Initial story draft from Epic 5 |
 | 2025-12-04 | Dev Agent (Claude Opus 4.5) | Added platform-specific validation focus per Story 5-1 decision |
+| 2025-12-08 | Dev Agent (Claude Opus 4.5) | Expanded Task 6 with Sentry deployment warning fixes discovered during Story 5.2 Vercel deployment |
