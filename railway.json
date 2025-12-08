@@ -5,6 +5,8 @@
     "dockerfilePath": "apps/server/Dockerfile"
   },
   "deploy": {
+    "healthcheckPath": "/api/hello",
+    "healthcheckTimeout": 60,
     "restartPolicyMaxRetries": 3
   }
 }
