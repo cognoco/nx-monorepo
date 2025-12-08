@@ -2,6 +2,9 @@
 
 <a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
 
+[![CI](https://github.com/jojorgen/nx-monorepo/actions/workflows/ci.yml/badge.svg)](https://github.com/jojorgen/nx-monorepo/actions/workflows/ci.yml)
+[![Deploy to Staging](https://github.com/jojorgen/nx-monorepo/actions/workflows/deploy-staging.yml/badge.svg)](https://github.com/jojorgen/nx-monorepo/actions/workflows/deploy-staging.yml)
+
 A production-ready Nx monorepo template demonstrating best practices for building type-safe, full-stack applications with shared business logic across web, server, and mobile platforms.
 
 ## What is this?

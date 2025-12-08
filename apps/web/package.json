@@ -2,6 +2,9 @@
   "name": "@nx-monorepo/web",
   "version": "0.0.1",
   "private": true,
+  "scripts": {
+    "vercel-build": "cd ../.. && pnpm exec nx build web"
+  },
   "dependencies": {
     "@nx-monorepo/api-client": "workspace:*",
     "@nx-monorepo/supabase-client": "workspace:*",
