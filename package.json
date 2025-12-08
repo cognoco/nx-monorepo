@@ -44,6 +44,7 @@
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",
+    "prisma": "^6.17.1",
     "@commitlint/config-conventional": "^20.0.0",
     "@eslint/compat": "^1.1.1",
     "@eslint/eslintrc": "^2.1.1",
