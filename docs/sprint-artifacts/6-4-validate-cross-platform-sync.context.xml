@@ -1,0 +1,125 @@
+<story-context id="6-4-validate-cross-platform-sync" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>4</storyId>
+    <title>Validate Cross-Platform Sync</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-12-05</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/6-4-validate-cross-platform-sync.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>product owner</asA>
+    <iWant>to verify data syncs between web and mobile</iWant>
+    <soThat>I have confidence in cross-platform functionality</soThat>
+    <tasks>
+      <task id="1" acs="1,2">Setup Validation Environment - start server, web, mobile</task>
+      <task id="2" acs="1">Test Web → Mobile Sync - create on web, verify on mobile</task>
+      <task id="3" acs="2">Test Mobile → Web Sync - create on mobile, verify on web</task>
+      <task id="4" acs="5">Verify Database Consistency - query database directly</task>
+      <task id="5" acs="3,4">Document Sync Behavior - screenshots, latency, refresh</task>
+      <task id="6" acs="4">Test Edge Cases - rapid creation, server unavailable</task>
+      <task id="7" acs="4">Document Known Limitations</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Health check created on web appears on mobile after refresh</criterion>
+    <criterion id="2">Health check created on mobile appears on web after refresh</criterion>
+    <criterion id="3">Validation documented with screenshots or recording</criterion>
+    <criterion id="4">Known limitations documented</criterion>
+    <criterion id="5">Both web and mobile records exist in database with correct data</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-6.md</path>
+        <title>Epic 6 Technical Specification</title>
+        <section>AC-6.4, Cross-Platform Sync Flow</section>
+        <snippet>Manual validation story. Both platforms use same API → same database → records visible on both after refresh.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>apps/web/src/app/page.tsx</path>
+        <kind>page</kind>
+        <symbol>Web health check page</symbol>
+        <reason>Web app to use for cross-platform testing</reason>
+      </file>
+      <file>
+        <path>apps/mobile/app/index.tsx</path>
+        <kind>screen</kind>
+        <symbol>Mobile health check screen</symbol>
+        <reason>Mobile app to use for cross-platform testing (from Story 6.3)</reason>
+      </file>
+      <file>
+        <path>packages/database/prisma/schema.prisma</path>
+        <kind>schema</kind>
+        <symbol>HealthCheck model</symbol>
+        <reason>Database schema to query for verification</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <ecosystem name="validation-tools">
+        <package name="Prisma Studio" note="pnpm run db:studio:dev for database inspection" />
+        <package name="Supabase Dashboard" note="Alternative database inspection tool" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="dependency">Depends on Stories 6.1, 6.2, 6.3 completion - full mobile stack working</constraint>
+    <constraint type="scope">This is MANUAL validation - no automated tests to write</constraint>
+    <constraint type="documentation">Must capture screenshots as evidence</constraint>
+    <constraint type="documentation">Must document latency and refresh requirements</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Web App</name>
+      <kind>application</kind>
+      <signature>pnpm exec nx run web:dev → http://localhost:3000</signature>
+      <path>apps/web</path>
+    </interface>
+    <interface>
+      <name>Mobile App</name>
+      <kind>application</kind>
+      <signature>pnpm exec nx run mobile:start → Expo dev server</signature>
+      <path>apps/mobile</path>
+    </interface>
+    <interface>
+      <name>Server</name>
+      <kind>API server</kind>
+      <signature>pnpm exec nx run server:serve → http://localhost:4000</signature>
+      <path>apps/server</path>
+    </interface>
+    <interface>
+      <name>Database Studio</name>
+      <kind>tool</kind>
+      <signature>pnpm run db:studio:dev → Prisma Studio</signature>
+      <path>packages/database</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      No automated tests for this story. Manual validation with documentation.
+      Evidence required: screenshots showing same data on both platforms.
+    </standards>
+    <locations>
+      <location>Manual testing only</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Screenshot: Web showing mobile-created record</idea>
+      <idea ac="2">Screenshot: Mobile showing web-created record</idea>
+      <idea ac="5">Screenshot: Database query showing all records</idea>
+      <idea ac="4">Document: Any latency, refresh requirements, or limitations</idea>
+    </ideas>
+  </tests>
+</story-context>
+
+

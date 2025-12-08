@@ -2,6 +2,9 @@
 
 <a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
 
+[![CI](https://github.com/jojorgen/nx-monorepo/actions/workflows/ci.yml/badge.svg)](https://github.com/jojorgen/nx-monorepo/actions/workflows/ci.yml)
+[![Deploy to Staging](https://github.com/jojorgen/nx-monorepo/actions/workflows/deploy-staging.yml/badge.svg)](https://github.com/jojorgen/nx-monorepo/actions/workflows/deploy-staging.yml)
+
 A production-ready Nx monorepo template demonstrating best practices for building type-safe, full-stack applications with shared business logic across web, server, and mobile platforms.
 
 ## What is this?
@@ -349,6 +352,66 @@ pnpm exec nx run web-e2e:e2e
 # Run in UI mode
 pnpm exec nx run web-e2e:e2e --ui
 ```
+
+## Docker
+
+The project includes Docker configuration for containerized deployments and local testing.
+
+### Files
+
+- `apps/server/Dockerfile` - Server container (Express API)
+- `apps/web/Dockerfile` - Web container (Next.js, for secondary deployment target)
+- `docker-compose.yml` - Local development stack
+- `.dockerignore` - Build context exclusions
+- `.env.docker.example` - Environment variable template
+
+### Quick Start
+
+```bash
+# Copy environment template
+cp .env.docker.example .env.docker
+
+# Edit with your Supabase credentials
+nano .env.docker
+
+# Build and start containers
+docker compose up --build
+
+# Access the applications
+# Web:    http://localhost:3000
+# Server: http://localhost:4000
+```
+
+### Building Individual Containers
+
+```bash
+# Build server container
+docker build -f apps/server/Dockerfile -t nx-monorepo-server .
+
+# Build web container
+docker build -f apps/web/Dockerfile -t nx-monorepo-web .
+```
+
+### Environment Variables
+
+Docker containers accept configuration via environment variables:
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | Yes | Supabase PostgreSQL connection string |
+| `SUPABASE_URL` | Yes | Supabase project URL |
+| `SUPABASE_ANON_KEY` | Yes | Supabase anonymous key |
+| `SENTRY_DSN` | No | Sentry error tracking DSN |
+| `PORT` | No | Server port (default: 4000) |
+
+### Deployment Targets
+
+| Target | Platform | Usage |
+|--------|----------|-------|
+| Primary | Vercel (web) + Railway (server) | Server Dockerfile deployed to Railway |
+| Secondary | Railway (both) | Both Dockerfiles deployed to Railway |
+
+See `docs/architecture-decisions.md` for platform selection rationale.
 
 ## CI/CD
 

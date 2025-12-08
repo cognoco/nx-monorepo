@@ -37,7 +37,10 @@ initSentry();
 (async () => {
   const { createApp } = await import('./app.js');
 
-  const host = process.env.HOST ?? 'localhost';
+  // In production/containers, bind to 0.0.0.0 to accept connections from proxies
+  // In development, default to localhost for security
+  const host =
+    process.env.HOST ?? (env === 'production' ? '0.0.0.0' : 'localhost');
   const port = process.env.PORT ? Number(process.env.PORT) : 4000;
 
   const app = createApp();

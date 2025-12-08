@@ -28,7 +28,7 @@ describe('Sentry Instrumentation', () => {
   describe('initSentry', () => {
     it('should initialize Sentry with correct configuration when DSN is provided', () => {
       // Arrange
-      process.env.SENTRY_DSN_SERVER = 'https://test@sentry.io/123';
+      process.env.SENTRY_DSN_API = 'https://test@sentry.io/123';
       process.env.NODE_ENV = 'production';
       process.env.npm_package_version = '1.0.0';
 
@@ -54,7 +54,7 @@ describe('Sentry Instrumentation', () => {
 
     it('should use development trace sample rate in non-production', () => {
       // Arrange
-      process.env.SENTRY_DSN_SERVER = 'https://test@sentry.io/123';
+      process.env.SENTRY_DSN_API = 'https://test@sentry.io/123';
       process.env.NODE_ENV = 'development';
 
       const mockInit = Sentry.init as jest.Mock;
@@ -73,7 +73,7 @@ describe('Sentry Instrumentation', () => {
 
     it('should default to development environment when NODE_ENV is not set', () => {
       // Arrange
-      process.env.SENTRY_DSN_SERVER = 'https://test@sentry.io/123';
+      process.env.SENTRY_DSN_API = 'https://test@sentry.io/123';
       delete process.env.NODE_ENV;
 
       const mockInit = Sentry.init as jest.Mock;
@@ -91,7 +91,7 @@ describe('Sentry Instrumentation', () => {
 
     it('should use "unknown" as release when package version is not available', () => {
       // Arrange
-      process.env.SENTRY_DSN_SERVER = 'https://test@sentry.io/123';
+      process.env.SENTRY_DSN_API = 'https://test@sentry.io/123';
       delete process.env.npm_package_version;
 
       const mockInit = Sentry.init as jest.Mock;
@@ -109,7 +109,7 @@ describe('Sentry Instrumentation', () => {
 
     it('should NOT initialize Sentry when DSN is not provided', () => {
       // Arrange
-      delete process.env.SENTRY_DSN_SERVER;
+      delete process.env.SENTRY_DSN_API;
 
       const mockInit = Sentry.init as jest.Mock;
       const mockWarn = jest.spyOn(console, 'warn').mockImplementation();
@@ -129,7 +129,7 @@ describe('Sentry Instrumentation', () => {
 
     it('should log successful initialization', () => {
       // Arrange
-      process.env.SENTRY_DSN_SERVER = 'https://test@sentry.io/123';
+      process.env.SENTRY_DSN_API = 'https://test@sentry.io/123';
       process.env.NODE_ENV = 'test';
 
       const mockLog = jest.spyOn(console, 'log').mockImplementation();
@@ -148,7 +148,7 @@ describe('Sentry Instrumentation', () => {
 
     it('should NOT configure manual integrations (automatic in v8+)', () => {
       // Arrange
-      process.env.SENTRY_DSN_SERVER = 'https://test@sentry.io/123';
+      process.env.SENTRY_DSN_API = 'https://test@sentry.io/123';
 
       const mockInit = Sentry.init as jest.Mock;
 

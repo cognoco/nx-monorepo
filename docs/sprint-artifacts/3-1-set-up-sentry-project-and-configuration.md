@@ -27,15 +27,15 @@ so that we have centralized error tracking infrastructure.
   - [ ] 1.7: Record all DSNs securely
 
 - [ ] Task 2: Update Environment Templates (AC: #2)
-  - [ ] 2.1: Add `SENTRY_DSN_SERVER` placeholder to `.env.example`
-  - [ ] 2.2: Add `SENTRY_DSN_WEB` placeholder to `.env.example`
+  - [ ] 2.1: Add `SENTRY_DSN_API` placeholder to `.env.example`
+  - [ ] 2.2: Add `NEXT_PUBLIC_SENTRY_DSN` placeholder to `.env.example`
   - [ ] 2.3: Add `SENTRY_DSN_MOBILE` placeholder to `.env.example`
   - [ ] 2.4: Add `SENTRY_ORG` and `SENTRY_PROJECT` placeholders for source map uploads
   - [ ] 2.5: Add `SENTRY_AUTH_TOKEN` placeholder for CI/CD
 
 - [ ] Task 3: Document GitHub Actions Secrets (AC: #3)
   - [ ] 3.1: Document required secrets in `.github/README.md` or similar
-  - [ ] 3.2: List secrets: `SENTRY_DSN_SERVER`, `SENTRY_DSN_WEB`, `SENTRY_AUTH_TOKEN`
+  - [ ] 3.2: List secrets: `SENTRY_DSN_API`, `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`
   - [ ] 3.3: Note that actual secret values must be added manually in GitHub Settings
 
 - [ ] Task 4: Create Setup Documentation (AC: #4)

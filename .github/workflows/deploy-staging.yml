@@ -1,0 +1,269 @@
+# =============================================================================
+# Staging Deployment Workflow
+# =============================================================================
+# Triggers: After CI passes on main branch (via workflow_run)
+# Targets: Vercel (web) + Railway (API) - Primary deployment strategy
+# =============================================================================
+#
+# SECRETS REQUIRED (configure in GitHub Settings → Environments → staging):
+#
+# Vercel Secrets:
+#   VERCEL_TOKEN        - Vercel API token (Dashboard → Settings → Tokens)
+#   VERCEL_ORG_ID       - Team/Personal ID (Project Settings → General)
+#   VERCEL_PROJECT_ID   - Project ID (Project Settings → General)
+#
+# Railway Secrets:
+#   RAILWAY_TOKEN       - Railway API token (Dashboard → Account → Tokens)
+#
+# Environment Variables (configure in respective platform dashboards):
+#   Web (Vercel):
+#     NEXT_PUBLIC_API_URL, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY
+#     SENTRY_DSN, SENTRY_ORG, SENTRY_PROJECT, SENTRY_AUTH_TOKEN
+#   API (Railway):
+#     DATABASE_URL, DIRECT_URL, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+#     SENTRY_DSN, PORT, NODE_ENV
+#
+# =============================================================================
+
+name: Deploy to Staging
+
+on:
+  # Trigger after CI workflow completes successfully on main
+  workflow_run:
+    workflows: ["CI"]
+    branches: [main]
+    types: [completed]
+
+  # Allow manual deployment trigger
+  workflow_dispatch:
+    inputs:
+      skip_health_check:
+        description: 'Skip health check verification'
+        required: false
+        default: 'false'
+        type: boolean
+
+# Ensure only one deployment runs at a time
+concurrency:
+  group: staging-deployment
+  cancel-in-progress: false
+
+# Required permissions for deployment status updates
+permissions:
+  contents: read
+  deployments: write
+  statuses: write
+
+jobs:
+  # ==========================================================================
+  # Gate: Only deploy if CI passed (for workflow_run trigger)
+  # ==========================================================================
+  check-ci:
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
+    steps:
+      - name: Check CI result
+        id: check
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+            echo "✅ Manual trigger - proceeding with deployment"
+          elif [ "${{ github.event.workflow_run.conclusion }}" = "success" ]; then
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+            echo "✅ CI passed - proceeding with deployment"
+          else
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+            echo "❌ CI did not pass (conclusion: ${{ github.event.workflow_run.conclusion }}) - skipping deployment"
+          fi
+
+  # ==========================================================================
+  # Deploy Web App to Vercel
+  # ==========================================================================
+  deploy-web:
+    needs: check-ci
+    if: needs.check-ci.outputs.should_deploy == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: ${{ steps.deploy.outputs.url }}
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+      deployment_id: ${{ steps.deploy.outputs.deployment_id }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install Vercel CLI
+        run: pnpm add -g vercel@latest
+
+      - name: Pull Vercel Environment
+        run: |
+          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Build with Vercel
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy to Vercel
+        id: deploy
+        run: |
+          DEPLOYMENT_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          echo "deployment_id=$(echo $DEPLOYMENT_URL | sed 's/https:\/\///' | cut -d'.' -f1)" >> $GITHUB_OUTPUT
+          echo "🚀 Deployed to: $DEPLOYMENT_URL"
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Verify Web Health Check
+        if: ${{ github.event.inputs.skip_health_check != 'true' }}
+        run: |
+          echo "⏳ Waiting 30s for deployment to stabilize..."
+          sleep 30
+
+          HEALTH_URL="${{ steps.deploy.outputs.url }}/health"
+          echo "🔍 Checking health at: $HEALTH_URL"
+
+          # Retry up to 5 times with 10s between attempts
+          for i in {1..5}; do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" || echo "000")
+            if [ "$HTTP_STATUS" = "200" ]; then
+              echo "✅ Web health check passed (attempt $i)"
+              exit 0
+            fi
+            echo "⏳ Attempt $i: HTTP $HTTP_STATUS - retrying in 10s..."
+            sleep 10
+          done
+
+          echo "❌ Web health check failed after 5 attempts"
+          exit 1
+
+  # ==========================================================================
+  # Deploy API Server to Railway
+  # ==========================================================================
+  deploy-api:
+    needs: check-ci
+    if: needs.check-ci.outputs.should_deploy == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: ${{ steps.get-url.outputs.url }}
+    outputs:
+      url: ${{ steps.get-url.outputs.url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        run: |
+          railway up --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Get Deployment URL
+        id: get-url
+        run: |
+          # Wait for deployment to register
+          sleep 10
+
+          # Get the deployment URL from Railway
+          # Note: Railway provides the URL via the dashboard or environment variables
+          # For now, we use a placeholder that should be configured in GitHub environment variables
+          RAILWAY_URL="${{ vars.STAGING_API_URL }}"
+
+          if [ -z "$RAILWAY_URL" ]; then
+            echo "⚠️ STAGING_API_URL not configured - health check will use default"
+            RAILWAY_URL="https://your-api.railway.app"
+          fi
+
+          echo "url=$RAILWAY_URL" >> $GITHUB_OUTPUT
+          echo "🚀 Railway deployment initiated"
+          echo "📍 Expected URL: $RAILWAY_URL"
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Wait for Railway Deployment
+        run: |
+          echo "⏳ Waiting 60s for Railway deployment to complete..."
+          sleep 60
+
+      - name: Verify API Health Check
+        if: ${{ github.event.inputs.skip_health_check != 'true' }}
+        run: |
+          API_URL="${{ steps.get-url.outputs.url }}"
+          HEALTH_URL="${API_URL}/api/health"
+          echo "🔍 Checking health at: $HEALTH_URL"
+
+          # Retry up to 5 times with 15s between attempts (Railway cold starts can be slower)
+          for i in {1..5}; do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" || echo "000")
+            RESPONSE=$(curl -s "$HEALTH_URL" || echo "{}")
+
+            if [ "$HTTP_STATUS" = "200" ]; then
+              echo "✅ API health check passed (attempt $i)"
+              echo "📊 Response: $RESPONSE"
+              exit 0
+            fi
+            echo "⏳ Attempt $i: HTTP $HTTP_STATUS - retrying in 15s..."
+            sleep 15
+          done
+
+          echo "❌ API health check failed after 5 attempts"
+          exit 1
+
+  # ==========================================================================
+  # Post-Deployment Summary
+  # ==========================================================================
+  deployment-summary:
+    needs: [deploy-web, deploy-api]
+    if: always() && needs.check-ci.outputs.should_deploy == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deployment Summary
+        run: |
+          echo "# 🚀 Staging Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status | URL |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|-----|" >> $GITHUB_STEP_SUMMARY
+
+          # Web status
+          if [ "${{ needs.deploy-web.result }}" = "success" ]; then
+            echo "| Web (Vercel) | ✅ Success | ${{ needs.deploy-web.outputs.url }} |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Web (Vercel) | ❌ Failed | - |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # API status
+          if [ "${{ needs.deploy-api.result }}" = "success" ]; then
+            echo "| API (Railway) | ✅ Success | ${{ needs.deploy-api.outputs.url }} |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| API (Railway) | ❌ Failed | - |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Check Overall Status
+        if: needs.deploy-web.result != 'success' || needs.deploy-api.result != 'success'
+        run: |
+          echo "❌ One or more deployments failed"
+          exit 1

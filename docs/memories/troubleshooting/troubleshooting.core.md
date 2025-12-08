@@ -21,6 +21,7 @@
 - [Test Failures](module-07-test-failures.md)
 - [Prisma Issues](module-08-prisma-issues.md)
 - [Related Documentation](module-09-related-documentation.md)
+- [Docker / WSL Environment Issues](module-10-docker-wsl-environment.md)
 
 ## Usage Notes
 - Capture environment details when logging new incidents to improve future triage.

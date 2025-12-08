@@ -4,6 +4,20 @@
   "sourceRoot": "apps/web/src",
   "projectType": "application",
   "targets": {
+    "build": {
+      "cache": false,
+      "metadata": {
+        "description": "Caching disabled due to Next.js standalone symlink conflicts with Nx remote cache (EEXIST error)"
+      }
+    },
+    "docker-build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docker build -f apps/web/Dockerfile -t nx-monorepo-web .",
+        "cwd": "{workspaceRoot}"
+      },
+      "dependsOn": ["build"]
+    },
     "test": {
       "options": {
         "env": {

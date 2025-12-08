@@ -635,6 +635,13 @@ So that I can demo and validate features.
 - Same API endpoints as web
 - Expo managed workflow
 
+> **📋 Design Decisions Document:** See `docs/sprint-artifacts/epic-6-design-decisions.md` for architectural decisions made during technical contexting (2025-12-05). Key decisions:
+> - **Expo SDK 53** (stable) - React 19.0.0 matches web exactly
+> - **Expo Router** - File-based routing (officially recommended)
+> - **Walking skeleton approach** - Use out-of-box scaffolding, no custom navigation patterns
+>
+> **⚠️ Post-Implementation:** Formalize validated decisions into `docs/architecture.md`, `docs/tech-stack.md`, and memory files.
+
 **Dependencies:** Epic 1 complete, Epic 5 recommended (staging for mobile testing)
 
 ### Story 6.1: Generate Expo Mobile Application
@@ -656,8 +663,12 @@ So that I can build cross-platform mobile experiences.
 **Prerequisites:** None
 
 **Technical Notes:**
+- **SDK Version:** Use Expo SDK 53 (stable) with React 19.0.0 (see `epic-6-design-decisions.md`)
+- **Nx Generation:** Primary: `pnpm exec nx g @nx/expo:app mobile --directory=apps/mobile`
+- **Fallback:** If @nx/expo doesn't support SDK 53, use `create-expo-app` and integrate manually
 - Follow `docs/memories/post-generation-checklist.md` after generation
 - Verify path aliases work for shared packages
+- Configure Metro for monorepo support (see `epic-6-design-decisions.md` D4)
 - Update `.github/workflows/ci.yml` if needed
 
 ---

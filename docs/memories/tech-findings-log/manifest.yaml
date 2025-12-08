@@ -175,6 +175,15 @@ chunks:
     last_updated_by: claude-opus-4-5
     last_updated_at: 2025-12-05
     last_synced_at: null
+  - id: tfl-deployment-vercel-railway-20251208
+    title: Deployment Configuration – Vercel + Railway Nx Monorepo (2025-12-08)
+    file: module-21-deployment-vercel-railway-nx-monorepo-configuration-2025-12-08.md
+    tags: [deployment, vercel, railway, nx, configuration]
+    checksum: null
+    validation_status: needs_review
+    last_updated_by: claude-opus-4-5
+    last_updated_at: 2025-12-08
+    last_synced_at: null
   - id: tfl-future-entries
     title: Future Entries
     file: module-19-future-entries.md

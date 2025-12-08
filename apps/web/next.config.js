@@ -1,5 +1,6 @@
 //@ts-check
 
+const path = require('path');
 const { composePlugins, withNx } = require('@nx/next');
 const { withSentryConfig } = require('@sentry/nextjs');
 
@@ -11,16 +12,27 @@ const nextConfig = {
   // See: https://nx.dev/recipes/next/next-config-setup
   nx: {},
 
+  // Enable standalone output for Docker deployment
+  // Creates a self-contained build in .next/standalone with minimal node_modules
+  // Required for containerized deployments (Railway, Docker, etc.)
+  output: 'standalone',
+
+  // Configure output file tracing for monorepo
+  // This ensures shared packages from the monorepo root are included in the standalone build
+  outputFileTracingRoot: path.join(__dirname, '../../'),
+
   // Note: instrumentation.ts is automatically loaded in Next.js 15+
   // No experimental flag needed - it's a stable feature now
 
-  // Proxy /api/* requests to the backend server in development
-  // This allows the frontend to use relative URLs (/api/...) instead of hardcoded localhost URLs
+  // Proxy /api/* requests to the backend server
+  // This allows the frontend to use relative URLs (/api/...) instead of hardcoded URLs
+  // In production, set BACKEND_URL environment variable to the API server URL
   async rewrites() {
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:4000';
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:4000/api/:path*',
+        destination: `${backendUrl}/api/:path*`,
       },
     ];
   },
