@@ -58,13 +58,16 @@ DIRECT_URL="postgresql://postgres:postgres@localhost:5432/test"
 
 ## When to Use Each Environment
 
-| Test Type | Database | Rationale |
-|-----------|----------|-----------|
+| Test Type | Database | How It Works |
+|-----------|----------|--------------|
 | Unit tests | Mocked/None | No DB needed |
-| Integration tests (CI) | Local PostgreSQL | Fast, isolated |
-| Integration tests (local dev) | Supabase DEV | Match real behavior |
-| Staging validation | Supabase STAGING | Infrastructure verification |
+| Integration tests (CI) | Local PostgreSQL | `DATABASE_URL` set in workflow → `load-database-env.ts` skips file |
+| Integration tests (local) | STAGING Supabase | `DATABASE_URL` not set → loads `.env.test.local` |
+| Local development | DEV Supabase | `NODE_ENV=development` → loads `.env.development.local` |
+| Staging validation | STAGING Supabase | Platform env vars |
 | E2E tests | Depends on context | See E2E module |
+
+**Key insight**: The conditional loading in `load-database-env.ts` detects CI by checking if `DATABASE_URL` is already set, not by checking `CI=true`. This ensures CI uses the local PostgreSQL container while local tests use `.env.test.local` (STAGING Supabase).
 
 ## Anti-Patterns
 

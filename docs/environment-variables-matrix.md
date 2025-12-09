@@ -28,12 +28,22 @@ This document provides a complete traceability matrix for all environment variab
 
 ### Database Variables
 
-| Variable | Used By | Local Dev | CI | Staging | Production | Type |
-|----------|---------|-----------|-----|---------|------------|------|
-| `DATABASE_URL` | apps/server | Supabase DEV pooler | Local PG | Supabase STAGING pooler | Supabase STAGING* pooler | Secret |
-| `DIRECT_URL` | Prisma migrations | Supabase DEV direct | N/A | Supabase STAGING direct | Supabase STAGING* direct | Secret |
+| Variable | Used By | Local Dev | Local Tests | CI | Staging | Production | Type |
+|----------|---------|-----------|-------------|-----|---------|------------|------|
+| `DATABASE_URL` | apps/server | DEV Supabase | STAGING Supabase | Local PostgreSQL | STAGING Supabase | STAGING* Supabase | Secret |
+| `DIRECT_URL` | Prisma migrations | DEV Supabase | STAGING Supabase | Local PostgreSQL | STAGING Supabase | STAGING* Supabase | Secret |
 
 *Production uses STAGING until PROD Supabase is created
+
+**How database variables are loaded:**
+
+| Context | `DATABASE_URL` set? | Behavior | Database Used |
+|---------|---------------------|----------|---------------|
+| **CI** | ✅ Yes (workflow env) | `load-database-env.ts` returns early | Local PostgreSQL container |
+| **Local dev** | ❌ No | Loads `.env.development.local` | DEV Supabase |
+| **Local tests** | ❌ No | Loads `.env.test.local` | STAGING Supabase |
+
+> The `load-database-env.ts` utility first checks if `DATABASE_URL` is already set (CI, Docker, cloud). If yes, it skips file loading. This is why CI uses local PostgreSQL even though `NODE_ENV=test` would normally load `.env.test.local`.
 
 **Format:**
 ```bash

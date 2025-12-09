@@ -11,11 +11,13 @@ So that **I can demo and validate features with confidence**.
 ## Acceptance Criteria
 
 1. **Given** staging deployment is configured (Stories 5.1, 5.2, 5.3, 5.5)
-   **When** a change is merged to main
+   **When** a PR is created or a non-main branch is pushed
    **Then** within 10 minutes:
-   - Application is deployed to staging URL
+   - Application is deployed to staging URL (Vercel Preview + Railway staging)
    - Walking skeleton health check works
    - Observability captures staging events (if Epic 3 complete)
+
+> **Note:** Merges to main trigger PRODUCTION deployment (Story 5.7), not staging.
 
 2. **Given** staging is deployed
    **When** I access the staging URL
@@ -36,8 +38,9 @@ So that **I can demo and validate features with confidence**.
 ## Tasks / Subtasks
 
 - [ ] **Task 1: Trigger staging deployment** (AC: #1)
-  - [ ] Merge a test change to main branch
-  - [ ] Observe GitHub Actions workflow execution
+  - [ ] Create a PR or push to a feature branch
+  - [ ] Observe Vercel Preview deployment (auto-triggered)
+  - [ ] Observe Railway staging deployment (GitHub Actions)
   - [ ] Time the deployment process
   - [ ] Verify deployment completes within 10 minutes
 
@@ -255,3 +258,4 @@ Recommended prerequisites:
 | 2025-12-04 | SM Agent (Rincewind) | Initial story draft from Epic 5 |
 | 2025-12-04 | Dev Agent (Claude Opus 4.5) | Added platform-specific validation focus per Story 5-1 decision |
 | 2025-12-08 | Dev Agent (Claude Opus 4.5) | Expanded Task 6 with Sentry deployment warning fixes discovered during Story 5.2 Vercel deployment |
+| 2025-12-09 | TEA Agent (Claude Opus 4.5) | Fixed AC#1 trigger: PR/feature branches (not main merge) |

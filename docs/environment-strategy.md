@@ -121,6 +121,26 @@ This document defines the formal environment architecture for the nx-monorepo te
 | **Data Cleanliness** | ✅ Fresh every run | ❌ Test data accumulates |
 | **Reliability** | ✅ No network dependencies | ❌ Network failures = CI failures |
 
+#### How CI vs Local Tests Are Differentiated
+
+The `load-database-env.ts` utility uses a simple check:
+
+```typescript
+// If DATABASE_URL already exists (CI, Docker, cloud), skip file loading
+if (process.env.DATABASE_URL) {
+  return; // Uses pre-set DATABASE_URL (local PostgreSQL in CI)
+}
+// Otherwise, load .env.test.local (STAGING Supabase for local tests)
+```
+
+| Context | `DATABASE_URL` pre-set? | Result |
+|---------|-------------------------|--------|
+| **CI** | ✅ Yes (workflow env) | Uses local PostgreSQL |
+| **Local tests** | ❌ No | Loads `.env.test.local` → STAGING Supabase |
+| **Local dev** | ❌ No | Loads `.env.development.local` → DEV Supabase |
+
+This means local integration tests run against STAGING Supabase (for Supabase-specific behavior testing), while CI tests run against isolated local PostgreSQL (for speed and isolation).
+
 #### Validation Layers
 
 This creates a defense-in-depth testing strategy:
