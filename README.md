@@ -241,9 +241,11 @@ pnpm run db:generate          # Generate Prisma Client (after schema changes)
 - ❌ **Never commit .env files** - Only `.env.example` should be in git
 
 **Environment files** (gitignored):
-- `.env.development.local` - Development database credentials
-- `.env.test.local` - Test database credentials
+- `.env.development.local` - Development database credentials (DEV Supabase)
+- `.env.test.local` - Test context credentials (STAGING Supabase, loaded when `NODE_ENV=test`)
 - `.env.example` - Template for setting up new environments
+
+> **Note**: File names follow `NODE_ENV` convention, not database naming. `.env.test.local` connects to STAGING because it's loaded when running tests.
 
 **Required environment variables:**
 ```env

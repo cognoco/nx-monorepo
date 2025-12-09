@@ -1,6 +1,6 @@
-# Story 5.4: Validate Staging Deployment
+# Story 5.6: Validate Staging Deployment
 
-Status: ready-for-dev
+Status: drafted
 
 ## Story
 
@@ -10,7 +10,7 @@ So that **I can demo and validate features with confidence**.
 
 ## Acceptance Criteria
 
-1. **Given** staging deployment is configured (Stories 5.1, 5.2, 5.3)
+1. **Given** staging deployment is configured (Stories 5.1, 5.2, 5.3, 5.5)
    **When** a change is merged to main
    **Then** within 10 minutes:
    - Application is deployed to staging URL
@@ -228,7 +228,7 @@ Recommended prerequisites:
 
 ### Context Reference
 
-5-4-validate-staging-deployment.context.xml
+5-6-validate-staging-deployment.context.xml
 
 ### Agent Model Used
 
