@@ -84,10 +84,31 @@ This document defines the formal environment architecture for the nx-monorepo te
 
 ### GitHub Environments
 
+#### Our Environments (Secret Storage)
+
 | Environment | Purpose | Secrets | Protection Rules |
 |-------------|---------|---------|------------------|
-| `staging` | Preview deployments | VERCEL_*, RAILWAY_* | None (auto-deploy) |
+| `staging` | Staging deployments | VERCEL_*, RAILWAY_* | None (auto-deploy) |
 | `production` | Production deployments | VERCEL_*, RAILWAY_* | Optional approval |
+
+#### Vercel Auto-Created Environments (Status Tracking)
+
+Vercel automatically creates GitHub environments for deployment status reporting. These appear as:
+
+| Environment | Created By | Purpose |
+|-------------|------------|---------|
+| `nx-monorepo / staging` | Vercel (auto) | Shows deployment status on PRs |
+| `nx-monorepo / production` | Vercel (auto) | Shows deployment status for main branch |
+
+**Important:** These Vercel-created environments:
+- Are **separate** from our `staging`/`production` environments
+- Contain no secrets (Vercel manages them internally)
+- Should be **left alone** - deleting them just causes Vercel to recreate them
+- Provide useful deployment status checks on GitHub PRs
+
+**Do not confuse:**
+- `staging` (ours, holds secrets) ≠ `nx-monorepo / staging` (Vercel's, status tracking)
+- `production` (ours, holds secrets) ≠ `nx-monorepo / production` (Vercel's, status tracking)
 
 ### Vercel Configuration
 
@@ -96,12 +117,16 @@ This document defines the formal environment architecture for the nx-monorepo te
 | Preview | PR / non-main push | `*.vercel.app` (unique per deploy) | Staging vars |
 | Production | main branch | Primary domain or `project.vercel.app` | Production vars |
 
+**Deployment Protection:** SSO protection is **disabled** for production to allow public access. Anyone with the URL can view the deployed application.
+
+**Critical:** `NEXT_PUBLIC_API_URL` must be set to `/api` (not the Railway URL directly). This ensures client-side code uses the Next.js proxy, avoiding CORS errors. See [Environment Variables Matrix](./environment-variables-matrix.md) for details.
+
 ### Railway Configuration
 
-| Environment | Purpose | Service | URL |
-|-------------|---------|---------|-----|
-| `staging` | Staging API | @nx-monorepo/server | `*.up.railway.app` |
-| `production` | Production API | @nx-monorepo/server | `*.up.railway.app` |
+| Environment | Purpose | Service | URL | Deployment Trigger |
+|-------------|---------|---------|-----|-------------------|
+| `staging` | Staging API | @nx-monorepo/server | `nx-monoreposerver-staging.up.railway.app` | GitHub Actions (branch disconnected) |
+| `production` | Production API | @nx-monorepo/server | `nx-monoreposerver-production.up.railway.app` | Auto-deploy on merge to `main` |
 
 ---
 
@@ -198,29 +223,45 @@ Production (Supabase STAGING/PROD) → Validates FULL PATH works
 
 ## Workflow Triggers
 
-### deploy-staging.yml
+### Hybrid Deployment Approach
+
+| Platform | Environment | Trigger | Controlled By |
+|----------|-------------|---------|---------------|
+| **Vercel** | Preview | Auto-deploy on every push | Vercel platform |
+| **Vercel** | Production | Auto-deploy on merge to main | Vercel platform |
+| **Railway** | staging | GitHub Actions on PR/push | `deploy-staging.yml` |
+| **Railway** | production | Auto-deploy on merge to main | Railway (connected to `main`) |
+
+**Rationale:**
+- **Vercel:** Instant preview URLs are their sweet spot, very fast feedback. Let them handle all web deployments.
+- **Railway Staging:** Deploy via Actions because feature branches are dynamic - Railway can't connect to branches that don't exist yet.
+- **Railway Production:** Auto-deploy on main is safe because code was already tested on the feature branch before merge.
+
+### deploy-staging.yml (Railway staging only)
 
 ```yaml
 triggers:
-  - PR to main (Vercel auto-detects)
-  - Push to non-main branches (Vercel auto-detects)
-  - Manual dispatch
+  - pull_request to main (opened, synchronize, reopened)
+  - push to non-main branches
+  - workflow_dispatch (manual)
 
 deploys_to:
-  - Vercel: Preview
-  - Railway: staging environment
+  - Railway: staging environment (via `railway up --environment staging`)
+
+note: Vercel auto-deploys Preview on every push (not in this workflow)
 ```
 
-### deploy-production.yml
+### deploy-production.yml (Railway backup/manual)
 
 ```yaml
 triggers:
-  - Push to main (after CI passes)
-  - Manual dispatch
+  - workflow_run after CI passes on main
+  - workflow_dispatch (manual)
 
 deploys_to:
-  - Vercel: Production
-  - Railway: production environment
+  - Railway: production environment (via `railway up --environment production`)
+
+note: Railway production auto-deploys from main, so this workflow serves as backup/manual trigger only
 ```
 
 ---

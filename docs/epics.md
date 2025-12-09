@@ -666,7 +666,8 @@ So that all platforms match our documented architecture.
 **Prerequisites:** Story 5.4 complete
 
 **Technical Notes:**
-- Delete auto-created GitHub environments that are not used
+- Delete unused auto-created GitHub environments (Railway placeholders, empty environments)
+- Keep Vercel status-tracking environments (`nx-monorepo / staging`, `nx-monorepo / production`) - they are separate from our secret-holding environments
 - Create proper environment protection rules
 - Update workflow files to match environment naming
 

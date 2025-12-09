@@ -76,11 +76,14 @@
         <protection-rules>Optional approval gate</protection-rules>
       </environment>
       <cleanup>
-        <delete>Preview (Vercel auto-created placeholder)</delete>
-        <delete>Production (empty placeholder)</delete>
-        <delete>@nx-monorepo/server (nx-monorepo / production) - Railway auto-created</delete>
-        <delete>@nx-monorepo/web (nx-monorepo / production) - Railway auto-created</delete>
-        <delete>@nx-monorepo/web-e2e (nx-monorepo / production) - Railway auto-created</delete>
+        <delete status="done">Preview (Vercel auto-created placeholder)</delete>
+        <delete status="done">Production (empty placeholder)</delete>
+        <delete status="done">@nx-monorepo/server (nx-monorepo / production) - Railway auto-created</delete>
+        <delete status="done">@nx-monorepo/web (nx-monorepo / production) - Railway auto-created</delete>
+        <delete status="done">@nx-monorepo/web-e2e (nx-monorepo / production) - Railway auto-created</delete>
+        <keep reason="Vercel status tracking">nx-monorepo / staging - Vercel auto-creates for PR status</keep>
+        <keep reason="Vercel status tracking">nx-monorepo / production - Vercel auto-creates for main status</keep>
+        <note>Vercel automatically recreates its status-tracking environments. These are separate from our secret-holding environments and should be left alone.</note>
       </cleanup>
     </github-environments>
 
@@ -177,10 +180,11 @@
 
   <validation-checklist>
     <section name="GitHub Environments">
-      <item id="V1">Only staging and production environments exist</item>
+      <item id="V1">Our environments exist: staging and production (for secrets)</item>
       <item id="V2">staging has VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID, RAILWAY_TOKEN</item>
       <item id="V3">production has same secrets</item>
-      <item id="V4">Auto-created/placeholder environments deleted</item>
+      <item id="V4">Unused environments deleted (Railway auto-created, empty placeholders)</item>
+      <item id="V4b">Vercel status-tracking environments left intact (nx-monorepo / staging, nx-monorepo / production)</item>
     </section>
 
     <section name="Railway">

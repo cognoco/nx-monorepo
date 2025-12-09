@@ -113,13 +113,13 @@ chunks:
     last_updated_at: 2025-11-06
     last_synced_at: null
   - id: tfl-web-api-url-overrides-20251102
-    title: Web App Configuration – API URL Overrides (2025-11-02)
+    title: Web App Configuration – API URL Overrides (2025-11-02, updated 2025-12-09)
     file: module-13-web-app-configuration-api-url-configuration-rewrites-environment-variable-override-2025-11-02.md
-    tags: [web, configuration, api]
+    tags: [web, configuration, api, vercel, cors]
     checksum: null
-    sync_status: pending
-    last_updated_by: gpt-5-codex
-    last_updated_at: 2025-11-06
+    validation_status: needs_review
+    last_updated_by: claude-opus-4-5
+    last_updated_at: 2025-12-09
     last_synced_at: null
   - id: tfl-server-express-cors-20251103
     title: Server Configuration – Express CORS Configuration (2025-11-03)

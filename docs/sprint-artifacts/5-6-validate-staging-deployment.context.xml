@@ -16,7 +16,7 @@
     <dependencies>
       <dependency story-id="5-2" status="done">Configure GitHub Actions Deployment Workflow</dependency>
       <dependency story-id="5-3" status="done">Configure Docker Containerization</dependency>
-      <dependency story-id="5-5" status="drafted">Environment Infrastructure Alignment</dependency>
+      <dependency story-id="5-5" status="done">Environment Infrastructure Alignment</dependency>
     </dependencies>
   </metadata>
 

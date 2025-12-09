@@ -208,8 +208,8 @@ development_status:
   5-2-configure-github-actions-deployment-workflow: done  # COMPLETED 2025-12-08 - Vercel + Railway working via Git integrations
   5-3-configure-docker-containerization: done  # APPROVED 2025-12-06 - All ACs verified, security reviewed, production-ready
   5-4-environment-strategy-documentation: done  # COMPLETED 2025-12-08 - Created docs/environment-strategy.md and docs/environment-variables-matrix.md
-  5-5-environment-infrastructure-alignment: drafted  # NEW 2025-12-08 - Aligns infra with strategy
-  5-6-validate-staging-deployment: drafted  # Renumbered from 5-4 - Context exists as 5-6-*.context.xml
+  5-5-environment-infrastructure-alignment: done  # COMPLETED 2025-12-09 - GitHub/Railway/Vercel/Supabase aligned
+  5-6-validate-staging-deployment: done  # Validated: Railway staging + production APIs working, Vercel production responding
   5-7-production-deployment-pipeline: drafted  # NEW 2025-12-08 - Production CI/CD workflow
   5-8-validate-production-deployment: drafted  # NEW 2025-12-08 - Production validation
   5-9-configure-railway-web-frontend: drafted  # Repurposed - Deploy web to Railway (dual frontend)

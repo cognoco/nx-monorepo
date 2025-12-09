@@ -79,13 +79,17 @@ DIRECT_URL="postgresql://postgres.[REF]:[PASSWORD]@aws-1-eu-north-1.pooler.supab
 
 | Variable | Used By | Local Dev | CI | Staging | Production | Type |
 |----------|---------|-----------|-----|---------|------------|------|
-| `NEXT_PUBLIC_API_URL` | apps/web (legacy) | `http://localhost:4000/api` | N/A | Not used | Not used | Public |
-| `BACKEND_URL` | apps/web (Vercel rewrites) | N/A | N/A | Railway staging URL | Railway prod URL | Server |
+| `NEXT_PUBLIC_API_URL` | apps/web (client-side) | `http://localhost:4000/api` | N/A | `/api` | `/api` | Public |
+| `BACKEND_URL` | apps/web (Next.js rewrites) | N/A | N/A | Railway staging URL | Railway prod URL | Server |
 | `CORS_ORIGIN` | apps/server | `localhost:3000,3001,3002` | N/A | Vercel preview URL | Vercel prod URL | Server |
 | `HOST` | apps/server | `localhost` | `localhost` | `0.0.0.0` | `0.0.0.0` | Server |
 | `PORT` | apps/server | `4000` | `4000` | Railway assigned | Railway assigned | Server |
 
-**Note:** For Vercel deployments, use `BACKEND_URL` (server-side rewrite) instead of `NEXT_PUBLIC_API_URL` (client-side). See `docs/guides/environment-setup.md` for rationale.
+**Important:** Both variables serve different purposes:
+- `NEXT_PUBLIC_API_URL` = `/api` tells the **client-side code** to use the same-origin proxy
+- `BACKEND_URL` = Railway URL tells the **Next.js server** where to forward `/api/*` requests
+
+Setting `NEXT_PUBLIC_API_URL` directly to the Railway URL causes **CORS errors** because the browser tries to fetch cross-origin. Always use `/api` for Vercel deployments.
 
 ---
 
@@ -121,16 +125,19 @@ DIRECT_URL="postgresql://postgres.[REF]:[PASSWORD]@aws-1-eu-north-1.pooler.supab
 
 | Environment | Variables | Secrets |
 |-------------|-----------|---------|
-| `staging` | `STAGING_API_URL` | `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `RAILWAY_TOKEN` |
-| `production` | (TBD) | `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `RAILWAY_TOKEN` |
+| `staging` | `STAGING_API_URL=https://nx-monoreposerver-staging.up.railway.app` | `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `RAILWAY_TOKEN` |
+| `production` | `PRODUCTION_API_URL=https://nx-monoreposerver-production.up.railway.app` | `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `RAILWAY_TOKEN` |
+
+**Note:** Vercel also creates GitHub environments (`nx-monorepo / staging`, `nx-monorepo / production`) for deployment status tracking. These are separate and should be left alone.
 
 ### Vercel Environment Variables
 
 **Preview (Staging):**
 ```bash
+NEXT_PUBLIC_API_URL=/api                                          # MUST be /api (not Railway URL!)
 NEXT_PUBLIC_SUPABASE_URL=https://uvhnqtzufwvaqvbdgcnn.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-BACKEND_URL=https://[railway-staging-url].railway.app
+BACKEND_URL=https://nx-monoreposerver-staging.up.railway.app      # Server-side proxy target
 NEXT_PUBLIC_SENTRY_DSN=https://...
 SENTRY_ORG=zwizzly
 SENTRY_PROJECT=nx-monorepo
@@ -139,14 +146,17 @@ SENTRY_AUTH_TOKEN=sntryu_...
 
 **Production:**
 ```bash
+NEXT_PUBLIC_API_URL=/api                                          # MUST be /api (not Railway URL!)
 NEXT_PUBLIC_SUPABASE_URL=https://uvhnqtzufwvaqvbdgcnn.supabase.co  # STAGING until PROD
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-BACKEND_URL=https://[railway-production-url].railway.app
+BACKEND_URL=https://nx-monoreposerver-production.up.railway.app   # Server-side proxy target
 NEXT_PUBLIC_SENTRY_DSN=https://...
 SENTRY_ORG=zwizzly
 SENTRY_PROJECT=nx-monorepo
 SENTRY_AUTH_TOKEN=sntryu_...
 ```
+
+**Deployment Protection:** SSO protection is disabled for production to allow public access.
 
 ### Railway Environment Variables
 
