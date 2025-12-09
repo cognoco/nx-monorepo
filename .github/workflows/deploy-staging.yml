@@ -35,7 +35,7 @@ on:
       skip_health_check:
         description: 'Skip health check verification'
         required: false
-        default: 'false'
+        default: false
         type: boolean
 
 # Ensure only one staging deployment runs at a time
@@ -82,12 +82,13 @@ jobs:
           RAILWAY_URL="${{ vars.STAGING_API_URL }}"
 
           if [ -z "$RAILWAY_URL" ]; then
-            echo "⚠️ STAGING_API_URL not configured in GitHub environment"
-            echo "url=https://nx-monoreposerver-staging.up.railway.app" >> $GITHUB_OUTPUT
-          else
-            echo "url=$RAILWAY_URL" >> $GITHUB_OUTPUT
+            echo "❌ ERROR: STAGING_API_URL not configured in GitHub environment"
+            echo "Please configure STAGING_API_URL in GitHub Settings → Environments → staging → Variables"
+            echo "Expected format: https://nx-monoreposerver-staging.up.railway.app"
+            exit 1
           fi
 
+          echo "url=$RAILWAY_URL" >> $GITHUB_OUTPUT
           echo "📍 Staging API URL: $RAILWAY_URL"
 
       - name: Wait for Railway Deployment

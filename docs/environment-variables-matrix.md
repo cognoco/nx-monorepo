@@ -168,7 +168,7 @@ SUPABASE_URL=https://uvhnqtzufwvaqvbdgcnn.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 SENTRY_DSN_API=https://...
 NODE_ENV=production
-CORS_ORIGIN=https://[vercel-preview-url].vercel.app
+CORS_ORIGIN=https://nx-monorepo-jornco.vercel.app,https://nx-monorepo-git-*.vercel.app
 ```
 
 **Production:**
@@ -179,8 +179,22 @@ SUPABASE_URL=https://uvhnqtzufwvaqvbdgcnn.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 SENTRY_DSN_API=https://...
 NODE_ENV=production
-CORS_ORIGIN=https://[vercel-production-url].vercel.app
+CORS_ORIGIN=https://nx-monorepo.vercel.app
 ```
+
+> **CORS_ORIGIN Configuration Notes:**
+>
+> The Express server supports comma-separated CORS origins (see `apps/server/src/app.ts:29-30`).
+>
+> **Staging challenge:** Vercel Preview URLs are dynamic (`nx-monorepo-<hash>-<user>.vercel.app`).
+> The current implementation does NOT support wildcard patterns - each origin must be exact.
+>
+> **Options for staging CORS:**
+> 1. **Use Next.js proxy** (recommended): Client uses `/api` which proxies through Vercel → Railway (same-origin, no CORS)
+> 2. **Add known deployment URLs**: Add common branch preview URLs when known
+> 3. **Accept all origins in staging** (not recommended): Set `CORS_ORIGIN=*` for staging only
+>
+> **Current approach:** We use the Next.js proxy (`NEXT_PUBLIC_API_URL=/api`), so browser requests are same-origin and CORS doesn't apply for client-side fetches. The `CORS_ORIGIN` setting is primarily for direct API access (Swagger UI, external tools).
 
 ---
 

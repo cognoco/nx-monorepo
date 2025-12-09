@@ -298,6 +298,61 @@ production environment:
 
 ---
 
+## Rollback Procedures
+
+When a deployment succeeds but the application is broken (health checks pass but functionality fails):
+
+### Vercel Rollback (Web)
+
+**Via Dashboard (recommended):**
+1. Go to [Vercel Dashboard](https://vercel.com) → Project → Deployments
+2. Find the last known-good deployment
+3. Click "..." menu → "Promote to Production" (for production) or view URL for preview
+
+**Via CLI:**
+```bash
+# List recent deployments
+vercel list
+
+# Rollback to specific deployment
+vercel rollback [deployment-url-or-id]
+```
+
+### Railway Rollback (API)
+
+**Via Dashboard (recommended):**
+1. Go to [Railway Dashboard](https://railway.app) → Project → Service
+2. Click "Deployments" tab
+3. Find the last known-good deployment
+4. Click "..." menu → "Redeploy"
+
+**Via Git revert:**
+```bash
+# If issue is in code, revert the commit
+git revert <commit-hash>
+git push origin main
+
+# Railway production will auto-deploy the revert
+# For staging, trigger workflow manually
+```
+
+### Emergency Procedures
+
+| Scenario | Action |
+|----------|--------|
+| **API down** | Railway dashboard → Restart service OR rollback to previous deployment |
+| **Web down** | Vercel dashboard → Rollback to previous deployment |
+| **Database issue** | Check Supabase dashboard → Service health, consider point-in-time recovery |
+| **Both down** | Rollback both platforms independently, API first (web depends on it) |
+
+**Important:** Railway production auto-deploys from `main`. If you need to stop auto-deploys temporarily:
+1. Railway Dashboard → Service → Settings → Build
+2. Disconnect the branch temporarily
+3. Fix the issue
+4. Reconnect when ready
+
+---
+
 ## Future: Production Database
 
 When ready for production Supabase:
