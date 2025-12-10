@@ -195,7 +195,7 @@ describe('Sentry Client Configuration', () => {
     );
   });
 
-  it('should be enabled in production even without DSN (for Vercel integration)', async () => {
+  it('should be disabled in production when DSN is not set (avoids silent failure)', async () => {
     // Arrange
     process.env.NODE_ENV = 'production';
     delete process.env.NEXT_PUBLIC_SENTRY_DSN;
@@ -205,10 +205,10 @@ describe('Sentry Client Configuration', () => {
     // Act
     await import('../../instrumentation-client');
 
-    // Assert
+    // Assert - Sentry should be disabled without DSN to avoid overhead with no destination
     expect(Sentry.init).toHaveBeenCalledWith(
       expect.objectContaining({
-        enabled: true,
+        enabled: false,
       })
     );
   });

@@ -62,11 +62,11 @@ Sentry.init({
     // }),
   ],
 
-  // Only enable Sentry in production or when DSN is explicitly provided
-  // Prevents noise during local development without DSN configured
-  enabled:
-    process.env.NODE_ENV === 'production' ||
-    !!process.env.NEXT_PUBLIC_SENTRY_DSN,
+  // Only enable Sentry when DSN is explicitly provided
+  // This ensures Sentry doesn't run with overhead but no destination
+  // In development: disabled unless DSN is set for testing
+  // In production: disabled if DSN is missing (avoids silent failure)
+  enabled: !!process.env.NEXT_PUBLIC_SENTRY_DSN,
 
   // Debugging (disabled in production)
   debug: false,
