@@ -26,7 +26,7 @@ const openapiPath = resolve(
 );
 const { getOpenApiSpec } = require(openapiPath);
 
-const out = resolve(workspaceRoot, 'dist/apps/server/openapi.json');
+const out = resolve(workspaceRoot, 'packages/api-client/src/gen/openapi.json');
 mkdirSync(dirname(out), { recursive: true });
 writeFileSync(out, JSON.stringify(getOpenApiSpec(), null, 2));
 console.log('✓ Wrote OpenAPI spec:', out);

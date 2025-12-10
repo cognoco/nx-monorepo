@@ -24,13 +24,13 @@
         "{workspaceRoot}/dist/apps/server/apps/server/src/**/*.js",
         "{projectRoot}/scripts/write-openapi.ts"
       ],
-      "outputs": ["{workspaceRoot}/dist/apps/server/openapi.json"],
-      "cache": true
+      "outputs": ["{workspaceRoot}/packages/api-client/src/gen/openapi.json"],
+      "cache": false
     },
     "spec-validate": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm --filter @nx-monorepo/server exec spectral lint ../../dist/apps/server/openapi.json --ruleset ../../.spectral.yaml",
+        "command": "pnpm --filter @nx-monorepo/server exec spectral lint ../../packages/api-client/src/gen/openapi.json --ruleset ../../.spectral.yaml",
         "cwd": "apps/server"
       },
       "dependsOn": ["spec-write"]
