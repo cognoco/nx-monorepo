@@ -33,7 +33,9 @@ const openapiPath = resolve(
 );
 const { getOpenApiSpec } = require(openapiPath);
 
-const out = resolve(workspaceRoot, 'dist/apps/server/openapi.json');
+// Write to packages/api-client/src/gen/ to avoid server:build cache restoration conflicts
+// The dist/apps/server/ directory can be overwritten by Nx remote cache restoration
+const out = resolve(workspaceRoot, 'packages/api-client/src/gen/openapi.json');
 mkdirSync(dirname(out), { recursive: true });
 writeFileSync(out, JSON.stringify(getOpenApiSpec(), null, 2));
 
@@ -42,12 +44,6 @@ if (existsSync(out)) {
   const stats = statSync(out);
   console.log('✓ Wrote OpenAPI spec:', out);
   console.log('  File size:', stats.size, 'bytes');
-  console.log(
-    '  Directory contents:',
-    readdirSync(dirname(out)).filter(
-      (f) => f.includes('openapi') || f.endsWith('.json')
-    )
-  );
 } else {
   console.error('✗ ERROR: File not found after write:', out);
   process.exit(1);
