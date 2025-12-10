@@ -7,16 +7,23 @@
     "generate-types": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm exec openapi-typescript dist/apps/server/openapi.json -o packages/api-client/src/gen/openapi.d.ts --export-type",
-        "cwd": "{workspaceRoot}"
+        "commands": [
+          "tsx apps/server/scripts/write-openapi.ts",
+          "pnpm exec openapi-typescript dist/apps/server/openapi.json -o packages/api-client/src/gen/openapi.d.ts --export-type"
+        ],
+        "cwd": "{workspaceRoot}",
+        "parallel": false
       },
-      "inputs": ["{workspaceRoot}/dist/apps/server/openapi.json"],
-      "outputs": ["{projectRoot}/src/gen/openapi.d.ts"],
-      "dependsOn": [
-        "@nx-monorepo/server:build",
-        "@nx-monorepo/server:spec-write"
+      "inputs": [
+        "{workspaceRoot}/dist/apps/server/apps/server/src/**/*.js",
+        "{workspaceRoot}/apps/server/scripts/write-openapi.ts"
       ],
-      "cache": true
+      "outputs": [
+        "{workspaceRoot}/dist/apps/server/openapi.json",
+        "{projectRoot}/src/gen/openapi.d.ts"
+      ],
+      "dependsOn": ["@nx-monorepo/server:build"],
+      "cache": false
     },
     "build": {
       "executor": "nx:run-commands",
