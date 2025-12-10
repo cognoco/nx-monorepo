@@ -1,6 +1,6 @@
 # Story 5.9: Configure Railway Web Frontend
 
-Status: approved
+Status: done
 
 ## Story
 
@@ -27,31 +27,32 @@ So that **we demonstrate dual frontend architecture with deployment portability*
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Create Railway web service** (AC: #1)
-  - [ ] Create new service in Railway project for web frontend
-  - [ ] Configure to use `apps/web/Dockerfile`
-  - [ ] Set build context to monorepo root
-  - [ ] Configure health check endpoint
+- [x] **Task 1: Create Railway web service** (AC: #1)
+  - [x] Create new service in Railway project for web frontend
+  - [x] Configure to use `apps/web/Dockerfile`
+  - [x] Set build context to monorepo root
+  - [x] Configure health check endpoint (`/health`)
 
-- [ ] **Task 2: Configure Railway web environment variables** (AC: #1)
-  - [ ] Set `NEXT_PUBLIC_SUPABASE_URL` (Supabase STAGING)
-  - [ ] Set `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-  - [ ] Set `BACKEND_URL` (same Railway API URL as Vercel uses)
-  - [ ] Set Sentry variables
+- [x] **Task 2: Configure Railway web environment variables** (AC: #1)
+  - [x] Set `NEXT_PUBLIC_SUPABASE_URL` (Supabase STAGING)
+  - [x] Set `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - [x] Set `BACKEND_URL` (Railway API URL for Next.js rewrites)
+  - [x] Set `NEXT_PUBLIC_API_URL=/api` (use rewrites, not direct API)
+  - [x] Set Sentry variables
 
-- [ ] **Task 3: Update backend CORS** (AC: #1)
-  - [ ] Add Railway web URL to CORS origins in `apps/server/src/main.ts`
-  - [ ] Verify both Vercel and Railway origins work
+- [x] **Task 3: Update backend CORS** (AC: #1)
+  - [x] Backend already uses CORS_ORIGIN env var supporting multiple origins
+  - [x] Verified both Vercel and Railway origins work via env vars
 
-- [ ] **Task 4: Update deployment workflows** (AC: #3)
-  - [ ] Add Railway web deployment to staging workflow
-  - [ ] Add Railway web deployment to production workflow
-  - [ ] Verify both web deployments trigger correctly
+- [x] **Task 4: Update deployment workflows** (AC: #3)
+  - [x] Added Railway web deployment to staging workflow
+  - [x] Added Railway web deployment to production workflow
+  - [x] Verified both web deployments trigger correctly
 
-- [ ] **Task 5: Test dual frontend access** (AC: #2)
-  - [ ] Verify Vercel frontend → Railway API works
-  - [ ] Verify Railway frontend → Railway API works
-  - [ ] Verify both create records in same database
+- [x] **Task 5: Test dual frontend access** (AC: #2)
+  - [x] Verified Vercel frontend → Railway API works
+  - [x] Verified Railway frontend → Railway API works (staging + production)
+  - [x] Verified both create records in same database
 
 ## Dev Notes
 
@@ -136,19 +137,32 @@ N/A - Story created during Epic 5 restructuring
 
 ### Agent Model Used
 
-<!-- To be filled by implementing agent -->
+Claude Opus 4.5
 
 ### Debug Log References
 
-<!-- To be filled during implementation -->
+- Railway staging build logs: https://railway.com/project/ea2a64e5-576f-4f6b-bd03-17a885087baf
+- Issue: Initial deployments used wrong Dockerfile (server instead of web)
+- Fix: Created `apps/web/railway.json` with explicit Dockerfile path
+- Issue: Client-side requests hit server directly at `/health` instead of `/api/health`
+- Fix: Changed `NEXT_PUBLIC_API_URL` from direct server URL to `/api` to use Next.js rewrites
 
 ### Completion Notes List
 
-<!-- To be filled after implementation -->
+1. **Railway web service created** in both staging and production environments
+2. **`apps/web/railway.json`** created to specify Dockerfile path and health check
+3. **Key env var fix**: `NEXT_PUBLIC_API_URL=/api` - client requests must go through Next.js rewrites
+4. **`BACKEND_URL`** added as Docker build ARG for Next.js rewrite configuration
+5. **Dual frontend verified**:
+   - Staging: `https://nx-monorepoweb-staging.up.railway.app/api/health` → 200
+   - Production: `https://nx-monorepoweb-production.up.railway.app/api/health` → 200
 
 ### File List
 
-<!-- To be filled after implementation -->
+- `apps/web/railway.json` - Railway service configuration
+- `apps/web/Dockerfile` - Added `BACKEND_URL` build ARG
+- `.github/workflows/deploy-staging.yml` - Added Railway web deployment
+- `.github/workflows/deploy-production.yml` - Added Railway web deployment
 
 ---
 
@@ -157,3 +171,4 @@ N/A - Story created during Epic 5 restructuring
 | Date | Author | Change |
 |------|--------|--------|
 | 2025-12-08 | SM Agent (Rincewind) | Repurposed from "Secondary Target Decision Gate" to "Configure Railway Web Frontend" |
+| 2025-12-10 | Claude Opus 4.5 | Implemented and verified Railway web frontend in staging and production |
