@@ -4,8 +4,21 @@
 
 [![CI](https://github.com/jojorgen/nx-monorepo/actions/workflows/ci.yml/badge.svg)](https://github.com/jojorgen/nx-monorepo/actions/workflows/ci.yml)
 [![Deploy to Staging](https://github.com/jojorgen/nx-monorepo/actions/workflows/deploy-staging.yml/badge.svg)](https://github.com/jojorgen/nx-monorepo/actions/workflows/deploy-staging.yml)
+[![Deploy to Production](https://github.com/jojorgen/nx-monorepo/actions/workflows/deploy-production.yml/badge.svg)](https://github.com/jojorgen/nx-monorepo/actions/workflows/deploy-production.yml)
 
 A production-ready Nx monorepo template demonstrating best practices for building type-safe, full-stack applications with shared business logic across web, server, and mobile platforms.
+
+## 🚀 Live Demo
+
+| Environment | Web App | API |
+|-------------|---------|-----|
+| **Production** | [nx-monorepo-web-zwizzly.vercel.app](https://nx-monorepo-web-zwizzly.vercel.app) | [nx-monoreposerver-production.up.railway.app](https://nx-monoreposerver-production.up.railway.app/api/health) |
+| **Staging** | Vercel Preview URLs (per PR) | [nx-monoreposerver-staging.up.railway.app](https://nx-monoreposerver-staging.up.railway.app/api/health) |
+
+**Walking Skeleton Features:**
+- `/health` - Health check page demonstrating end-to-end connectivity (web → API → database)
+- `/api/health` - API health endpoint with database connectivity status
+- `/sentry-test` - Test page for Sentry error tracking validation
 
 ## What is this?
 

@@ -116,7 +116,7 @@ jobs:
           sleep 90
 
       - name: Verify API Health Check
-        if: ${{ github.event.inputs.skip_health_check != 'true' }}
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.skip_health_check != 'true' }}
         run: |
           API_URL="${{ steps.get-url.outputs.url }}"
           HEALTH_URL="${API_URL}/api/health"

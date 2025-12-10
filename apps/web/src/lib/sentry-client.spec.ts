@@ -1,8 +1,11 @@
 /**
- * Unit tests for Sentry client configuration
+ * Unit tests for Sentry client configuration (instrumentation-client.ts)
  *
  * These tests verify that Sentry is initialized with correct configuration
  * without actually sending events to Sentry servers.
+ *
+ * Note: Tests import from instrumentation-client.ts (the Next.js 15+ standard pattern)
+ * which replaced sentry.client.config.ts for Turbopack compatibility.
  */
 
 // Mock Sentry before importing the config
@@ -10,6 +13,7 @@ jest.mock('@sentry/nextjs', () => ({
   init: jest.fn(),
   browserTracingIntegration: jest.fn(() => ({ name: 'BrowserTracing' })),
   replayIntegration: jest.fn(() => ({ name: 'Replay' })),
+  captureRouterTransitionStart: jest.fn(),
 }));
 
 describe('Sentry Client Configuration', () => {
@@ -42,7 +46,7 @@ describe('Sentry Client Configuration', () => {
     const Sentry = require('@sentry/nextjs');
 
     // Act
-    await import('../../sentry.client.config');
+    await import('../../instrumentation-client');
 
     // Assert
     expect(Sentry.init).toHaveBeenCalledWith(
@@ -62,7 +66,7 @@ describe('Sentry Client Configuration', () => {
     const Sentry = require('@sentry/nextjs');
 
     // Act
-    await import('../../sentry.client.config');
+    await import('../../instrumentation-client');
 
     // Assert
     expect(Sentry.init).toHaveBeenCalledWith(
@@ -81,7 +85,7 @@ describe('Sentry Client Configuration', () => {
     const Sentry = require('@sentry/nextjs');
 
     // Act
-    await import('../../sentry.client.config');
+    await import('../../instrumentation-client');
 
     // Assert
     expect(Sentry.init).toHaveBeenCalledWith(
@@ -101,7 +105,7 @@ describe('Sentry Client Configuration', () => {
     const Sentry = require('@sentry/nextjs');
 
     // Act
-    await import('../../sentry.client.config');
+    await import('../../instrumentation-client');
 
     // Assert
     expect(Sentry.init).toHaveBeenCalledWith(
@@ -121,7 +125,7 @@ describe('Sentry Client Configuration', () => {
     const Sentry = require('@sentry/nextjs');
 
     // Act
-    await import('../../sentry.client.config');
+    await import('../../instrumentation-client');
 
     // Assert
     expect(Sentry.init).toHaveBeenCalledWith(
@@ -141,7 +145,7 @@ describe('Sentry Client Configuration', () => {
     const Sentry = require('@sentry/nextjs');
 
     // Act
-    await import('../../sentry.client.config');
+    await import('../../instrumentation-client');
 
     // Assert
     expect(Sentry.init).toHaveBeenCalledWith(
@@ -160,7 +164,7 @@ describe('Sentry Client Configuration', () => {
     const Sentry = require('@sentry/nextjs');
 
     // Act
-    await import('../../sentry.client.config');
+    await import('../../instrumentation-client');
 
     // Assert
     expect(Sentry.browserTracingIntegration).toHaveBeenCalled();
@@ -181,7 +185,7 @@ describe('Sentry Client Configuration', () => {
     const Sentry = require('@sentry/nextjs');
 
     // Act
-    await import('../../sentry.client.config');
+    await import('../../instrumentation-client');
 
     // Assert
     expect(Sentry.init).toHaveBeenCalledWith(
@@ -199,7 +203,7 @@ describe('Sentry Client Configuration', () => {
     const Sentry = require('@sentry/nextjs');
 
     // Act
-    await import('../../sentry.client.config');
+    await import('../../instrumentation-client');
 
     // Assert
     expect(Sentry.init).toHaveBeenCalledWith(
@@ -218,7 +222,7 @@ describe('Sentry Client Configuration', () => {
     const Sentry = require('@sentry/nextjs');
 
     // Act
-    await import('../../sentry.client.config');
+    await import('../../instrumentation-client');
 
     // Assert
     expect(Sentry.init).toHaveBeenCalledWith(
@@ -237,7 +241,7 @@ describe('Sentry Client Configuration', () => {
     const Sentry = require('@sentry/nextjs');
 
     // Act
-    await import('../../sentry.client.config');
+    await import('../../instrumentation-client');
 
     // Assert
     expect(Sentry.init).toHaveBeenCalledWith(

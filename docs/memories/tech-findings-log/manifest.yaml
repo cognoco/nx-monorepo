@@ -184,6 +184,15 @@ chunks:
     last_updated_by: claude-opus-4-5
     last_updated_at: 2025-12-08
     last_synced_at: null
+  - id: tfl-sentry-nextjs-turbopack-20251210
+    title: Sentry – Next.js 15+ Turbopack Client Configuration Migration (2025-12-10)
+    file: module-22-sentry-nextjs-15-turbopack-client-configuration-2025-12-10.md
+    tags: [sentry, nextjs, turbopack, configuration, breaking-change]
+    checksum: null
+    validation_status: needs_review
+    last_updated_by: claude-opus-4-5
+    last_updated_at: 2025-12-10
+    last_synced_at: null
   - id: tfl-future-entries
     title: Future Entries
     file: module-19-future-entries.md
