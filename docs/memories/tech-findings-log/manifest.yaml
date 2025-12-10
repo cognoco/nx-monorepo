@@ -193,6 +193,15 @@ chunks:
     last_updated_by: claude-opus-4-5
     last_updated_at: 2025-12-10
     last_synced_at: null
+  - id: tfl-deployment-railway-web-frontend-20251210
+    title: Deployment Configuration – Railway Web Frontend Docker Build (2025-12-10)
+    file: module-23-deployment-railway-web-frontend-configuration-2025-12-10.md
+    tags: [deployment, railway, docker, nextjs, configuration]
+    checksum: null
+    validation_status: needs_review
+    last_updated_by: claude-opus-4-5
+    last_updated_at: 2025-12-10
+    last_synced_at: null
   - id: tfl-future-entries
     title: Future Entries
     file: module-19-future-entries.md

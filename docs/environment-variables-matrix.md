@@ -3,7 +3,7 @@ title: Environment Variables Matrix
 purpose: Traceability matrix for all environment variables across platforms and environments
 audience: DevOps, developers, AI agents
 created: 2025-12-08
-last-updated: 2025-12-08
+last-updated: 2025-12-10
 ---
 
 # Environment Variables Matrix
@@ -80,16 +80,23 @@ DIRECT_URL="postgresql://postgres.[REF]:[PASSWORD]@aws-1-eu-north-1.pooler.supab
 | Variable | Used By | Local Dev | CI | Staging | Production | Type |
 |----------|---------|-----------|-----|---------|------------|------|
 | `NEXT_PUBLIC_API_URL` | apps/web (client-side) | `http://localhost:4000/api` | N/A | `/api` | `/api` | Public |
-| `BACKEND_URL` | apps/web (Next.js rewrites) | N/A | N/A | Railway staging URL | Railway prod URL | Server |
-| `CORS_ORIGIN` | apps/server | `localhost:3000,3001,3002` | N/A | Vercel preview URL | Vercel prod URL | Server |
+| `BACKEND_URL` | apps/web (Next.js rewrites) | N/A | N/A | Railway staging URL | Railway prod URL | Build ARG |
+| `CORS_ORIGIN` | apps/server | `localhost:3000,3001,3002` | N/A | Vercel + Railway URLs | Vercel + Railway URLs | Server |
 | `HOST` | apps/server | `localhost` | `localhost` | `0.0.0.0` | `0.0.0.0` | Server |
 | `PORT` | apps/server | `4000` | `4000` | Railway assigned | Railway assigned | Server |
 
-**Important:** Both variables serve different purposes:
-- `NEXT_PUBLIC_API_URL` = `/api` tells the **client-side code** to use the same-origin proxy
-- `BACKEND_URL` = Railway URL tells the **Next.js server** where to forward `/api/*` requests
+**Critical for both Vercel AND Railway web deployments:**
 
-Setting `NEXT_PUBLIC_API_URL` directly to the Railway URL causes **CORS errors** because the browser tries to fetch cross-origin. Always use `/api` for Vercel deployments.
+| Variable | Purpose | Must Be |
+|----------|---------|---------|
+| `NEXT_PUBLIC_API_URL` | Client-side API base URL | `/api` (NOT direct server URL) |
+| `BACKEND_URL` | Next.js server-side rewrite target | Full Railway API URL |
+
+**Why this matters:**
+- `NEXT_PUBLIC_API_URL` = `/api` tells client-side code to use same-origin proxy (avoids CORS)
+- `BACKEND_URL` = Railway URL tells Next.js server where to forward `/api/*` requests
+- **Railway web builds**: `BACKEND_URL` must be passed as a Docker build ARG because Next.js bakes rewrites at build time
+- Setting `NEXT_PUBLIC_API_URL` to the Railway URL directly causes **client-side CORS errors**
 
 ---
 
@@ -179,22 +186,64 @@ SUPABASE_URL=https://uvhnqtzufwvaqvbdgcnn.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 SENTRY_DSN_API=https://...
 NODE_ENV=production
-CORS_ORIGIN=https://nx-monorepo.vercel.app
+CORS_ORIGIN=https://nx-monorepo.vercel.app,https://nx-monorepoweb-production.up.railway.app
 ```
 
 > **CORS_ORIGIN Configuration Notes:**
 >
-> The Express server supports comma-separated CORS origins (see `apps/server/src/app.ts:29-30`).
+> The Express server supports comma-separated CORS origins (see `apps/server/src/main.ts`).
 >
 > **Staging challenge:** Vercel Preview URLs are dynamic (`nx-monorepo-<hash>-<user>.vercel.app`).
 > The current implementation does NOT support wildcard patterns - each origin must be exact.
 >
 > **Options for staging CORS:**
-> 1. **Use Next.js proxy** (recommended): Client uses `/api` which proxies through Vercel → Railway (same-origin, no CORS)
+> 1. **Use Next.js proxy** (recommended): Client uses `/api` which proxies through Vercel/Railway → Railway API (same-origin, no CORS)
 > 2. **Add known deployment URLs**: Add common branch preview URLs when known
 > 3. **Accept all origins in staging** (not recommended): Set `CORS_ORIGIN=*` for staging only
 >
 > **Current approach:** We use the Next.js proxy (`NEXT_PUBLIC_API_URL=/api`), so browser requests are same-origin and CORS doesn't apply for client-side fetches. The `CORS_ORIGIN` setting is primarily for direct API access (Swagger UI, external tools).
+
+### Railway Web Environment Variables
+
+Railway web (`@nx-monorepo/web`) runs the same Next.js application as Vercel but uses Docker builds.
+
+**Staging:**
+```bash
+NEXT_PUBLIC_API_URL=/api                                          # MUST be /api (not Railway server URL!)
+NEXT_PUBLIC_SUPABASE_URL=https://uvhnqtzufwvaqvbdgcnn.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+BACKEND_URL=https://nx-monoreposerver-staging.up.railway.app      # Docker build ARG for Next.js rewrites
+NEXT_PUBLIC_SENTRY_DSN=https://...
+NODE_ENV=production
+```
+
+**Production:**
+```bash
+NEXT_PUBLIC_API_URL=/api                                          # MUST be /api (not Railway server URL!)
+NEXT_PUBLIC_SUPABASE_URL=https://uvhnqtzufwvaqvbdgcnn.supabase.co  # STAGING until PROD
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+BACKEND_URL=https://nx-monoreposerver-production.up.railway.app   # Docker build ARG for Next.js rewrites
+NEXT_PUBLIC_SENTRY_DSN=https://...
+NODE_ENV=production
+```
+
+> **Railway Web Build-Time vs Runtime Variables:**
+>
+> Unlike Vercel (which handles `NEXT_PUBLIC_*` automatically), Railway Docker builds require special handling:
+>
+> | Variable | Type | How It Works |
+> |----------|------|--------------|
+> | `NEXT_PUBLIC_*` | Build ARG | Automatically passed by Railway as Docker build args |
+> | `BACKEND_URL` | Build ARG | Must be defined as `ARG` in Dockerfile for Next.js rewrites |
+> | `NODE_ENV` | Runtime | Set as environment variable |
+>
+> The `apps/web/Dockerfile` includes:
+> ```dockerfile
+> ARG BACKEND_URL
+> ENV BACKEND_URL=$BACKEND_URL
+> ```
+>
+> This ensures Next.js rewrites (configured in `next.config.js`) know where to proxy `/api/*` requests at build time.
 
 ---
 
@@ -286,5 +335,6 @@ pnpm --filter @nx-monorepo/database prisma migrate deploy
 | Date | Author | Change |
 |------|--------|--------|
 | 2025-12-08 | SM Agent (Rincewind) | Initial matrix created during Story 5.4 |
+| 2025-12-10 | Claude Opus 4.5 | Added Railway Web environment variables section per Story 5.9 |
 
 

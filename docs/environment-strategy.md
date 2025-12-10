@@ -3,7 +3,7 @@ title: Environment Strategy
 purpose: Formal architecture for deployment environments across all platforms
 audience: DevOps, developers, AI agents
 created: 2025-12-08
-last-updated: 2025-12-08
+last-updated: 2025-12-10
 ---
 
 # Environment Strategy
@@ -14,14 +14,16 @@ This document defines the formal environment architecture for the nx-monorepo te
 
 ## Executive Summary
 
-| Environment | Trigger | Web | API | Database | Purpose |
-|-------------|---------|-----|-----|----------|---------|
-| **Local Dev** | Manual | localhost:3000 | localhost:4000 | Supabase DEV | Developer workstation |
-| **CI Testing** | PR/Push | N/A | N/A | Local PostgreSQL | Automated tests |
-| **Staging** | PR to main / non-main branches | Vercel Preview | Railway `staging` | Supabase STAGING | Pre-merge validation, demos |
-| **Production** | Merge to main | Vercel Production | Railway `production` | Supabase STAGING* | Live system |
+| Environment | Trigger | Web (Primary) | Web (Secondary) | API | Database | Purpose |
+|-------------|---------|---------------|-----------------|-----|----------|---------|
+| **Local Dev** | Manual | localhost:3000 | N/A | localhost:4000 | Supabase DEV | Developer workstation |
+| **CI Testing** | PR/Push | N/A | N/A | N/A | Local PostgreSQL | Automated tests |
+| **Staging** | PR to main / non-main branches | Vercel Preview | Railway Web | Railway API | Supabase STAGING | Pre-merge validation, demos |
+| **Production** | Merge to main | Vercel Production | Railway Web | Railway API | Supabase STAGING* | Live system |
 
 *Production uses STAGING database until Supabase PROD is created
+
+**Dual Frontend Architecture:** Both Vercel and Railway host the same Next.js web application. Vercel is primary (auto-deploy, preview URLs), Railway is secondary (demonstrates deployment portability, Docker-based).
 
 ---
 
@@ -52,8 +54,9 @@ This document defines the formal environment architecture for the nx-monorepo te
 │                              ▼                                              │
 │  STAGING (PRs / Non-main branches)                                          │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ Web: Vercel Preview URLs (*.vercel.app)                             │   │
-│  │ API: Railway staging environment (*.up.railway.app)                 │   │
+│  │ Web (Primary):   Vercel Preview (*.vercel.app)                      │   │
+│  │ Web (Secondary): Railway Web (nx-monorepoweb-staging.up.railway.app)│   │
+│  │ API: Railway staging (nx-monoreposerver-staging.up.railway.app)     │   │
 │  │ DB:  Supabase STAGING project (uvhnqtzufwvaqvbdgcnn)                │   │
 │  │ Config: GitHub staging environment + platform dashboards            │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
@@ -61,8 +64,9 @@ This document defines the formal environment architecture for the nx-monorepo te
 │                              ▼                                              │
 │  PRODUCTION (Main branch merges)                                            │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ Web: Vercel Production (custom domain or *.vercel.app)              │   │
-│  │ API: Railway production environment (*.up.railway.app)              │   │
+│  │ Web (Primary):   Vercel Production (*.vercel.app or custom domain)  │   │
+│  │ Web (Secondary): Railway Web (nx-monorepoweb-production.up.railway) │   │
+│  │ API: Railway production (nx-monoreposerver-production.up.railway)   │   │
 │  │ DB:  Supabase STAGING → PROD (when created)                         │   │
 │  │ Config: GitHub production environment + platform dashboards         │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
@@ -123,10 +127,25 @@ Vercel automatically creates GitHub environments for deployment status reporting
 
 ### Railway Configuration
 
-| Environment | Purpose | Service | URL | Deployment Trigger |
-|-------------|---------|---------|-----|-------------------|
-| `staging` | Staging API | @nx-monorepo/server | `nx-monoreposerver-staging.up.railway.app` | GitHub Actions (branch disconnected) |
-| `production` | Production API | @nx-monorepo/server | `nx-monoreposerver-production.up.railway.app` | Auto-deploy on merge to `main` |
+#### API Server (`@nx-monorepo/server`)
+
+| Environment | Purpose | URL | Deployment Trigger |
+|-------------|---------|-----|-------------------|
+| `staging` | Staging API | `nx-monoreposerver-staging.up.railway.app` | GitHub Actions |
+| `production` | Production API | `nx-monoreposerver-production.up.railway.app` | Auto-deploy on merge to `main` |
+
+#### Web Frontend (`@nx-monorepo/web`)
+
+| Environment | Purpose | URL | Deployment Trigger |
+|-------------|---------|-----|-------------------|
+| `staging` | Staging Web (secondary) | `nx-monorepoweb-staging.up.railway.app` | GitHub Actions |
+| `production` | Production Web (secondary) | `nx-monorepoweb-production.up.railway.app` | GitHub Actions |
+
+**Configuration files:**
+- API: `apps/server/railway.json` - Dockerfile path, health check (`/api/health`)
+- Web: `apps/web/railway.json` - Dockerfile path, health check (`/health`)
+
+**Key insight:** Railway web uses Docker builds (unlike Vercel's native builder). The `BACKEND_URL` must be passed as a Docker build ARG because Next.js bakes `NEXT_PUBLIC_*` and rewrite configuration at build time.
 
 ---
 
@@ -225,19 +244,22 @@ Production (Supabase STAGING/PROD) → Validates FULL PATH works
 
 ### Hybrid Deployment Approach
 
-| Platform | Environment | Trigger | Controlled By |
-|----------|-------------|---------|---------------|
-| **Vercel** | Preview | Auto-deploy on every push | Vercel platform |
-| **Vercel** | Production | Auto-deploy on merge to main | Vercel platform |
-| **Railway** | staging | GitHub Actions on PR/push | `deploy-staging.yml` |
-| **Railway** | production | Auto-deploy on merge to main | Railway (connected to `main`) |
+| Platform | Service | Environment | Trigger | Controlled By |
+|----------|---------|-------------|---------|---------------|
+| **Vercel** | Web | Preview | Auto-deploy on every push | Vercel platform |
+| **Vercel** | Web | Production | Auto-deploy on merge to main | Vercel platform |
+| **Railway** | API | staging | GitHub Actions on PR/push | `deploy-staging.yml` |
+| **Railway** | API | production | Auto-deploy on merge to main | Railway (connected to `main`) |
+| **Railway** | Web | staging | GitHub Actions on PR/push | `deploy-staging.yml` |
+| **Railway** | Web | production | GitHub Actions after CI | `deploy-production.yml` |
 
 **Rationale:**
-- **Vercel:** Instant preview URLs are their sweet spot, very fast feedback. Let them handle all web deployments.
-- **Railway Staging:** Deploy via Actions because feature branches are dynamic - Railway can't connect to branches that don't exist yet.
-- **Railway Production:** Auto-deploy on main is safe because code was already tested on the feature branch before merge.
+- **Vercel Web:** Instant preview URLs are their sweet spot, very fast feedback. Primary frontend.
+- **Railway API Staging:** Deploy via Actions because feature branches are dynamic - Railway can't connect to branches that don't exist yet.
+- **Railway API Production:** Auto-deploy on main is safe because code was already tested on the feature branch before merge.
+- **Railway Web:** Secondary frontend demonstrating deployment portability. Both staging and production deployed via GitHub Actions.
 
-### deploy-staging.yml (Railway staging only)
+### deploy-staging.yml (Railway staging - API + Web)
 
 ```yaml
 triggers:
@@ -246,12 +268,13 @@ triggers:
   - workflow_dispatch (manual)
 
 deploys_to:
-  - Railway: staging environment (via `railway up --environment staging`)
+  - Railway API: staging environment (@nx-monorepo/server)
+  - Railway Web: staging environment (@nx-monorepo/web)
 
 note: Vercel auto-deploys Preview on every push (not in this workflow)
 ```
 
-### deploy-production.yml (Railway backup/manual)
+### deploy-production.yml (Railway production - API + Web)
 
 ```yaml
 triggers:
@@ -259,9 +282,11 @@ triggers:
   - workflow_dispatch (manual)
 
 deploys_to:
-  - Railway: production environment (via `railway up --environment production`)
+  - Railway API: production environment (@nx-monorepo/server)
+  - Railway Web: production environment (@nx-monorepo/web)
 
-note: Railway production auto-deploys from main, so this workflow serves as backup/manual trigger only
+note: Railway API production auto-deploys from main; this workflow provides
+      explicit control and deploys both API and Web together
 ```
 
 ---
@@ -379,5 +404,6 @@ When ready for production Supabase:
 | Date | Author | Change |
 |------|--------|--------|
 | 2025-12-08 | SM Agent (Rincewind) | Initial document created during Story 5.4 |
+| 2025-12-10 | Claude Opus 4.5 | Added Railway web frontend (dual frontend architecture) per Story 5.9 |
 
 
