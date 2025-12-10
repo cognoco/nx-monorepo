@@ -6,6 +6,8 @@
  *
  * Cache Note: This file is an input to the spec-write Nx target. Any changes
  * here will invalidate the Nx cache, forcing regeneration of the OpenAPI spec.
+ *
+ * Cache invalidation: 2025-12-10 (fixes poisoned Nx Cloud cache)
  */
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
