@@ -1,11 +1,11 @@
 # =============================================================================
-# Staging Deployment Workflow (Railway API Only)
+# Staging Deployment Workflow (Railway API + Web)
 # =============================================================================
 # Triggers: PR to main, push to non-main branches, manual dispatch
-# Target: Railway staging environment
+# Target: Railway staging environment (API and Web services)
 #
-# NOTE: Vercel handles web deployments automatically (Preview on every push).
-#       This workflow only deploys the API to Railway staging.
+# NOTE: Vercel ALSO handles web deployments automatically (Preview on every push).
+#       This workflow deploys BOTH API and Web to Railway staging for dual frontend.
 # =============================================================================
 #
 # SECRETS REQUIRED (configure in GitHub Settings → Environments → staging):
@@ -13,10 +13,11 @@
 #
 # ENVIRONMENT VARIABLES (configure in GitHub Settings → Environments → staging):
 #   STAGING_API_URL     - Railway staging server URL (e.g., https://nx-monoreposerver-staging.up.railway.app)
+#   STAGING_WEB_URL     - Railway staging web URL (e.g., https://nx-monorepoweb-staging.up.railway.app)
 #
 # =============================================================================
 
-name: Deploy to Staging (Railway)
+name: Deploy to Staging (Railway API + Web)
 
 on:
   # Trigger on PRs to main
@@ -121,10 +122,77 @@ jobs:
           exit 1
 
   # ==========================================================================
+  # Deploy Web Frontend to Railway Staging
+  # ==========================================================================
+  deploy-web:
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: ${{ steps.get-url.outputs.url }}
+    outputs:
+      url: ${{ steps.get-url.outputs.url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy Web to Railway Staging
+        run: |
+          echo "🚀 Deploying web frontend to Railway staging environment..."
+          railway up --environment staging --service @nx-monorepo/web --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Get Deployment URL
+        id: get-url
+        run: |
+          # Use configured staging URL from environment variables
+          RAILWAY_URL="${{ vars.STAGING_WEB_URL }}"
+
+          if [ -z "$RAILWAY_URL" ]; then
+            echo "❌ ERROR: STAGING_WEB_URL not configured in GitHub environment"
+            echo "Please configure STAGING_WEB_URL in GitHub Settings → Environments → staging → Variables"
+            echo "Expected format: https://nx-monorepoweb-staging.up.railway.app"
+            exit 1
+          fi
+
+          echo "url=$RAILWAY_URL" >> $GITHUB_OUTPUT
+          echo "📍 Staging Web URL: $RAILWAY_URL"
+
+      - name: Wait for Railway Web Deployment
+        run: |
+          echo "⏳ Waiting 90s for Railway web deployment to complete..."
+          sleep 90
+
+      - name: Verify Web Health Check
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.skip_health_check != 'true' }}
+        run: |
+          WEB_URL="${{ steps.get-url.outputs.url }}"
+          HEALTH_URL="${WEB_URL}/health"
+          echo "🔍 Checking health at: $HEALTH_URL"
+
+          # Retry up to 5 times with 15s between attempts
+          for i in {1..5}; do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" || echo "000")
+
+            if [ "$HTTP_STATUS" = "200" ]; then
+              echo "✅ Web health check passed (attempt $i)"
+              exit 0
+            fi
+            echo "⏳ Attempt $i: HTTP $HTTP_STATUS - retrying in 15s..."
+            sleep 15
+          done
+
+          echo "❌ Web health check failed after 5 attempts"
+          exit 1
+
+  # ==========================================================================
   # Post-Deployment Summary
   # ==========================================================================
   deployment-summary:
-    needs: [deploy-api]
+    needs: [deploy-api, deploy-web]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -137,6 +205,13 @@ jobs:
 
           # Web status (Vercel auto-deploys)
           echo "| Web (Vercel) | ✅ Auto-deployed | See Vercel dashboard |" >> $GITHUB_STEP_SUMMARY
+
+          # Web status (Railway)
+          if [ "${{ needs.deploy-web.result }}" = "success" ]; then
+            echo "| Web (Railway) | ✅ Success | ${{ needs.deploy-web.outputs.url }} |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Web (Railway) | ❌ Failed | - |" >> $GITHUB_STEP_SUMMARY
+          fi
 
           # API status
           if [ "${{ needs.deploy-api.result }}" = "success" ]; then
@@ -152,10 +227,10 @@ jobs:
 
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "_Note: Web deployments are handled by Vercel automatically on every push._" >> $GITHUB_STEP_SUMMARY
+          echo "_Note: This is a dual frontend deployment. Vercel and Railway both serve the same app._" >> $GITHUB_STEP_SUMMARY
 
       - name: Comment on PR
-        if: github.event_name == 'pull_request' && needs.deploy-api.result == 'success'
+        if: github.event_name == 'pull_request' && needs.deploy-api.result == 'success' && needs.deploy-web.result == 'success'
         uses: actions/github-script@v7
         with:
           script: |
@@ -168,13 +243,14 @@ jobs:
             | Component | URL |
             |-----------|-----|
             | **API (Railway)** | ${{ needs.deploy-api.outputs.url }} |
+            | **Web (Railway)** | ${{ needs.deploy-web.outputs.url }} |
             | **Web (Vercel)** | Check Vercel bot comment for Preview URL |
 
             _Deployed from commit \`${context.sha.substring(0, 7)}\`_`
             })
 
       - name: Check Overall Status
-        if: needs.deploy-api.result != 'success'
+        if: needs.deploy-api.result != 'success' || needs.deploy-web.result != 'success'
         run: |
           echo "❌ Staging deployment failed"
           exit 1

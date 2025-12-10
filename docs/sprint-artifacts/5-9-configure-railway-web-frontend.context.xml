@@ -9,10 +9,10 @@
   <metadata>
     <title>Configure Railway Web Frontend</title>
     <epic>Epic 5: CI/CD Staging & Production Deployment</epic>
-    <status>drafted</status>
+    <status>approved</status>
     <generated-date>2025-12-09</generated-date>
     <dependencies>
-      <dependency story-id="5-8" status="drafted">Validate Production Deployment</dependency>
+      <dependency story-id="5-8" status="done">Validate Production Deployment</dependency>
       <dependency story-id="5-3" status="done">Configure Docker Containerization (web Dockerfile)</dependency>
     </dependencies>
   </metadata>

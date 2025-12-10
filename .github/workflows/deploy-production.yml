@@ -1,11 +1,11 @@
 # =============================================================================
-# Production Deployment Workflow (Railway API Only)
+# Production Deployment Workflow (Railway API + Web)
 # =============================================================================
 # Triggers: Push to main (after CI passes), manual dispatch
-# Target: Railway production environment
+# Target: Railway production environment (API and Web services)
 #
-# NOTE: Vercel handles web deployments automatically (Production on main merge).
-#       This workflow only deploys the API to Railway production.
+# NOTE: Vercel ALSO handles web deployments automatically (Production on main merge).
+#       This workflow deploys BOTH API and Web to Railway production for dual frontend.
 # =============================================================================
 #
 # SECRETS REQUIRED (configure in GitHub Settings → Environments → production):
@@ -13,10 +13,11 @@
 #
 # ENVIRONMENT VARIABLES (configure in GitHub Settings → Environments → production):
 #   PRODUCTION_API_URL  - Railway production server URL (e.g., https://nx-monoreposerver-production.up.railway.app)
+#   PRODUCTION_WEB_URL  - Railway production web URL (e.g., https://nx-monorepoweb-production.up.railway.app)
 #
 # =============================================================================
 
-name: Deploy to Production (Railway)
+name: Deploy to Production (Railway API + Web)
 
 on:
   # Trigger after CI workflow completes successfully on main
@@ -140,10 +141,79 @@ jobs:
           exit 1
 
   # ==========================================================================
+  # Deploy Web Frontend to Railway Production
+  # ==========================================================================
+  deploy-web:
+    needs: check-ci
+    if: needs.check-ci.outputs.should_deploy == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.get-url.outputs.url }}
+    outputs:
+      url: ${{ steps.get-url.outputs.url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy Web to Railway Production
+        run: |
+          echo "🚀 Deploying web frontend to Railway production environment..."
+          railway up --environment production --service @nx-monorepo/web --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Get Deployment URL
+        id: get-url
+        run: |
+          # Use configured production URL from environment variables
+          RAILWAY_URL="${{ vars.PRODUCTION_WEB_URL }}"
+
+          if [ -z "$RAILWAY_URL" ]; then
+            echo "❌ ERROR: PRODUCTION_WEB_URL not configured in GitHub environment"
+            echo "Please configure PRODUCTION_WEB_URL in GitHub Settings → Environments → production → Variables"
+            echo "Expected format: https://nx-monorepoweb-production.up.railway.app"
+            exit 1
+          fi
+
+          echo "url=$RAILWAY_URL" >> $GITHUB_OUTPUT
+          echo "📍 Production Web URL: $RAILWAY_URL"
+
+      - name: Wait for Railway Web Deployment
+        run: |
+          echo "⏳ Waiting 120s for Railway web deployment to complete..."
+          sleep 120
+
+      - name: Verify Web Health Check
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.skip_health_check != 'true' }}
+        run: |
+          WEB_URL="${{ steps.get-url.outputs.url }}"
+          HEALTH_URL="${WEB_URL}/health"
+          echo "🔍 Checking health at: $HEALTH_URL"
+
+          # Retry up to 5 times with 15s between attempts
+          for i in {1..5}; do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" || echo "000")
+
+            if [ "$HTTP_STATUS" = "200" ]; then
+              echo "✅ Production Web health check passed (attempt $i)"
+              exit 0
+            fi
+            echo "⏳ Attempt $i: HTTP $HTTP_STATUS - retrying in 15s..."
+            sleep 15
+          done
+
+          echo "❌ Production Web health check failed after 5 attempts"
+          exit 1
+
+  # ==========================================================================
   # Post-Deployment Summary
   # ==========================================================================
   deployment-summary:
-    needs: [check-ci, deploy-api]
+    needs: [check-ci, deploy-api, deploy-web]
     if: always() && needs.check-ci.outputs.should_deploy == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -156,6 +226,13 @@ jobs:
 
           # Web status (Vercel auto-deploys on main)
           echo "| Web (Vercel) | ✅ Auto-deployed | See Vercel dashboard |" >> $GITHUB_STEP_SUMMARY
+
+          # Web status (Railway)
+          if [ "${{ needs.deploy-web.result }}" = "success" ]; then
+            echo "| Web (Railway) | ✅ Success | ${{ needs.deploy-web.outputs.url }} |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Web (Railway) | ❌ Failed | - |" >> $GITHUB_STEP_SUMMARY
+          fi
 
           # API status
           if [ "${{ needs.deploy-api.result }}" = "success" ]; then
@@ -170,10 +247,10 @@ jobs:
 
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "_Note: Web deployments are handled by Vercel automatically on merge to main._" >> $GITHUB_STEP_SUMMARY
+          echo "_Note: This is a dual frontend deployment. Vercel and Railway both serve the same app._" >> $GITHUB_STEP_SUMMARY
 
       - name: Check Overall Status
-        if: needs.deploy-api.result != 'success'
+        if: needs.deploy-api.result != 'success' || needs.deploy-web.result != 'success'
         run: |
           echo "❌ Production deployment failed"
           exit 1

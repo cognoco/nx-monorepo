@@ -1,6 +1,6 @@
 # Story 5.8: Validate Production Deployment
 
-Status: review
+Status: done
 
 ## Story
 
