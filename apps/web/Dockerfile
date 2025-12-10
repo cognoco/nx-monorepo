@@ -40,6 +40,8 @@ RUN pnpm install --frozen-lockfile
 ENV NX_DAEMON=false
 ENV NX_SKIP_NX_CACHE=true
 RUN pnpm exec nx sync
+# Generate Prisma client (schema is at non-default location)
+RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
 RUN pnpm exec nx run server:spec-write
 
 # -----------------------------------------------------------------------------
