@@ -8,7 +8,13 @@
  * must physically exist for downstream tasks (generate-types) to succeed.
  * Remote cache restoration of outputs can be unreliable for critical file dependencies.
  */
-import { writeFileSync, mkdirSync } from 'node:fs';
+import {
+  writeFileSync,
+  mkdirSync,
+  existsSync,
+  statSync,
+  readdirSync,
+} from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -30,4 +36,19 @@ const { getOpenApiSpec } = require(openapiPath);
 const out = resolve(workspaceRoot, 'dist/apps/server/openapi.json');
 mkdirSync(dirname(out), { recursive: true });
 writeFileSync(out, JSON.stringify(getOpenApiSpec(), null, 2));
-console.log('✓ Wrote OpenAPI spec:', out);
+
+// Verify file was written successfully (CI debugging)
+if (existsSync(out)) {
+  const stats = statSync(out);
+  console.log('✓ Wrote OpenAPI spec:', out);
+  console.log('  File size:', stats.size, 'bytes');
+  console.log(
+    '  Directory contents:',
+    readdirSync(dirname(out)).filter(
+      (f) => f.includes('openapi') || f.endsWith('.json')
+    )
+  );
+} else {
+  console.error('✗ ERROR: File not found after write:', out);
+  process.exit(1);
+}
