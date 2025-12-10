@@ -71,8 +71,8 @@ jobs:
 
       - name: Deploy to Railway Staging
         run: |
-          echo "🚀 Deploying to Railway staging environment..."
-          railway up --environment staging --detach
+          echo "🚀 Deploying API server to Railway staging environment..."
+          railway up --environment staging --service @nx-monorepo/server --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 

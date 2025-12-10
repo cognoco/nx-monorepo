@@ -90,8 +90,8 @@ jobs:
 
       - name: Deploy to Railway Production
         run: |
-          echo "🚀 Deploying to Railway production environment..."
-          railway up --environment production --detach
+          echo "🚀 Deploying API server to Railway production environment..."
+          railway up --environment production --service @nx-monorepo/server --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
