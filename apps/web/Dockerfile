@@ -39,6 +39,7 @@ RUN pnpm install --frozen-lockfile
 # This builds the server and runs spec-write to create dist/apps/server/openapi.json
 ENV NX_DAEMON=false
 ENV NX_SKIP_NX_CACHE=true
+RUN pnpm exec nx sync
 RUN pnpm exec nx run server:spec-write
 
 # -----------------------------------------------------------------------------
