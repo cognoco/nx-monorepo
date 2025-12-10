@@ -92,33 +92,39 @@ jobs:
           echo "url=$RAILWAY_URL" >> $GITHUB_OUTPUT
           echo "📍 Staging API URL: $RAILWAY_URL"
 
-      - name: Wait for Railway Deployment
-        run: |
-          echo "⏳ Waiting 60s for Railway deployment to complete..."
-          sleep 60
-
       - name: Verify API Health Check
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.skip_health_check != 'true' }}
         run: |
           API_URL="${{ steps.get-url.outputs.url }}"
           HEALTH_URL="${API_URL}/api/health"
-          echo "🔍 Checking health at: $HEALTH_URL"
+          MAX_ATTEMPTS=18
+          INTERVAL=10
+          echo "🔍 Polling health at: $HEALTH_URL"
+          echo "⏳ Will check every ${INTERVAL}s for up to $((MAX_ATTEMPTS * INTERVAL))s..."
 
-          # Retry up to 5 times with 15s between attempts (Railway cold starts can be slower)
-          for i in {1..5}; do
-            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" || echo "000")
-            RESPONSE=$(curl -s "$HEALTH_URL" || echo "{}")
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 5 "$HEALTH_URL" 2>/dev/null || echo "000")
 
             if [ "$HTTP_STATUS" = "200" ]; then
-              echo "✅ API health check passed (attempt $i)"
+              RESPONSE=$(curl -s "$HEALTH_URL" || echo "{}")
+              echo "✅ API health check passed (attempt $i/$MAX_ATTEMPTS)"
               echo "📊 Response: $RESPONSE"
               exit 0
             fi
-            echo "⏳ Attempt $i: HTTP $HTTP_STATUS - retrying in 15s..."
-            sleep 15
+
+            # Show progress with different messages based on status
+            if [ "$HTTP_STATUS" = "000" ]; then
+              echo "⏳ [$i/$MAX_ATTEMPTS] Service not reachable yet (deploying)..."
+            elif [ "$HTTP_STATUS" = "502" ] || [ "$HTTP_STATUS" = "503" ]; then
+              echo "⏳ [$i/$MAX_ATTEMPTS] Service starting (HTTP $HTTP_STATUS)..."
+            else
+              echo "⏳ [$i/$MAX_ATTEMPTS] HTTP $HTTP_STATUS - waiting..."
+            fi
+
+            sleep $INTERVAL
           done
 
-          echo "❌ API health check failed after 5 attempts"
+          echo "❌ API health check failed after $MAX_ATTEMPTS attempts ($((MAX_ATTEMPTS * INTERVAL))s timeout)"
           exit 1
 
   # ==========================================================================
@@ -161,31 +167,37 @@ jobs:
           echo "url=$RAILWAY_URL" >> $GITHUB_OUTPUT
           echo "📍 Staging Web URL: $RAILWAY_URL"
 
-      - name: Wait for Railway Web Deployment
-        run: |
-          echo "⏳ Waiting 90s for Railway web deployment to complete..."
-          sleep 90
-
       - name: Verify Web Health Check
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.skip_health_check != 'true' }}
         run: |
           WEB_URL="${{ steps.get-url.outputs.url }}"
           HEALTH_URL="${WEB_URL}/health"
-          echo "🔍 Checking health at: $HEALTH_URL"
+          MAX_ATTEMPTS=24
+          INTERVAL=10
+          echo "🔍 Polling health at: $HEALTH_URL"
+          echo "⏳ Will check every ${INTERVAL}s for up to $((MAX_ATTEMPTS * INTERVAL))s..."
 
-          # Retry up to 5 times with 15s between attempts
-          for i in {1..5}; do
-            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" || echo "000")
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 5 "$HEALTH_URL" 2>/dev/null || echo "000")
 
             if [ "$HTTP_STATUS" = "200" ]; then
-              echo "✅ Web health check passed (attempt $i)"
+              echo "✅ Web health check passed (attempt $i/$MAX_ATTEMPTS)"
               exit 0
             fi
-            echo "⏳ Attempt $i: HTTP $HTTP_STATUS - retrying in 15s..."
-            sleep 15
+
+            # Show progress with different messages based on status
+            if [ "$HTTP_STATUS" = "000" ]; then
+              echo "⏳ [$i/$MAX_ATTEMPTS] Service not reachable yet (deploying)..."
+            elif [ "$HTTP_STATUS" = "502" ] || [ "$HTTP_STATUS" = "503" ]; then
+              echo "⏳ [$i/$MAX_ATTEMPTS] Service starting (HTTP $HTTP_STATUS)..."
+            else
+              echo "⏳ [$i/$MAX_ATTEMPTS] HTTP $HTTP_STATUS - waiting..."
+            fi
+
+            sleep $INTERVAL
           done
 
-          echo "❌ Web health check failed after 5 attempts"
+          echo "❌ Web health check failed after $MAX_ATTEMPTS attempts ($((MAX_ATTEMPTS * INTERVAL))s timeout)"
           exit 1
 
   # ==========================================================================
