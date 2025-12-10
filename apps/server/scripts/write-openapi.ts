@@ -4,10 +4,9 @@
  * This script generates the OpenAPI JSON specification from the Express app
  * and writes it to dist/apps/server/openapi.json for consumption by api-client.
  *
- * Cache Note: This file is an input to the spec-write Nx target. Any changes
- * here will invalidate the Nx cache, forcing regeneration of the OpenAPI spec.
- *
- * Cache invalidation: 2025-12-10 (fixes poisoned Nx Cloud cache)
+ * Note: Caching is disabled for this task (spec-write) because the output file
+ * must physically exist for downstream tasks (generate-types) to succeed.
+ * Remote cache restoration of outputs can be unreliable for critical file dependencies.
  */
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';

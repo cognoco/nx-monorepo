@@ -25,7 +25,7 @@
         "{projectRoot}/scripts/write-openapi.ts"
       ],
       "outputs": ["{workspaceRoot}/dist/apps/server/openapi.json"],
-      "cache": true
+      "cache": false
     },
     "spec-validate": {
       "executor": "nx:run-commands",
