@@ -275,7 +275,7 @@ note: Railway production auto-deploys from main, so this workflow serves as back
 | **Platform API tokens** | GitHub Secrets (per environment) | VERCEL_TOKEN, RAILWAY_TOKEN |
 | **Database credentials** | Platform dashboards | DATABASE_URL, DIRECT_URL |
 | **Supabase keys** | Platform dashboards | SUPABASE_ANON_KEY, SERVICE_ROLE_KEY |
-| **Observability** | Platform dashboards | SENTRY_DSN, SENTRY_AUTH_TOKEN |
+| **Observability** | Platform dashboards | NEXT_PUBLIC_SENTRY_DSN (web), SENTRY_DSN_API (server), SENTRY_AUTH_TOKEN |
 
 ### GitHub Secrets Structure
 

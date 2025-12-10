@@ -169,7 +169,7 @@ echo "All staging checks passed! ✅"
 | `SUPABASE_URL` | `https://xxxx.supabase.co` | Project-specific |
 | `SUPABASE_ANON_KEY` | Public anon key | Same as local |
 | `NEXT_PUBLIC_API_URL` | Staging API URL | Must point to staging |
-| `SENTRY_DSN` | Staging DSN | Separate environment |
+| `NEXT_PUBLIC_SENTRY_DSN` | Staging DSN | Separate environment |
 | `NODE_ENV` | `production` | Staging uses production mode |
 
 ### Sentry Deployment Warnings (from Story 5.2)

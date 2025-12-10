@@ -1,6 +1,6 @@
 # Story 5.7: Production Deployment Pipeline
 
-Status: drafted
+Status: review
 
 ## Story
 
@@ -33,33 +33,33 @@ So that **merges to main automatically deploy to production**.
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Create production deployment workflow** (AC: #1)
-  - [ ] Create `.github/workflows/deploy-production.yml`
-  - [ ] Configure trigger: push to main (after CI workflow)
-  - [ ] Add Vercel production deployment job
-  - [ ] Add Railway production deployment job
-  - [ ] Add health check verification
+- [x] **Task 1: Create production deployment workflow** (AC: #1)
+  - [x] Create `.github/workflows/deploy-production.yml`
+  - [x] Configure trigger: push to main (after CI workflow)
+  - [x] Add Vercel production deployment job *(via Vercel Git integration auto-deploy)*
+  - [x] Add Railway production deployment job
+  - [x] Add health check verification
 
-- [ ] **Task 2: Configure GitHub production environment** (AC: #2)
-  - [ ] Create/verify `production` environment in GitHub
-  - [ ] Add required secrets (VERCEL_*, RAILWAY_*)
-  - [ ] Configure environment protection rules (optional approval)
+- [x] **Task 2: Configure GitHub production environment** (AC: #2)
+  - [x] Create/verify `production` environment in GitHub
+  - [x] Add required secrets (VERCEL_*, RAILWAY_*)
+  - [x] Configure environment protection rules (optional approval)
 
-- [ ] **Task 3: Configure Railway production environment** (AC: #3)
-  - [ ] Create/verify `production` environment in Railway
-  - [ ] Set DATABASE_URL to Supabase STAGING (temporary)
-  - [ ] Set all required environment variables
-  - [ ] Document temporary database mapping
+- [x] **Task 3: Configure Railway production environment** (AC: #3)
+  - [x] Create/verify `production` environment in Railway
+  - [x] Set DATABASE_URL to Supabase STAGING (temporary)
+  - [x] Set all required environment variables
+  - [x] Document temporary database mapping *(see docs/environment-strategy.md)*
 
-- [ ] **Task 4: Verify Vercel production** (AC: #1)
-  - [ ] Verify Vercel production settings
-  - [ ] Set BACKEND_URL to Railway production URL
-  - [ ] Verify environment variables
+- [x] **Task 4: Verify Vercel production** (AC: #1)
+  - [x] Verify Vercel production settings
+  - [x] Set BACKEND_URL to Railway production URL
+  - [x] Verify environment variables
 
-- [ ] **Task 5: Document rollback procedures** (AC: #4)
-  - [ ] Document Vercel rollback via dashboard
-  - [ ] Document Railway rollback via dashboard
-  - [ ] Note: Full rollback documentation in Story 5.8
+- [x] **Task 5: Document rollback procedures** (AC: #4)
+  - [x] Document Vercel rollback via dashboard *(see docs/environment-strategy.md)*
+  - [x] Document Railway rollback via dashboard *(see docs/environment-strategy.md)*
+  - [x] Note: Full rollback documentation in Story 5.8
 
 ## Dev Notes
 
@@ -96,7 +96,7 @@ jobs:
 NEXT_PUBLIC_SUPABASE_URL     (STAGING project for now)
 NEXT_PUBLIC_SUPABASE_ANON_KEY
 BACKEND_URL                   (Railway production URL)
-SENTRY_DSN, SENTRY_ORG, etc.
+NEXT_PUBLIC_SENTRY_DSN, SENTRY_ORG, etc.
 ```
 
 **Railway (API):**
@@ -142,19 +142,31 @@ N/A - Story created during Epic 5 extension
 
 ### Agent Model Used
 
-<!-- To be filled by implementing agent -->
+Claude Opus 4 (Dev Agent - Mort)
 
 ### Debug Log References
 
-<!-- To be filled during implementation -->
+- Verified deploy-production.yml against story requirements
+- Confirmed Vercel auto-deploy pattern (matches staging workflow)
+- Verified Railway production environment variables
+- Verified Vercel production environment variables
+- Confirmed rollback procedures already documented in environment-strategy.md
 
 ### Completion Notes List
 
-<!-- To be filled after implementation -->
+- Task 1: Production workflow exists with workflow_run trigger, Railway deployment, health checks
+- Task 2: GitHub production environment configured with required secrets (user confirmed)
+- Task 3: Railway production environment configured with all required variables
+  - Fixed: Renamed SENTRY_DSN → SENTRY_DSN_API
+  - Added: CORS_ORIGIN with Vercel production URL
+- Task 4: Vercel production variables verified correct (NEXT_PUBLIC_API_URL=/api ✅)
+- Task 5: Rollback procedures documented in docs/environment-strategy.md
 
 ### File List
 
-<!-- To be filled after implementation -->
+- `.github/workflows/deploy-production.yml` (pre-existing, verified)
+- `docs/environment-strategy.md` (pre-existing, contains rollback docs)
+- `docs/environment-variables-matrix.md` (pre-existing, reference)
 
 ---
 
