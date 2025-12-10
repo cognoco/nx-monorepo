@@ -74,15 +74,17 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build arguments for environment variables needed at build time
-# These are baked into the client-side bundle
+# These are baked into the Next.js build (rewrites, client-side bundle)
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+ARG BACKEND_URL
 
 # Set build-time environment variables
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
+ENV BACKEND_URL=$BACKEND_URL
 
 # Build the web application using Nx
 # This produces a standalone output in apps/web/.next/standalone
