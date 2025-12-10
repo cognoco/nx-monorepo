@@ -12,7 +12,7 @@ A production-ready Nx monorepo template demonstrating best practices for buildin
 
 | Environment | Web App | API |
 |-------------|---------|-----|
-| **Production** | [nx-monorepo-web-zwizzly.vercel.app](https://nx-monorepo-web-zwizzly.vercel.app) | [nx-monoreposerver-production.up.railway.app](https://nx-monoreposerver-production.up.railway.app/api/health) |
+| **Production** | [nx-monorepo-web-ten.vercel.app](https://nx-monorepo-web-ten.vercel.app) | [nx-monoreposerver-production.up.railway.app](https://nx-monoreposerver-production.up.railway.app/api/health) |
 | **Staging** | Vercel Preview URLs (per PR) | [nx-monoreposerver-staging.up.railway.app](https://nx-monoreposerver-staging.up.railway.app/api/health) |
 
 **Walking Skeleton Features:**
