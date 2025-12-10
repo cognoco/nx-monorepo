@@ -10,10 +10,16 @@ A production-ready Nx monorepo template demonstrating best practices for buildin
 
 ## 🚀 Live Demo
 
-| Environment | Web App | API |
-|-------------|---------|-----|
-| **Production** | [nx-monorepo-web-ten.vercel.app](https://nx-monorepo-web-ten.vercel.app) | [nx-monoreposerver-production.up.railway.app](https://nx-monoreposerver-production.up.railway.app/api/health) |
-| **Staging** | Vercel Preview URLs (per PR) | [nx-monoreposerver-staging.up.railway.app](https://nx-monoreposerver-staging.up.railway.app/api/health) |
+### Dual Frontend Architecture (Deployment Portability Proof)
+
+| Environment | Platform | Web App | API |
+|-------------|----------|---------|-----|
+| **Production** | Vercel | [nx-monorepo-web-zwizzly.vercel.app](https://nx-monorepo-web-zwizzly.vercel.app) | [nx-monoreposerver-production.up.railway.app](https://nx-monoreposerver-production.up.railway.app/api/health) |
+| **Production** | Railway | [nx-monorepoweb-production.up.railway.app](https://nx-monorepoweb-production.up.railway.app) | (same API) |
+| **Staging** | Vercel | [nx-monorepo-web-git-e5-2-zwizzly.vercel.app](https://nx-monorepo-web-git-e5-2-zwizzly.vercel.app) | [nx-monoreposerver-staging.up.railway.app](https://nx-monoreposerver-staging.up.railway.app/api/health) |
+| **Staging** | Railway | [nx-monorepoweb-staging.up.railway.app](https://nx-monorepoweb-staging.up.railway.app) | (same API) |
+
+> **Why two frontends?** Both Vercel (native Next.js builder) and Railway (Docker container) serve the **same application**, demonstrating deployment portability. Both connect to the same backend and database.
 
 **Walking Skeleton Features:**
 - `/health` - Health check page demonstrating end-to-end connectivity (web → API → database)
