@@ -72,11 +72,9 @@ COPY --from=builder /app/packages/database/prisma ./prisma/
 
 # Strip devDependencies from package.json, install deps, generate Prisma client, and set ownership
 # All in one RUN to avoid layer duplication from chown
-RUN apk add --no-cache jq && \
-    # Clean package.json: remove devDependencies and nx config
-    jq 'del(.devDependencies) | del(.nx)' package.json > package.json.tmp && \
-    mv package.json.tmp package.json && \
-    apk del jq && \
+# Note: Using node instead of jq for JSON manipulation to avoid Alpine package dependency issues
+#       (jq installation can fail if Alpine package mirrors have transient TLS errors)
+RUN node -e "const p=require('./package.json'); delete p.devDependencies; delete p.nx; require('fs').writeFileSync('package.json', JSON.stringify(p, null, 2));" && \
     # Install production dependencies only
     pnpm install --prod --ignore-scripts && \
     # Generate Prisma client - pin version to match lockfile (Prisma 7 has breaking schema changes)
