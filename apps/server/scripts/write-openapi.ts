@@ -27,8 +27,6 @@ const openapiPath = resolve(
 );
 const { getOpenApiSpec } = require(openapiPath);
 
-// Write to packages/api-client/src/gen/ to avoid server:build cache restoration conflicts
-// The dist/apps/server/ directory can be overwritten by Nx remote cache restoration
 const out = resolve(workspaceRoot, 'packages/api-client/src/gen/openapi.json');
 mkdirSync(dirname(out), { recursive: true });
 writeFileSync(out, JSON.stringify(getOpenApiSpec(), null, 2));
