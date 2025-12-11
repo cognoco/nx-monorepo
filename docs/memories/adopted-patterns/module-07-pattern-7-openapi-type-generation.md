@@ -16,35 +16,52 @@ server:build → server:spec-write → api-client:generate-types → api-client:
     "spec-write": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "tsx scripts/write-openapi.ts"
+        "command": "tsx apps/server/scripts/write-openapi.ts",
+        "cwd": "{workspaceRoot}"
       },
       "dependsOn": ["build"],
-      "outputs": ["{workspaceRoot}/dist/apps/server/openapi.json"]
+      "inputs": [
+        "{workspaceRoot}/dist/apps/server/apps/server/src/**/*.js",
+        "{projectRoot}/scripts/write-openapi.ts"
+      ],
+      "outputs": ["{workspaceRoot}/packages/api-client/src/gen/openapi.json"],
+      "cache": true
     }
   }
 }
 ```
 
+**Note on output location**: The spec is written to `packages/api-client/src/gen/` (not `dist/apps/server/`) to avoid cache conflicts where `server:build` cache restoration could overwrite the spec file.
+
 **Spec Write Script** (`apps/server/scripts/write-openapi.ts`):
 ```typescript
+import { writeFileSync, mkdirSync, existsSync, statSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import { createRequire } from 'node:module';
-import fs from 'node:fs';
-import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const serverRoot = resolve(__dirname, '..');
+const workspaceRoot = resolve(serverRoot, '../..');
 
 const require = createRequire(import.meta.url);
+const openapiPath = resolve(workspaceRoot, 'dist/apps/server/apps/server/src/openapi/index.js');
+const { getOpenApiSpec } = require(openapiPath);
 
-// Load CommonJS module from ESM context
-const { getOpenApiSpec } = require('../dist/apps/server/src/openapi/index.js');
+const out = resolve(workspaceRoot, 'packages/api-client/src/gen/openapi.json');
+mkdirSync(dirname(out), { recursive: true });
+writeFileSync(out, JSON.stringify(getOpenApiSpec(), null, 2));
 
-const spec = getOpenApiSpec();
-const specPath = path.join(process.cwd(), 'dist', 'apps', 'server');
-fs.mkdirSync(specPath, { recursive: true });
-fs.writeFileSync(
-  path.join(specPath, 'openapi.json'),
-  JSON.stringify(spec, null, 2)
-);
-
-console.log('✓ OpenAPI spec written to dist/apps/server/openapi.json');
+// Verify file was written successfully
+if (existsSync(out)) {
+  const stats = statSync(out);
+  console.log('✓ Wrote OpenAPI spec:', out);
+  console.log('  File size:', stats.size, 'bytes');
+} else {
+  console.error('✗ ERROR: File not found after write:', out);
+  process.exit(1);
+}
 ```
 
 **API Client Configuration** (`packages/api-client/project.json`):
@@ -54,15 +71,12 @@ console.log('✓ OpenAPI spec written to dist/apps/server/openapi.json');
     "generate-types": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "openapi-typescript ../../dist/apps/server/openapi.json -o src/gen/openapi.d.ts --export-type"
+        "command": "pnpm exec openapi-typescript packages/api-client/src/gen/openapi.json -o packages/api-client/src/gen/openapi.d.ts --export-type",
+        "cwd": "{workspaceRoot}"
       },
-      "dependsOn": [
-        {
-          "target": "spec-write",
-          "projects": ["server"]
-        }
-      ],
+      "inputs": ["{projectRoot}/src/gen/openapi.json"],
       "outputs": ["{projectRoot}/src/gen/openapi.d.ts"],
+      "dependsOn": ["@nx-monorepo/server:spec-write"],
       "cache": true
     },
     "build": {
@@ -97,15 +111,17 @@ apps/server/
 ├── scripts/
 │   └── write-openapi.ts      # Spec write script
 ├── dist/                     # Build output (gitignored)
-│   └── openapi.json         # Generated spec artifact
 └── project.json             # Contains spec-write target
 
 packages/api-client/
 ├── src/
-│   └── gen/                 # Generated types (gitignored)
-│       └── openapi.d.ts    # TypeScript declarations
+│   └── gen/                 # Generated files (gitignored)
+│       ├── openapi.json    # Generated OpenAPI spec
+│       └── openapi.d.ts    # Generated TypeScript declarations
 └── project.json            # Contains generate-types target
 ```
+
+**Note**: The OpenAPI spec (`openapi.json`) is now written directly to `packages/api-client/src/gen/` alongside the generated types, rather than to `dist/apps/server/`. This avoids cache conflicts with `server:build`.
 
 ### Applies To
 
@@ -237,9 +253,9 @@ async function getHealth(): Promise<HealthCheckResponse> {
 
 ✅ **Correct - file-based**:
 ```json
-// RIGHT - uses build artifact
+// RIGHT - uses build artifact from spec-write
 {
-  "command": "openapi-typescript ../../dist/apps/server/openapi.json"
+  "command": "openapi-typescript packages/api-client/src/gen/openapi.json -o packages/api-client/src/gen/openapi.d.ts"
 }
 ```
 
@@ -330,10 +346,10 @@ pnpm exec nx graph
 **Debug spec generation:**
 ```bash
 # Check spec artifact exists
-ls dist/apps/server/openapi.json
+ls packages/api-client/src/gen/openapi.json
 
 # Validate spec format
-cat dist/apps/server/openapi.json | jq .
+cat packages/api-client/src/gen/openapi.json | jq .
 ```
 
 **Debug type generation:**

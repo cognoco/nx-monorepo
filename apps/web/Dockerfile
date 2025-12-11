@@ -36,7 +36,7 @@ COPY apps/server/ ./apps/server/
 RUN pnpm install --frozen-lockfile
 
 # Generate OpenAPI spec from server source (required for api-client type generation)
-# This builds the server and runs spec-write to create dist/apps/server/openapi.json
+# This builds the server and runs spec-write to create packages/api-client/src/gen/openapi.json
 ENV NX_DAEMON=false
 ENV NX_SKIP_NX_CACHE=true
 RUN pnpm exec nx sync

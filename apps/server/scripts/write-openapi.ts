@@ -2,12 +2,13 @@
  * OpenAPI Spec Generator Script
  *
  * This script generates the OpenAPI JSON specification from the Express app
- * and writes it to dist/apps/server/openapi.json for consumption by api-client.
+ * and writes it to packages/api-client/src/gen/openapi.json for consumption by api-client.
  *
- * Cache Note: This file is an input to the spec-write Nx target. Any changes
- * here will invalidate the Nx cache, forcing regeneration of the OpenAPI spec.
+ * Output location rationale: The spec is written to api-client/src/gen/ (not dist/apps/server/)
+ * to avoid cache conflicts where server:build cache restoration could overwrite the spec file.
+ * This separation allows both spec-write and server:build to be safely cached.
  */
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, existsSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -26,7 +27,16 @@ const openapiPath = resolve(
 );
 const { getOpenApiSpec } = require(openapiPath);
 
-const out = resolve(workspaceRoot, 'dist/apps/server/openapi.json');
+const out = resolve(workspaceRoot, 'packages/api-client/src/gen/openapi.json');
 mkdirSync(dirname(out), { recursive: true });
 writeFileSync(out, JSON.stringify(getOpenApiSpec(), null, 2));
-console.log('✓ Wrote OpenAPI spec:', out);
+
+// Verify file was written successfully (CI debugging)
+if (existsSync(out)) {
+  const stats = statSync(out);
+  console.log('✓ Wrote OpenAPI spec:', out);
+  console.log('  File size:', stats.size, 'bytes');
+} else {
+  console.error('✗ ERROR: File not found after write:', out);
+  process.exit(1);
+}

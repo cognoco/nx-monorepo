@@ -131,18 +131,21 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openApiSpec, {
     "spec-write": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": [
-          "node -e \"const fs = require('fs'); const path = require('path'); const specPath = path.join(process.cwd(), 'dist', 'apps', 'server'); fs.mkdirSync(specPath, { recursive: true }); const { getOpenApiSpec } = require('./dist/apps/server/apps/server/src/openapi/index.js'); const spec = getOpenApiSpec(); fs.writeFileSync(path.join(specPath, 'openapi.json'), JSON.stringify(spec, null, 2));\""
-        ],
+        "command": "tsx apps/server/scripts/write-openapi.ts",
         "cwd": "{workspaceRoot}"
       },
       "dependsOn": ["build"],
-      "outputs": ["{workspaceRoot}/dist/apps/server/openapi.json"]
+      "inputs": [
+        "{workspaceRoot}/dist/apps/server/apps/server/src/**/*.js",
+        "{projectRoot}/scripts/write-openapi.ts"
+      ],
+      "outputs": ["{workspaceRoot}/packages/api-client/src/gen/openapi.json"],
+      "cache": true
     },
     "spec-validate": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm --filter @nx-monorepo/server exec spectral lint ../../dist/apps/server/openapi.json --ruleset ../../.spectral.yaml",
+        "command": "pnpm --filter @nx-monorepo/server exec spectral lint ../../packages/api-client/src/gen/openapi.json --ruleset ../../.spectral.yaml",
         "cwd": "apps/server"
       },
       "dependsOn": ["spec-write"]
@@ -150,6 +153,8 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openApiSpec, {
   }
 }
 ```
+
+**Note on output location**: The spec is written to `packages/api-client/src/gen/` (not `dist/apps/server/`) to avoid cache conflicts where `server:build` cache restoration could overwrite the spec file. This separation allows both `spec-write` and `server:build` to be safely cached.
 
 **Spectral Validation** (`.spectral.yaml` at workspace root):
 ```yaml
@@ -218,7 +223,7 @@ All Express-based server applications that need OpenAPI documentation
 - ✅ **No code generation step**: Simpler development workflow
 
 **Nx build artifact pattern:**
-- ✅ **Deterministic output**: `spec-write` target writes `dist/apps/server/openapi.json`
+- ✅ **Deterministic output**: `spec-write` target writes `packages/api-client/src/gen/openapi.json`
 - ✅ **Cacheable**: Nx can cache spec generation
 - ✅ **Task graph**: Type generation in 4.1.8 depends on `spec-write` output
 - ✅ **Gold standard monorepo**: Explicit build dependencies, no runtime-only artifacts
