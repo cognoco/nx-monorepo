@@ -20,6 +20,7 @@ This file provides guidance to all AI agents when working with code in this repo
 4. **ALWAYS use sub-agents for research** - Preserves context AND provides diverse perspectives that enrich analysis and improve decisions through orchestrated intra-agent discussion (see: Sub-Agent Usage Policy)
 5. **ALWAYS read memory system before `nx g` commands** - Prevent pattern drift (see: Memory System)
 6. **MANDATORY READ before testing work** - Jest is very problematic (see: Jest & Testing Configuration)
+7. **ALWAYS check Expo MCP before writing ANY Expo/React Native code** - Version incompatibility is extremely common (see: Expo MCP Server)
 
 Violating these rules leads to: broken commits, pattern drift, version conflicts, CI failures, and rework.
 
@@ -175,6 +176,46 @@ The following MCP servers extend your capabilities but may not always be enabled
 - **Limitations**: Cannot manipulate database state, inject network failures, or access external systems (CI/CD, Sentry). Use Playwright for edge cases and CI integration.
 - **Workflow**: Accurate PRD → Code Summary → Bootstrap → Test Plan → Execute → Report
 - **See**: `docs/tooling/testsprite-workflow.md` for full operational guide
+
+**Expo MCP Server** ⭐ **MANDATORY FOR ALL EXPO/REACT NATIVE WORK**
+
+**🚨 CRITICAL: Expo SDK version incompatibility is EXTREMELY common. Agents frequently produce code that doesn't work because APIs change between SDK versions. You MUST verify against current documentation before writing ANY Expo code.**
+
+- **When**: BEFORE writing ANY Expo or React Native code - no exceptions
+- **What**: Live Expo documentation, dependency management with `npx expo install`
+- **Why**: Expo SDK APIs change frequently between versions; code examples from training data are often outdated
+- **Tools available**:
+  - `search_documentation` - Search live Expo docs
+  - `add_library` - Install packages with correct compatible versions
+  - `learn` - Get how-to guides for specific topics
+
+**Mandatory workflow for Expo/React Native development:**
+
+1. **BEFORE writing any component, hook, or feature**:
+   - Use `search_documentation` to verify the current API
+   - Check if the API you're about to use exists in the current SDK version
+   - Verify import paths (these change between versions)
+
+2. **BEFORE adding any Expo package**:
+   - Use `add_library` tool - NEVER run `npm install` or `pnpm add` directly
+   - The MCP ensures version compatibility with current SDK
+
+3. **When in doubt**:
+   - Cross-verify with Context7 MCP (`/llmstxt/expo_dev_llms_txt`)
+   - Never assume your training data is current
+
+**Common version-related failures this prevents:**
+- Using deprecated APIs (e.g., old `expo-camera` API)
+- Wrong import paths (e.g., `expo-router` vs `@expo/router`)
+- Incompatible package versions causing build failures
+- Using features that don't exist in the installed SDK version
+
+**If Expo MCP is unavailable:**
+1. Inform user immediately
+2. Use Context7 with library ID `/llmstxt/expo_dev_llms_txt` as fallback
+3. Explicitly warn that code may have version compatibility issues
+
+**Reference**: `docs/memories/expo-development.md` for Context7 library IDs and patterns
 
 ### MCP Server Unavailability Protocol
 
