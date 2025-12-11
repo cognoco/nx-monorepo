@@ -223,7 +223,7 @@ All Express-based server applications that need OpenAPI documentation
 - ✅ **No code generation step**: Simpler development workflow
 
 **Nx build artifact pattern:**
-- ✅ **Deterministic output**: `spec-write` target writes `dist/apps/server/openapi.json`
+- ✅ **Deterministic output**: `spec-write` target writes `packages/api-client/src/gen/openapi.json`
 - ✅ **Cacheable**: Nx can cache spec generation
 - ✅ **Task graph**: Type generation in 4.1.8 depends on `spec-write` output
 - ✅ **Gold standard monorepo**: Explicit build dependencies, no runtime-only artifacts

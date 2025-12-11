@@ -38,9 +38,11 @@ This document provides the complete technology stack inventory for the nx-monore
 
 | Package | Version | Pinning | Purpose |
 |---------|---------|---------|---------|
-| **next** | ~15.2.4 | Tilde (~) | React framework for web app |
+| **next** | ~15.2.6 | Tilde (~) | React framework for web app |
 | **react** | 19.0.0 | Exact | UI library |
 | **react-dom** | 19.0.0 | Exact | React DOM renderer |
+| **@types/react** | 19.0.1 | Exact | TypeScript types for React |
+| **@types/react-dom** | 19.0.1 | Exact | TypeScript types for React DOM |
 | **tailwindcss** | 3.4.3 | Exact | Utility-first CSS framework |
 | **autoprefixer** | 10.4.13 | Exact | PostCSS plugin for vendor prefixes |
 | **postcss** | 8.4.38 | Exact | CSS transformation tool |
