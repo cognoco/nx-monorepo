@@ -13,7 +13,7 @@
       "inputs": ["{projectRoot}/src/gen/openapi.json"],
       "outputs": ["{projectRoot}/src/gen/openapi.d.ts"],
       "dependsOn": ["@nx-monorepo/server:spec-write"],
-      "cache": false
+      "cache": true
     },
     "build": {
       "executor": "nx:run-commands",

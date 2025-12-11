@@ -2,19 +2,13 @@
  * OpenAPI Spec Generator Script
  *
  * This script generates the OpenAPI JSON specification from the Express app
- * and writes it to dist/apps/server/openapi.json for consumption by api-client.
+ * and writes it to packages/api-client/src/gen/openapi.json for consumption by api-client.
  *
- * Note: Caching is disabled for this task (spec-write) because the output file
- * must physically exist for downstream tasks (generate-types) to succeed.
- * Remote cache restoration of outputs can be unreliable for critical file dependencies.
+ * Output location rationale: The spec is written to api-client/src/gen/ (not dist/apps/server/)
+ * to avoid cache conflicts where server:build cache restoration could overwrite the spec file.
+ * This separation allows both spec-write and server:build to be safely cached.
  */
-import {
-  writeFileSync,
-  mkdirSync,
-  existsSync,
-  statSync,
-  readdirSync,
-} from 'node:fs';
+import { writeFileSync, mkdirSync, existsSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
