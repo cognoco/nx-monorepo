@@ -25,9 +25,9 @@
         "{projectRoot}/scripts/write-openapi.ts"
       ],
       "outputs": ["{workspaceRoot}/packages/api-client/src/gen/openapi.json"],
-      "cache": false,
+      "cache": true,
       "metadata": {
-        "description": "Caching disabled: task depends on build artifacts in dist/ which are unreliably restored from remote cache (Nx 22 migration issue). Task is fast (~1s), caching overhead not worth the flaky CI failures."
+        "description": "Generates OpenAPI spec from compiled server routes. Cache invalidated via sharedGlobals bust (nx.json) after Nx 22 migration."
       }
     },
     "spec-validate": {
