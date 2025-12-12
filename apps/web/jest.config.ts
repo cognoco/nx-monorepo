@@ -1,5 +1,5 @@
-import type { Config } from 'jest';
-import nextJest from 'next/jest.js';
+const { Config } = require('jest');
+const nextJest = require('next/jest.js').default ?? require('next/jest.js');
 
 const createJestConfig = nextJest({
   dir: './',
@@ -32,4 +32,4 @@ const config: Config = {
   forceExit: false, // Redundant but kept for easy manual toggle
 };
 
-export default createJestConfig(config);
+module.exports = createJestConfig(config);

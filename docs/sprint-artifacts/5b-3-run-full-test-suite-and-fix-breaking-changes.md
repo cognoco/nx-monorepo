@@ -53,7 +53,14 @@ So that we have confidence the upgrade didn't break functionality.
   - [ ] Identify failing tests
   - [ ] Fix test failures (may require Jest config updates)
 
-- [ ] **Task 5:** Document fixes
+- [ ] **Task 5:** Validate Next.js 16 compatibility
+  - [ ] Verify `next build` completes successfully
+  - [ ] Verify `next dev` starts without errors
+  - [ ] Test Sentry integration still works with Next.js 16
+  - [ ] Verify rewrites configuration functions correctly
+  - [ ] Check for Next.js 16 deprecation warnings in console
+
+- [ ] **Task 6:** Document fixes
   - [ ] Create commit for each category of fix
   - [ ] Document any patterns for future upgrades
 
@@ -61,18 +68,27 @@ So that we have confidence the upgrade didn't break functionality.
 
 Nx 22.x may introduce breaking changes in:
 
-1. **Jest Configuration** - Nx 22.2 has Jest-specific migrations that may affect:
-   - `jest.config.ts` files
+1. **Next.js 16 (IMPORTANT)** - Nx migrate automatically upgraded Next.js 15.2.6 → 16.0.8:
+   - Major version upgrade with potential breaking changes
+   - Sentry integration needs verification
+   - `next.config.js` may have SVGR config added by migration
+   - Rewrites and middleware behavior may differ
+   - See: https://nextjs.org/blog/next-16
+
+2. **Jest Configuration** - Nx 22.2 has Jest-specific migrations that may affect:
+   - `jest.config.ts` files (ESM → CJS conversion)
    - `jest.preset.js` usage
    - Transform configurations
 
-2. **ESLint Configuration** - Flat config updates may affect:
+3. **ESLint Configuration** - Flat config updates may affect:
    - `.eslintrc.*` files
    - Plugin resolutions
+   - `eslint-config-next` upgraded to 16.0.8
 
-3. **TypeScript Configuration** - Path resolution may change:
+4. **TypeScript Configuration** - Path resolution may change:
    - `tsconfig.base.json`
    - Project-level `tsconfig.json`
+   - Redundant project references removed by migration
 
 ### Project Structure Notes
 
@@ -126,7 +142,10 @@ Verify `tsconfig.base.json` paths match project structure
 - **Artifacts produced:** All tests green, all builds passing, fixes documented in commits
 - **Handover to:** 💻 Dev (Mort) for Story 5b.4
 - **Context for next:** Test infrastructure stable; proceed with React version alignment
-- **Known concerns:** Windows Jest hanging issue may surface; use `NX_DAEMON=false` if needed
+- **Known concerns:**
+  - Windows Jest hanging issue may surface; use `NX_DAEMON=false` if needed
+  - **Next.js 16 upgrade was automatic** (via nx migrate) - needs explicit validation
+  - Sentry + Next.js 16 compatibility unverified
 
 ---
 
