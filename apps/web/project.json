@@ -41,9 +41,10 @@
           "externalDependencies": ["typescript"]
         }
       ],
+      "outputs": ["{projectRoot}/.next/types"],
       "metadata": {
         "technologies": ["typescript"],
-        "description": "Runs type-checking for the project."
+        "description": "Runs type-checking for the project. Outputs include generated route types from next typegen."
       }
     },
     "format:check": {}
