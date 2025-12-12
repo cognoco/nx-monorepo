@@ -226,9 +226,9 @@ development_status:
   5b-5-validate-cicd-pipeline: done  # COMPLETED 2025-12-12 - CI green, Nx Cloud verified
   5b-6-install-nx-expo-plugin: done  # APPROVED 2025-12-12 - Senior Dev Review passed
   5b-7-install-and-configure-expo-clis: done  # APPROVED 2025-12-12 - Senior Dev Review passed, all ACs verified
-  5b-8-update-documentation: review  # COMPLETED 2025-12-12 - Ready for code review
-  5b-9-final-validation-and-merge-to-main: ready-for-dev  # Context generated 2025-12-11
-  epic-5b-retrospective: optional
+  5b-8-update-documentation: done  # APPROVED 2025-12-12 - Documentation updated
+  5b-9-final-validation-and-merge-to-main: done  # COMPLETED 2025-12-12 - Fresh clone validated, PR #42 ready for merge
+  epic-5b-retrospective: completed  # Epic 5b complete - Nx 22.x + @nx/expo ready for Epic 6
 
   # Epic 6: Mobile Walking Skeleton (Extended 2025-12-08)
   epic-6: contexted  # Tech context completed 2025-12-05 - see epic-6-design-decisions.md
