@@ -1,3 +1,4 @@
+// Test: AC-6.7.1 - This web-only change should NOT trigger mobile CI
 export default function Index() {
   /*
    * Replace the elements below with your own.
