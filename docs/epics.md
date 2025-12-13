@@ -815,7 +815,7 @@ So that I have confidence in deployment portability.
 
 ## Epic 5b: Nx 22.x Infrastructure Upgrade
 
-**Status:** 🚧 **IN PROGRESS** | Branch: `e5b/expo-prep`
+**Status:** ✅ **COMPLETE** | Branch: `e5b/expo-prep` (merged 2025-12-12)
 
 **User Value Statement:** The monorepo foundation is upgraded to support modern Expo SDK 54 development, enabling Epic 6 mobile implementation with proper @nx/expo plugin integration.
 
@@ -851,14 +851,14 @@ So that I have confidence in deployment portability.
 **Progress:**
 - [x] Analysis complete (2025-12-11)
 - [x] Branch created: `e5b/expo-prep`
-- [ ] Nx migrate executed
-- [ ] Plugins updated
-- [ ] Tests validated
-- [ ] React updated
-- [ ] CI validated
-- [ ] @nx/expo installed
-- [ ] Docs updated
-- [ ] Merged to main
+- [x] Nx migrate executed (21.6.5 → 22.2.0)
+- [x] Plugins updated (@nx/* packages aligned to 22.2.0)
+- [x] Tests validated (222 tests passing)
+- [x] React updated (19.0.1 → 19.1.0 with pnpm overrides)
+- [x] CI validated (Nx Cloud working)
+- [x] @nx/expo installed (22.2.0 with SDK 54 support)
+- [x] Docs updated (design decisions, tech-stack, architecture)
+- [x] Merged to main (2025-12-12)
 
 ---
 
@@ -1254,13 +1254,14 @@ So that I can build cross-platform mobile experiences.
 **Prerequisites:** **Epic 5b complete** (Nx 22.x Infrastructure Upgrade)
 
 **Technical Notes:**
-- **SDK Version:** Expo SDK 54 (required by @nx/expo >= 54.0.0) with React 19.1.0
-- **Nx Generation:** `pnpm exec nx g @nx/expo:app mobile --directory=apps/mobile`
-- **Architecture:** Use New Architecture (default in SDK 54, required in SDK 55)
-- Follow `docs/memories/post-generation-checklist.md` after generation
+- **SDK Version:** Expo SDK 54 (54.0.29 installed, required by @nx/expo) with React 19.1.0
+- **Nx Generation:** `pnpm exec nx g @nx/expo:application mobile --directory=apps/mobile`
+- **Architecture:** Use **Legacy Architecture** (SDK 54 is last version supporting it; SDK 55 requires New Architecture)
+- Follow Cogno post-generation checklist after generation
 - Verify path aliases work for shared packages
-- Metro bundler configured automatically by @nx/expo
+- Metro bundler configured automatically via `expo/metro-config` (SDK 52+ feature, no manual watchFolders needed)
 - Update `.github/workflows/ci.yml` if needed
+- **Design Reference:** See `docs/sprint-artifacts/epic-6-design-decisions.md` for full architectural decisions
 
 ---
 
@@ -2509,9 +2510,9 @@ So that we're ready for real user traffic.
 | 2 | E2E Testing & Quality Gates | MVP | 4 | Pending |
 | 3 | Observability Baseline | MVP | 4 | ✅ Complete |
 | 4 | Authentication Infrastructure | MVP | 4 | ✅ Complete |
-| 5 | CI/CD Multi-Platform Deployment | MVP | 10 | In Progress |
-| **5b** | **Nx 22.x Infrastructure Upgrade** | **MVP** | **9** | **🚧 In Progress** |
-| 6 | Mobile Walking Skeleton | MVP | 7 | Blocked by 5b |
+| 5 | CI/CD Multi-Platform Deployment | MVP | 10 | ✅ Complete |
+| **5b** | **Nx 22.x Infrastructure Upgrade** | **MVP** | **9** | **✅ Complete** |
+| 6 | Mobile Walking Skeleton | MVP | 7 | Ready |
 | 7 | MVP Documentation | MVP | 4 | Pending |
 | 8 | Task Data Model & CRUD | PoC | 5 | Pending |
 | 9 | User Authentication Flows | PoC | 5 | Pending |
@@ -2523,7 +2524,7 @@ So that we're ready for real user traffic.
 
 ### Totals
 
-- **Phase 1 MVP:** 8 Epics, 42 Stories (Epics 1, 3, 4 complete; Epic 5 in progress; Epic 5b blocks Epic 6)
+- **Phase 1 MVP:** 8 Epics, 42 Stories (Epics 1, 3, 4, 5, 5b complete; Epic 6 ready to start)
 - **Phase 2 PoC:** 7 Epics, 30 Stories
 - **Total:** 15 Epics, 72 Stories
 

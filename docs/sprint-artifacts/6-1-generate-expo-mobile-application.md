@@ -1,164 +1,186 @@
 # Story 6.1: Generate Expo Mobile Application
 
-Status: ready-for-dev
+**Status:** drafted
 
-## Story
+---
+
+## User Story
 
 As a mobile developer,
 I want an Expo mobile app in the monorepo,
-so that I can build cross-platform mobile experiences.
+So that I can build cross-platform mobile experiences.
+
+---
 
 ## Acceptance Criteria
 
-1. **Given** the Nx workspace exists  
-   **When** I generate the mobile app with `pnpm exec nx g @nx/expo:app mobile --directory=apps/mobile`  
-   **Then** the app is created with correct structure
+1. **Given** Epic 5b is complete (Nx 22.x + @nx/expo installed)
+   **When** I generate the mobile app with `pnpm exec nx g @nx/expo:application mobile --directory=apps/mobile`
+   **Then** the app is created with correct structure in `apps/mobile/`
 
-2. **Given** the mobile app is generated  
-   **When** I run `pnpm exec nx run mobile:start`  
-   **Then** Expo dev server launches and QR code is displayed
+2. **Given** the mobile app is generated
+   **When** I run `pnpm exec nx run mobile:start`
+   **Then** Expo dev server launches successfully
 
-3. **Given** the mobile app is generated  
-   **When** I run `pnpm exec nx run mobile:lint`  
-   **Then** linting passes with no errors
+3. **Given** the mobile app is generated
+   **When** I run `pnpm exec nx run mobile:lint`
+   **Then** lint passes with no errors
 
-4. **Given** the mobile app is generated  
-   **When** I run `pnpm exec nx run mobile:test`  
+4. **Given** the mobile app is generated
+   **When** I run `pnpm exec nx run mobile:test`
    **Then** default tests pass
 
-5. **Given** Nx @nx/expo plugin doesn't support SDK 53  
-   **When** I use the fallback approach  
-   **Then** I can generate with `create-expo-app` and manually integrate into Nx
+5. **Given** the mobile app is generated
+   **When** I verify TypeScript path aliases
+   **Then** shared packages (`@nx-monorepo/*`) are importable
 
-6. **Given** the mobile app uses Expo Router  
-   **When** I inspect the project structure  
-   **Then** routes are in the `app/` directory following file-based routing
-
-7. **Given** Metro bundler needs monorepo support  
-   **When** I configure `metro.config.js`  
-   **Then** the config includes `watchFolders` and `nodeModulesPaths` for workspace root
+---
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Verify Nx Plugin Compatibility** (AC: 1, 5)
-  - [ ] Check @nx/expo version in Nx 21.6.5
-  - [ ] Verify SDK 53 / React Native 0.79 support
-  - [ ] Document findings in story notes
+- [ ] **Task 1: Generate Expo Application** (AC: 1)
+  - [ ] 1.1 Run `pnpm exec nx g @nx/expo:application mobile --directory=apps/mobile`
+  - [ ] 1.2 Verify app structure created in `apps/mobile/`
+  - [ ] 1.3 Verify `project.json` has expected targets (start, build, lint, test, etc.)
+  - [ ] 1.4 Verify `app.json`/`app.config.js` created with valid Expo config
 
-- [ ] **Task 2: Generate Mobile Application** (AC: 1, 2)
-  - [ ] Run `pnpm exec nx g @nx/expo:app mobile --directory=apps/mobile`
-  - [ ] OR (if fallback needed): Run `npx create-expo-app apps/mobile --template blank-typescript`
-  - [ ] Verify app structure created correctly
+- [ ] **Task 2: Apply Post-Generation Fixes** (AC: 1, 3, 4)
+  - [ ] 2.1 Check and apply post-generation checklist (`docs/memories/post-generation-checklist/`)
+  - [ ] 2.2 Verify Jest configuration aligns with workspace patterns
+  - [ ] 2.3 Verify TypeScript configuration uses `bundler` resolution (or appropriate for Expo)
+  - [ ] 2.4 Add testing enhancement libraries if needed (`@testing-library/react-native`)
+  - [ ] 2.5 Verify `tsconfig.json` extends `tsconfig.base.json` for path aliases
 
-- [ ] **Task 3: Configure for Expo SDK 53** (AC: 1, 6)
-  - [ ] Ensure `expo: ~53.0.0` in package.json
-  - [ ] Ensure `react: 19.0.0` matches web app exactly
-  - [ ] Ensure `react-native: ~0.79.0` per SDK 53 requirements
-  - [ ] Configure Expo Router if not default
+- [ ] **Task 3: Validate Expo Dev Server** (AC: 2)
+  - [ ] 3.1 Run `pnpm exec nx run mobile:start`
+  - [ ] 3.2 Verify Expo CLI launches without errors
+  - [ ] 3.3 Verify QR code displayed for Expo Go
+  - [ ] 3.4 Test basic navigation in Expo Go (if possible) or web preview
 
-- [ ] **Task 4: Configure Metro for Monorepo** (AC: 7)
-  - [ ] Update `metro.config.js` with monorepo support:
-    ```javascript
-    const projectRoot = __dirname;
-    const monorepoRoot = path.resolve(projectRoot, '../..');
-    config.watchFolders = [monorepoRoot];
-    config.resolver.nodeModulesPaths = [
-      path.resolve(projectRoot, 'node_modules'),
-      path.resolve(monorepoRoot, 'node_modules'),
-    ];
-    ```
-  - [ ] Validate Metro config works with Nx wrapper (if present)
+- [ ] **Task 4: Validate Quality Gates** (AC: 3, 4)
+  - [ ] 4.1 Run `pnpm exec nx run mobile:lint` - verify passes
+  - [ ] 4.2 Run `pnpm exec nx run mobile:test` - verify default tests pass
+  - [ ] 4.3 Run `pnpm exec nx run mobile:typecheck` - verify no TypeScript errors (if target exists)
 
-- [ ] **Task 5: Follow Post-Generation Checklist** (AC: 1, 3, 4)
-  - [ ] Review `docs/memories/post-generation-checklist.md`
-  - [ ] Apply any necessary fixes to generated code
-  - [ ] Verify TypeScript configuration
+- [ ] **Task 5: Verify Monorepo Integration** (AC: 5)
+  - [ ] 5.1 Add test import of `@nx-monorepo/schemas` in a mobile file
+  - [ ] 5.2 Verify TypeScript resolves path alias without errors
+  - [ ] 5.3 Run `pnpm exec nx graph` - verify mobile app appears in dependency graph
+  - [ ] 5.4 Remove test import (cleanup)
 
-- [ ] **Task 6: Verify All Nx Targets** (AC: 2, 3, 4)
-  - [ ] Run `pnpm exec nx run mobile:start` - verify Expo server starts
-  - [ ] Run `pnpm exec nx run mobile:lint` - verify passes
-  - [ ] Run `pnpm exec nx run mobile:test` - verify default tests pass
+- [ ] **Task 6: Update CI/CD** (AC: all)
+  - [ ] 6.1 Verify `.github/workflows/ci.yml` includes mobile targets (or add if missing)
+  - [ ] 6.2 Push changes and verify CI pipeline passes with new mobile project
 
-- [ ] **Task 7: Validate No Duplicate Dependencies** (AC: 1)
-  - [ ] Run `pnpm why react` - ensure single version (19.0.0)
-  - [ ] Run `pnpm why react-native` - ensure single version
-  - [ ] Document any resolution issues
-
-- [ ] **Task 8: Update CI Workflow (if needed)** (AC: 3, 4)
-  - [ ] Check if `.github/workflows/ci.yml` needs mobile targets
-  - [ ] Add mobile:lint and mobile:test to affected targets if missing
+---
 
 ## Dev Notes
 
-### Key Design Decisions
+### Architecture Context
 
-From `docs/sprint-artifacts/epic-6-design-decisions.md`:
+**SDK Version:** Expo SDK 54 (54.0.29) - Required by @nx/expo 22.2.0 plugin
+**React Native:** 0.81.5
+**React:** 19.1.0 (aligned with web app)
+**Navigation:** expo-router v6 (file-based routing)
+**Architecture:** Legacy Architecture (SDK 54 is last version supporting it; SDK 55 will require New Architecture)
 
-| Decision | Choice | Notes |
-|----------|--------|-------|
-| **SDK Version** | Expo SDK 53 | React 19.0.0 matches web exactly |
-| **Navigation** | Expo Router | File-based routing, out-of-box scaffolding |
-| **Generation** | @nx/expo:app | Fallback: create-expo-app + manual integration |
-| **Metro Config** | Monorepo support | watchFolders + nodeModulesPaths |
+**Key Decision:** Use Legacy Architecture for the walking skeleton to maximize compatibility and library support. New Architecture migration planned for SDK 55 upgrade.
 
-### Project Structure (Expected)
+### Expected Project Structure
 
 ```
 apps/mobile/
-├── app/                        # Expo Router routes
-│   ├── _layout.tsx             # Root layout
-│   ├── index.tsx               # Home screen (/)
-│   └── +not-found.tsx          # 404 handler
-├── src/
-│   ├── components/             # Reusable components
-│   └── lib/                    # Utilities
-├── app.json                    # Expo configuration
-├── app.config.ts               # Dynamic Expo config
-├── babel.config.js             # Babel configuration
-├── metro.config.js             # Metro bundler config
-├── tsconfig.json               # TypeScript config
-├── jest.config.ts              # Jest configuration
-└── project.json                # Nx project configuration
+├── app/                    # Expo Router routes
+│   ├── _layout.tsx         # Root layout
+│   ├── index.tsx           # Home screen (/)
+│   └── +not-found.tsx      # 404 handler
+├── assets/                 # Static assets (images, fonts)
+├── app.json                # Expo configuration
+├── babel.config.js         # Babel configuration
+├── metro.config.js         # Metro bundler (auto-configured)
+├── package.json            # Mobile-specific dependencies
+├── project.json            # Nx project configuration
+├── tsconfig.json           # TypeScript config (extends base)
+└── jest.config.ts          # Jest configuration
 ```
 
-### Walking Skeleton Principle
+### Metro Configuration
 
-**Use out-of-box scaffolding.** Do NOT:
-- Add custom navigation patterns (tabs, drawers)
-- Add state management libraries
-- Add offline-first patterns
-- Add custom theming
+Since SDK 52, Expo automatically configures Metro for monorepos when using `expo/metro-config`. **No manual watchFolders configuration required.**
 
-### Open Questions to Resolve
+If `@nx/expo` generator includes `withNxMetro` wrapper, it should be compatible. Validate during Task 1.
 
-| Question | Resolution Path |
-|----------|-----------------|
-| Does @nx/expo support SDK 53? | Test during generation |
-| Does Nx Metro wrapper conflict with monorepo config? | Validate after generation |
+### Generator Command Reference
 
-### Testing Standards
+```bash
+# Primary command (use this)
+pnpm exec nx g @nx/expo:application mobile --directory=apps/mobile
 
-- Co-locate tests in `src/` next to source files (`.spec.tsx`)
-- Use Jest for unit tests
-- Follow patterns from `docs/memories/testing-reference.md`
+# Alternative syntax (same result)
+pnpm exec nx g @nx/expo:app mobile --directory=apps/mobile
+```
+
+### Validation Commands
+
+```bash
+# After generation - quality gates
+pnpm exec nx run mobile:lint
+pnpm exec nx run mobile:test
+pnpm exec nx run mobile:start
+
+# Monorepo health
+pnpm exec nx graph                    # Verify dependency graph
+pnpm why react                        # Verify single React version
+pnpm why react-native                 # Verify single RN version
+```
+
+### Project Structure Notes
+
+- **Test location:** Co-located in `src/` or `app/` (following workspace convention)
+- **Path aliases:** Must work via `tsconfig.base.json` paths
+- **Nx plugin:** @nx/expo 22.2.0 configured in `nx.json` with all target names
+
+### Open Questions to Validate
+
+| Question | Expected | Validate During |
+|----------|----------|-----------------|
+| Does `withNxMetro` wrapper work with auto-config? | Yes | Task 1.4 |
+| Are path aliases working out-of-box? | Yes | Task 5.1-5.2 |
+| Does @nx/expo generate jest.config? | Yes | Task 2.2 |
+| What testing libraries are included? | Minimal | Task 2.4 |
 
 ### References
 
-- [Source: docs/sprint-artifacts/epic-6-design-decisions.md#D1-D4]
-- [Source: docs/sprint-artifacts/tech-spec-epic-6.md#AC-6.1]
-- [Source: docs/epics.md#Story-6.1]
-- [Source: docs/memories/post-generation-checklist.md]
-- [Expo Monorepo Guide](https://docs.expo.dev/guides/monorepos)
+- [Source: docs/sprint-artifacts/epic-6-design-decisions.md] - SDK 54 decisions, Metro config, architecture strategy
+- [Source: docs/sprint-artifacts/epic-5b-nx-upgrade-analysis.md] - Nx 22 upgrade analysis, @nx/expo requirements
+- [Source: docs/epics.md#Epic-6] - Acceptance criteria and user story
+- [Source: docs/architecture.md#Project-Structure] - Monorepo dependency flow
+- [Source: docs/memories/post-generation-checklist/] - Post-generation fixes
+
+### Learnings from Previous Story
+
+**From Story 5b.9 (Epic 5b Final Validation):**
+
+- **Fresh clone note:** After fresh install, Prisma client generation needed: `pnpm --filter @nx-monorepo/database db:generate`
+- **Test baseline:** 222 tests passing across 6 projects (expect this story to add mobile tests)
+- **CI status:** Green on main after Epic 5b merge
+- **Infrastructure ready:** Nx 22.2.0+, @nx/expo 22.2.0, React 19.1.0, Expo SDK 54 all installed and validated
+- **Expo CLI verified:** `npx expo --version` returns version info
+- **EAS CLI verified:** `eas whoami` confirms authenticated user
+
+[Source: docs/sprint-artifacts/5b-9-final-validation-and-merge-to-main.md#Dev-Agent-Record]
+
+---
 
 ## Dev Agent Record
 
 ### Context Reference
 
-- `docs/sprint-artifacts/6-1-generate-expo-mobile-application.context.xml` (generated 2025-12-05)
+<!-- Path(s) to story context XML will be added here by context workflow -->
 
 ### Agent Model Used
 
-<!-- To be filled by dev agent -->
+{{agent_model_name_version}}
 
 ### Debug Log References
 
@@ -168,9 +190,8 @@ apps/mobile/
 
 ---
 
-## Change Log
+## Changelog
 
 | Date | Author | Change |
 |------|--------|--------|
-| 2025-12-05 | SM Agent | Initial draft from epic-6 contexting |
-
+| 2025-12-13 | SM Agent (Rincewind) | Story drafted from Epic 6 requirements with SDK 54 context from Epic 5b |
