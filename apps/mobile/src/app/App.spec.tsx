@@ -193,4 +193,10 @@ describe('App (Health Check Screen)', () => {
       expect(mockApiClient.GET).toHaveBeenCalledTimes(2);
     });
   });
+
+  // AC-6.7.4 TEST: Intentional test failure to verify CI gate
+  it('AC-6.7.4 - intentional failing test to verify CI blocks PRs with test failures', () => {
+    // This test is intentionally designed to fail for CI validation
+    expect(true).toBe(false);
+  });
 });
