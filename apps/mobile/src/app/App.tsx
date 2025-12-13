@@ -24,7 +24,15 @@ import { useCreateHealthCheck } from '../hooks/useCreateHealthCheck';
  * Combines the HealthCheckList component with useHealthChecks and
  * useCreateHealthCheck hooks to provide full health check functionality.
  */
+// AC-6.7.3 TEST: Intentional lint error - using var instead of const (no-var rule)
+// Also adding explicit @ts-expect-error without actual error to trigger lint error
+// @ts-expect-error - Intentional lint error for CI validation
+var intentionalLintError = 'This uses var which should be an error';
+
 export const App = () => {
+  // Force usage to avoid unused warning masking the var error
+  console.log(intentionalLintError);
+
   // Fetch health checks
   const { data, loading, error, refetch, refreshing } = useHealthChecks();
 
